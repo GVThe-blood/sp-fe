@@ -1,0 +1,64 @@
+<div class="address-card" [class.loading]="isLoading">
+  <!-- Header with label and default badge -->
+  <div class="address-header">
+    <div class="address-label-row">
+      @if (address.label) {
+        <span class="address-label">{{ address.label }}</span>
+      }
+      @if (isDefault) {
+        <span class="default-badge">Mặc định</span>
+      }
+    </div>
+  </div>
+
+  <!-- Recipient info -->
+  <div class="address-content">
+    <div class="recipient-info">
+      <span class="recipient-name">{{ address.recipientName }}</span>
+      <span class="recipient-phone">{{ address.phoneNumber }}</span>
+    </div>
+
+    <!-- Full address -->
+    <div class="full-address">
+      {{ getFullAddress() }}
+    </div>
+  </div>
+
+  <!-- Action buttons -->
+  <div class="address-actions">
+    <button 
+      class="action-btn edit-btn" 
+      (click)="onEdit()"
+      [disabled]="isLoading"
+      title="Chỉnh sửa">
+      <span class="material-symbols-outlined">edit</span>
+      <span class="action-text">Chỉnh sửa</span>
+    </button>
+
+    <button 
+      class="action-btn default-btn" 
+      (click)="onSetDefault()"
+      [disabled]="isLoading || isDefault"
+      [class.is-default]="isDefault"
+      title="Đặt làm mặc định">
+      <span class="material-symbols-outlined">{{ isDefault ? 'star' : 'star_border' }}</span>
+      <span class="action-text">{{ isDefault ? 'Mặc định' : 'Đặt mặc định' }}</span>
+    </button>
+
+    <button 
+      class="action-btn delete-btn" 
+      (click)="onDelete()"
+      [disabled]="isLoading"
+      title="Xóa">
+      <span class="material-symbols-outlined">delete</span>
+      <span class="action-text">Xóa</span>
+    </button>
+  </div>
+
+  <!-- Loading overlay -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+  }
+</div>

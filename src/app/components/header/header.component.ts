@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, ElementRef, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, ElementRef, viewChild, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeToggleComponent } from '../theme-toggle/theme-toggle.component';
+import { UserService } from '../../services/user.service';
 
 interface Language {
   code: string;
@@ -31,9 +32,13 @@ interface NavItem {
   }
 })
 export class HeaderComponent {
+  userService = inject(UserService);
+  user = this.userService.currentUser;
+
   langDropdownContainer = viewChild<ElementRef>('langDropdownContainer');
   searchContainer = viewChild<ElementRef>('searchContainer');
   searchIcon = viewChild<ElementRef>('searchIcon');
+  userDropdownContainer = viewChild<ElementRef>('userDropdownContainer');
 
   navItems = signal<NavItem[]>([
     {
@@ -74,6 +79,7 @@ export class HeaderComponent {
   selectedLanguage = signal<Language>(this.languages()[0]);
   isLangDropdownOpen = signal(false);
   isSearchOpen = signal(false);
+  isUserDropdownOpen = signal(false);
   logoUrl = signal<string>('http://localhost:9000/categories/image-removebg-preview_LE_upscale_balanced_x4_light_ai_30_tone_enhance_30_color_enhance_30_remove_background_general_clip_to_object_off.png');
 
   activeMenu = signal<NavItem | null>(null);
@@ -83,6 +89,11 @@ export class HeaderComponent {
     const langContainer = this.langDropdownContainer();
     if (langContainer && !langContainer.nativeElement.contains(event.target)) {
       this.isLangDropdownOpen.set(false);
+    }
+
+    const userContainer = this.userDropdownContainer();
+    if (userContainer && !userContainer.nativeElement.contains(event.target)) {
+      this.isUserDropdownOpen.set(false);
     }
 
     const searchContainerEl = this.searchContainer();
@@ -101,6 +112,7 @@ export class HeaderComponent {
     this.activeMenu.set(null);
     this.isSearchOpen.set(false);
     this.isLangDropdownOpen.set(false);
+    this.isUserDropdownOpen.set(false);
   }
 
   toggleLangDropdown(): void {
@@ -108,13 +120,34 @@ export class HeaderComponent {
     if (this.isLangDropdownOpen()) {
       this.activeMenu.set(null);
       this.isSearchOpen.set(false);
+      this.isUserDropdownOpen.set(false);
     }
+  }
+
+  toggleUserDropdown(): void {
+    this.isUserDropdownOpen.update(open => !open);
+    if (this.isUserDropdownOpen()) {
+      this.activeMenu.set(null);
+      this.isSearchOpen.set(false);
+      this.isLangDropdownOpen.set(false);
+    }
+  }
+
+  logout() {
+    this.userService.updateUser({}); // Reset user logic (simplified for mock)
+    // Actually for nulling:
+    // this.userService.currentUser.set(null);
+    // But since UserService uses signal<User | null>(this.mockUser), I should probably add a logout method there or set to null directly if it was public writeable, but it is not.
+    // Looking at UserService: `currentUser = signal<User | null>(this.mockUser);` it is public.
+    this.userService.currentUser.set(null);
+    this.isUserDropdownOpen.set(false);
   }
 
   toggleSearch(): void {
     this.isSearchOpen.update(open => !open);
     if (this.isSearchOpen()) {
       this.activeMenu.set(null);
+      this.isUserDropdownOpen.set(false);
     }
   }
 
@@ -147,5 +180,6 @@ export class HeaderComponent {
     this.activeMenu.set(null);
     this.isSearchOpen.set(false);
     this.isLangDropdownOpen.set(false);
+    this.isUserDropdownOpen.set(false);
   }
 }

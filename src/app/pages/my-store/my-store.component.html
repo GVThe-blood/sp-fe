@@ -1,0 +1,125 @@
+<main class="mystore-page">
+  <!-- Conditional Sidebar: ProfileSidebar for no store, StoreSidebar for store owners -->
+  @if (!user()?.hasStore) {
+    <app-profile-sidebar [activeRoute]="'/my-store'"></app-profile-sidebar>
+  } @else {
+    <app-store-sidebar [activeRoute]="'/my-store'"></app-store-sidebar>
+  }
+
+  <!-- Main Content -->
+  <div class="mystore-content">
+    <!-- CASE 1: User has NO store -->
+    @if (!user()?.hasStore) {
+      <div class="create-store-section">
+        <div class="create-store-card">
+          <!-- Illustration -->
+          <div class="illustration-wrapper">
+            <div class="illustration">
+              <span class="material-symbols-outlined">storefront</span>
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="create-store-content">
+            <h1 class="create-store-title">Mở cửa hàng, mở tương lai</h1>
+            <p class="create-store-desc">
+              Bắt đầu hành trình kinh doanh thực phẩm sạch của bạn trên SpringFood ngay hôm nay và tiếp cận hàng ngàn khách hàng tiềm năng.
+            </p>
+            <button (click)="createStore()" class="btn-create-store">
+              Tạo cửa hàng của bạn
+            </button>
+          </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <span class="material-symbols-outlined">rocket_launch</span>
+            </div>
+            <h3 class="feature-title">Thiết lập nhanh chóng</h3>
+            <p class="feature-desc">Tạo cửa hàng của bạn chỉ trong vài phút với giao diện đơn giản.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <span class="material-symbols-outlined">groups</span>
+            </div>
+            <h3 class="feature-title">Tiếp cận khách hàng</h3>
+            <p class="feature-desc">Kết nối với hàng ngàn khách hàng đang tìm kiếm thực phẩm sạch.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">
+              <span class="material-symbols-outlined">payments</span>
+            </div>
+            <h3 class="feature-title">Thanh toán an toàn</h3>
+            <p class="feature-desc">Hệ thống thanh toán được tích hợp sẵn, đảm bảo an toàn và tiện lợi.</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- CASE 2: User HAS store - Store Dashboard -->
+    @else {
+      <div class="content-card">
+        <!-- Header -->
+        <div class="content-header">
+          <div class="header-text">
+            <h1 class="content-title">Dashboard Cửa hàng</h1>
+            <p class="content-subtitle">Quản lý cửa hàng của bạn một cách hiệu quả với các công cụ mạnh mẽ</p>
+          </div>
+          <button class="btn-export">
+            <span class="material-symbols-outlined">download</span>
+            <span>Xuất báo cáo</span>
+          </button>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-symbols-outlined">receipt_long</span>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Đơn hàng mới</p>
+              <h3 class="stat-value">12</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-symbols-outlined">payments</span>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Doanh thu hôm nay</p>
+              <h3 class="stat-value">2.5M đ</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Sản phẩm</p>
+              <h3 class="stat-value">48</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">
+              <span class="material-symbols-outlined">star</span>
+            </div>
+            <div class="stat-content">
+              <p class="stat-label">Đánh giá trung bình</p>
+              <h3 class="stat-value">4.8</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coming Soon Notice -->
+        <div class="coming-soon-card">
+          <span class="material-symbols-outlined">construction</span>
+          <h3>Các tính năng đang được phát triển</h3>
+          <p>Sử dụng menu bên trái để điều hướng đến các phần khác nhau của dashboard. Các tính năng chi tiết sẽ sớm được bổ sung.</p>
+        </div>
+      </div>
+    }
+  </div>
+</main>

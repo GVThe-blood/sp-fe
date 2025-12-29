@@ -1,0 +1,115 @@
+<main class="profile-page">
+  <!-- Sidebar -->
+  <app-profile-sidebar 
+    [activeRoute]="'/profile'"
+    (avatarEditClick)="openAvatarPicker()">
+  </app-profile-sidebar>
+
+  <!-- Main Content -->
+  <div class="profile-content">
+    <div class="content-card">
+      <!-- Header -->
+      <div class="content-header">
+        <div class="header-text">
+          <h1 class="content-title">Thông tin cá nhân</h1>
+          <p class="content-subtitle">Xem và cập nhật thông tin cá nhân của bạn.</p>
+        </div>
+        <button class="btn-edit">
+          <span class="material-symbols-outlined">edit</span>
+          <span>Chỉnh sửa</span>
+        </button>
+      </div>
+
+      <!-- Personal Info Grid -->
+      <div class="info-grid">
+        <div class="info-item">
+          <p class="info-label">Họ</p>
+          <p class="info-value">{{ user()?.firstName }}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Tên</p>
+          <p class="info-value">{{ user()?.lastName }}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Tên đăng nhập</p>
+          <p class="info-value">{{ user()?.username }}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Email</p>
+          <p class="info-value">{{ user()?.email }}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Giới tính</p>
+          <p class="info-value">{{ user()?.gender === 'Male' ? 'Nam' : 'Nữ' }}</p>
+        </div>
+        <div class="info-item">
+          <p class="info-label">Số điện thoại</p>
+          <p class="info-value">{{ user()?.phoneNumber }}</p>
+        </div>
+      </div>
+
+      <!-- Address Section -->
+      <div class="address-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Địa chỉ giao hàng</h2>
+            <p class="section-subtitle">Quản lý các địa chỉ giao hàng của bạn.</p>
+          </div>
+          <button class="btn-add" (click)="openAddAddressModal()">
+            <span class="material-symbols-outlined">add</span>
+            <span>Thêm địa chỉ</span>
+          </button>
+        </div>
+
+        <!-- Address List with AddressCard components -->
+        <div class="address-list">
+          @if (sortedAddresses.length > 0) {
+            @for (address of sortedAddresses; track address.id) {
+              <app-address-card
+                [address]="address"
+                [isDefault]="address.isDefault"
+                [isLoading]="loadingAddressId === address.id"
+                (edit)="openEditAddressModal(address)"
+                (setDefault)="onSetDefaultAddress(address)"
+                (delete)="onDeleteAddress(address)"
+              ></app-address-card>
+            }
+          } @else {
+            <div class="empty-state">
+              <span class="material-symbols-outlined">location_off</span>
+              <p>Chưa có địa chỉ nào được lưu</p>
+              <button class="btn-add-empty" (click)="openAddAddressModal()">Thêm địa chỉ mới</button>
+            </div>
+          }
+        </div>
+
+        <!-- Google Maps Placeholder -->
+        <div class="maps-placeholder">
+          <span class="material-symbols-outlined">map</span>
+          <p>Thêm địa chỉ từ Google Maps</p>
+          <button class="btn-maps" disabled>
+            <span class="material-symbols-outlined">pin_drop</span>
+            Chọn từ bản đồ
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Address Form Modal -->
+<app-address-form-modal
+  [isOpen]="isAddressModalOpen"
+  [address]="editingAddress"
+  (save)="onSaveAddress($event)"
+  (close)="closeAddressModal()"
+></app-address-form-modal>
+
+<!-- Avatar Picker Modal -->
+<app-avatar-picker-modal
+  [isOpen]="isAvatarModalOpen"
+  [currentAvatar]="user()?.avatarUrl || ''"
+  (select)="onAvatarSelect($event)"
+  (upload)="onAvatarUpload($event)"
+  (close)="closeAvatarPicker()"
+></app-avatar-picker-modal>
