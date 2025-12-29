@@ -7,8 +7,10 @@ Cải thiện và mở rộng tính năng cho trang Profile và My Store, bao g�
 ## Glossary
 
 - **Profile_Page**: Trang thông tin cá nhân của người dùng
-- **My_Store_Page**: Trang quản lý cửa hàng của người dùng
-- **Sidebar_Menu**: Menu điều hướng bên trái của trang Profile/My Store
+- **My_Store_Page**: Trang quản lý cửa hàng của người dùng (khi chưa có store)
+- **Store_Dashboard**: Dashboard quản lý cửa hàng (khi đã có store)
+- **Store_Sidebar**: Menu điều hướng bên trái của Store Dashboard
+- **Sidebar_Menu**: Menu điều hướng bên trái của trang Profile
 - **Address_Card**: Component hiển thị một địa chỉ giao hàng
 - **Avatar_Picker**: Modal cho phép chọn hoặc upload avatar
 - **Cascading_Select**: Dropdown selection theo cấp bậc (Tỉnh → Huyện → Xã)
@@ -86,3 +88,17 @@ Cải thiện và mở rộng tính năng cho trang Profile và My Store, bao g�
 3. WHEN performing actions like delete or set default THEN the Profile_Page SHALL show appropriate loading states
 4. WHEN an action is completed THEN the Profile_Page SHALL provide visual confirmation of success
 5. WHEN displaying forms THEN the Profile_Page SHALL show clear labels and placeholder text in Vietnamese
+
+### Requirement 7: Store Dashboard for Store Owners
+
+**User Story:** As a store owner, I want to access a dedicated dashboard to manage my store operations, so that I can efficiently handle orders, products, analytics, and customer relationships.
+
+#### Acceptance Criteria
+
+1. WHEN a user with an existing store clicks "Cửa hàng của tôi" in the sidebar THEN the system SHALL navigate to the Store_Dashboard page
+2. WHEN the Store_Dashboard loads THEN the system SHALL display a Store_Sidebar with the following menu sections: HOẠT ĐỘNG (Vận chuyển, Quản lý Đơn hàng, Quản lý Sản phẩm), PHÂN TÍCH & TĂNG TRƯỞNG (Thống kê, Doanh thu, Phát triển, Chăm sóc Khách hàng), QUẢN TRỊ (Cài đặt Cửa hàng, Nguồn lực)
+3. WHEN displaying the Store_Sidebar THEN the system SHALL show the store name and username at the top
+4. WHEN a user clicks on a menu item in Store_Sidebar THEN the system SHALL highlight that item as active and display corresponding content
+5. WHEN the Store_Dashboard is displayed THEN the system SHALL use the same design system CSS variables for consistent theming
+6. WHEN a user without a store tries to access Store_Dashboard directly THEN the system SHALL redirect to the My_Store_Page with "Create Store" content
+7. WHEN viewing Store_Dashboard on mobile devices THEN the system SHALL provide a responsive layout with collapsible sidebar

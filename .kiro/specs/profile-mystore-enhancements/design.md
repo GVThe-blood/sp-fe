@@ -2,7 +2,7 @@
 
 ## Overview
 
-Cải thiện trang Profile và My Store với các tính năng mới: quản lý địa chỉ giao hàng, chỉnh sửa avatar, sidebar menu mở rộng, và tối ưu hóa giao diện theo design system.
+Cải thiện trang Profile và My Store với các tính năng mới: quản lý địa chỉ giao hàng, chỉnh sửa avatar, sidebar menu mở rộng, Store Dashboard cho chủ cửa hàng, và tối ưu hóa giao diện theo design system.
 
 ## Architecture
 
@@ -14,14 +14,18 @@ src/app/
 │   │   ├── profile.component.html
 │   │   └── profile.component.css
 │   └── my-store/
-│       ├── my-store.component.ts     # My store page
+│       ├── my-store.component.ts     # My store page (handles both create & dashboard)
 │       ├── my-store.component.html
 │       └── my-store.component.css
 ├── components/
-│   ├── profile-sidebar/              # Shared sidebar component
+│   ├── profile-sidebar/              # Sidebar for Profile page
 │   │   ├── profile-sidebar.component.ts
 │   │   ├── profile-sidebar.component.html
 │   │   └── profile-sidebar.component.css
+│   ├── store-sidebar/                # Sidebar for Store Dashboard
+│   │   ├── store-sidebar.component.ts
+│   │   ├── store-sidebar.component.html
+│   │   └── store-sidebar.component.css
 │   ├── address-card/                 # Address display card
 │   │   ├── address-card.component.ts
 │   │   ├── address-card.component.html
@@ -113,6 +117,44 @@ interface AvatarPickerModalProps {
 }
 
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+```
+
+### 5. StoreSidebarComponent
+
+Sidebar component riêng cho Store Dashboard.
+
+```typescript
+interface StoreMenuItem {
+  id: string;
+  label: string;
+  icon: string;
+  route: string;
+  section: 'operations' | 'analytics' | 'management';
+}
+
+interface StoreSidebarProps {
+  storeName: string;
+  username: string;
+  activeRoute: string;
+}
+
+// Menu structure
+const STORE_MENU_ITEMS: StoreMenuItem[] = [
+  // HOẠT ĐỘNG
+  { id: 'shipping', label: 'Vận chuyển', icon: 'local_shipping', route: '/my-store/shipping', section: 'operations' },
+  { id: 'orders', label: 'Quản lý Đơn hàng', icon: 'receipt_long', route: '/my-store/orders', section: 'operations' },
+  { id: 'products', label: 'Quản lý Sản phẩm', icon: 'inventory_2', route: '/my-store/products', section: 'operations' },
+  
+  // PHÂN TÍCH & TĂNG TRƯỞNG
+  { id: 'analytics', label: 'Thống kê', icon: 'bar_chart', route: '/my-store/analytics', section: 'analytics' },
+  { id: 'revenue', label: 'Doanh thu', icon: 'payments', route: '/my-store/revenue', section: 'analytics' },
+  { id: 'growth', label: 'Phát triển', icon: 'trending_up', route: '/my-store/growth', section: 'analytics' },
+  { id: 'customer-care', label: 'Chăm sóc Khách hàng', icon: 'support_agent', route: '/my-store/customer-care', section: 'analytics' },
+  
+  // QUẢN TRỊ
+  { id: 'settings', label: 'Cài đặt Cửa hàng', icon: 'settings', route: '/my-store/settings', section: 'management' },
+  { id: 'resources', label: 'Nguồn lực', icon: 'folder_open', route: '/my-store/resources', section: 'management' }
+];
 ```
 
 ## Data Models
@@ -209,6 +251,10 @@ interface SaleEvent {
 *For any* uploaded file, the Avatar_Picker SHALL accept the file if and only if its MIME type is in ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'].
 **Validates: Requirements 4.4**
 
+### Property 6: Store Dashboard Access Control
+*For any* user without a store (hasStore === false), attempting to access Store Dashboard SHALL redirect to My Store page with "Create Store" content.
+**Validates: Requirements 7.6**
+
 ## Error Handling
 
 1. **Address Operations**
@@ -228,6 +274,11 @@ interface SaleEvent {
    - Show loading state while fetching
    - Handle API failures with fallback
 
+4. **Store Dashboard Access**
+   - Check user.hasStore before rendering dashboard
+   - Redirect to create store page if no store exists
+   - Show loading state during store data fetch
+
 ## Testing Strategy
 
 ### Unit Tests
@@ -242,8 +293,11 @@ interface SaleEvent {
 - Property 3: District filtering by province
 - Property 4: Ward filtering by district
 - Property 5: File type validation accepts only allowed types
+- Property 6: Store dashboard access control based on hasStore flag
 
 ### Integration Tests
 - Test full address CRUD flow
 - Test avatar selection and upload flow
 - Test sidebar navigation between pages
+- Test store dashboard routing based on user.hasStore
+- Test store sidebar menu navigation
