@@ -182,21 +182,15 @@
   line-height: var(--line-height-relaxed);
 }
 
-/* Store Dashboard */
-.store-dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
+/* Content Card - Shared with Profile page */
 .content-card {
   background-color: var(--bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-default);
   padding: var(--spacing-lg);
-  min-height: 500px;
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-xl);
 }
 
 @media (min-width: 640px) {
@@ -278,4 +272,119 @@
 .empty-dashboard p {
   max-width: 300px;
   margin: 0;
+}
+
+
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (min-width: 640px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-base);
+  border: 1px solid var(--border-default);
+  transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-primary-light);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-base);
+  background-color: var(--color-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon .material-symbols-outlined {
+  font-size: 28px;
+  color: var(--color-primary);
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Coming Soon Card */
+.coming-soon-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-2xl);
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-base);
+  border: 2px dashed var(--border-default);
+  text-align: center;
+  margin-top: var(--spacing-md);
+}
+
+.coming-soon-card .material-symbols-outlined {
+  font-size: 48px;
+  color: var(--text-tertiary);
+}
+
+.coming-soon-card h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.coming-soon-card p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 600px;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Sidebar Responsive Adjustments */
+@media (min-width: 768px) {
+  .mystore-page > app-store-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+  }
 }

@@ -1,8 +1,11 @@
 <aside class="sidebar">
   <!-- User Info -->
   <div class="user-info">
-    <div class="avatar-wrapper">
+    <div class="avatar-wrapper" (click)="onAvatarEditClick()">
       <div class="avatar" [style.background-image]="'url(' + user()?.avatarUrl + ')'"></div>
+      <div class="avatar-edit-overlay">
+        <span class="material-symbols-outlined">photo_camera</span>
+      </div>
     </div>
     <div class="user-details">
       <h2 class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</h2>
@@ -22,9 +25,7 @@
         <span 
           class="material-symbols-outlined menu-icon"
           [class.filled]="isActive(item.route)"
-          [style.font-variation-settings]="isActive(item.route) ? \"'FILL' 1\" : \"'FILL' 0\"">
-          {{ item.icon }}
-        </span>
+          [style.font-variation-settings]="isActive(item.route) ? '\'FILL\' 1' : '\'FILL\' 0'">{{ item.icon }}</span>
         <span class="menu-label">{{ item.label }}</span>
         @if (item.isSpecial && item.saleEventName) {
           <span class="sale-badge">HOT</span>

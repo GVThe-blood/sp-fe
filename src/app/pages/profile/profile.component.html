@@ -1,6 +1,9 @@
 <main class="profile-page">
   <!-- Sidebar -->
-  <app-profile-sidebar [activeRoute]="'/profile'"></app-profile-sidebar>
+  <app-profile-sidebar 
+    [activeRoute]="'/profile'"
+    (avatarEditClick)="openAvatarPicker()">
+  </app-profile-sidebar>
 
   <!-- Main Content -->
   <div class="profile-content">
@@ -52,42 +55,30 @@
             <h2 class="section-title">Địa chỉ giao hàng</h2>
             <p class="section-subtitle">Quản lý các địa chỉ giao hàng của bạn.</p>
           </div>
-          <button class="btn-add">
+          <button class="btn-add" (click)="openAddAddressModal()">
             <span class="material-symbols-outlined">add</span>
             <span>Thêm địa chỉ</span>
           </button>
         </div>
 
-        <!-- Address List - Will be replaced with AddressCard components -->
+        <!-- Address List with AddressCard components -->
         <div class="address-list">
-          @if (user()?.address) {
-            <div class="address-card default">
-              <div class="address-badge">
-                <span class="material-symbols-outlined">check_circle</span>
-                Mặc định
-              </div>
-              <div class="address-content">
-                <p class="address-name">{{ user()?.firstName }} {{ user()?.lastName }}</p>
-                <p class="address-phone">{{ user()?.phoneNumber }}</p>
-                <p class="address-detail">
-                  {{ user()?.address?.street }}, {{ user()?.address?.ward }}, 
-                  {{ user()?.address?.district }}, {{ user()?.address?.city }}
-                </p>
-              </div>
-              <div class="address-actions">
-                <button class="action-btn" title="Chỉnh sửa">
-                  <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button class="action-btn" title="Xóa">
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
-              </div>
-            </div>
+          @if (sortedAddresses.length > 0) {
+            @for (address of sortedAddresses; track address.id) {
+              <app-address-card
+                [address]="address"
+                [isDefault]="address.isDefault"
+                [isLoading]="loadingAddressId === address.id"
+                (edit)="openEditAddressModal(address)"
+                (setDefault)="onSetDefaultAddress(address)"
+                (delete)="onDeleteAddress(address)"
+              ></app-address-card>
+            }
           } @else {
             <div class="empty-state">
               <span class="material-symbols-outlined">location_off</span>
               <p>Chưa có địa chỉ nào được lưu</p>
-              <button class="btn-add-empty">Thêm địa chỉ mới</button>
+              <button class="btn-add-empty" (click)="openAddAddressModal()">Thêm địa chỉ mới</button>
             </div>
           }
         </div>
@@ -105,3 +96,20 @@
     </div>
   </div>
 </main>
+
+<!-- Address Form Modal -->
+<app-address-form-modal
+  [isOpen]="isAddressModalOpen"
+  [address]="editingAddress"
+  (save)="onSaveAddress($event)"
+  (close)="closeAddressModal()"
+></app-address-form-modal>
+
+<!-- Avatar Picker Modal -->
+<app-avatar-picker-modal
+  [isOpen]="isAvatarModalOpen"
+  [currentAvatar]="user()?.avatarUrl || ''"
+  (select)="onAvatarSelect($event)"
+  (upload)="onAvatarUpload($event)"
+  (close)="closeAvatarPicker()"
+></app-avatar-picker-modal>

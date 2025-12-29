@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserService, User } from '../../services/user.service';
@@ -29,6 +29,7 @@ export interface SaleEvent {
 })
 export class ProfileSidebarComponent {
   @Input() activeRoute: string = '/profile';
+  @Output() avatarEditClick = new EventEmitter<void>();
   
   userService = inject(UserService);
   user = this.userService.currentUser;
@@ -68,5 +69,9 @@ export class ProfileSidebarComponent {
 
   logout() {
     this.userService.currentUser.set(null);
+  }
+
+  onAvatarEditClick() {
+    this.avatarEditClick.emit();
   }
 }

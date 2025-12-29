@@ -3,6 +3,7 @@ import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
+import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 import { ThemeService } from './services/theme.service';
 import { filter } from 'rxjs/operators';
 
@@ -13,6 +14,7 @@ import { filter } from 'rxjs/operators';
     RouterOutlet,
     HeaderComponent,
     FooterComponent,
+    ToastContainerComponent,
     CommonModule
   ],
   templateUrl: './app.component.html',

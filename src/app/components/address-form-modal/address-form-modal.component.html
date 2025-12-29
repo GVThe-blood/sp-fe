@@ -1,0 +1,232 @@
+<!-- Modal Backdrop -->
+<div *ngIf="isOpen" class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">{{ address ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới' }}</h2>
+      <button class="close-button" (click)="onCancel()" [disabled]="isLoading">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <form class="address-form">
+        <!-- Recipient Name -->
+        <div class="form-group">
+          <label for="recipientName" class="form-label">
+            Tên người nhận <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="recipientName"
+            class="form-input"
+            [(ngModel)]="recipientName"
+            name="recipientName"
+            placeholder="Nhập tên người nhận"
+            [disabled]="isLoading"
+            [class.error]="errors.recipientName"
+          />
+          <span *ngIf="errors.recipientName" class="error-message">
+            {{ errors.recipientName }}
+          </span>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label for="phoneNumber" class="form-label">
+            Số điện thoại <span class="required">*</span>
+          </label>
+          <input
+            type="tel"
+            id="phoneNumber"
+            class="form-input"
+            [(ngModel)]="phoneNumber"
+            name="phoneNumber"
+            placeholder="+84 123 456 789"
+            [disabled]="isLoading"
+            [class.error]="errors.phoneNumber"
+          />
+          <span *ngIf="errors.phoneNumber" class="error-message">
+            {{ errors.phoneNumber }}
+          </span>
+        </div>
+
+        <!-- Province Select -->
+        <div class="form-group">
+          <label for="province" class="form-label">
+            Tỉnh/Thành phố <span class="required">*</span>
+          </label>
+          <div class="select-wrapper">
+            <input
+              type="text"
+              id="province"
+              class="form-input select-input"
+              [(ngModel)]="provinceSearch"
+              name="provinceSearch"
+              placeholder="Chọn tỉnh/thành phố"
+              (focus)="showProvinceDropdown = true"
+              (blur)="onProvinceBlur()"
+              [disabled]="isLoading"
+              [class.error]="errors.province"
+              autocomplete="off"
+            />
+            <span class="material-symbols-outlined select-icon">expand_more</span>
+            
+            <div *ngIf="showProvinceDropdown" class="dropdown-menu">
+              <div
+                *ngFor="let province of getFilteredProvinces()"
+                class="dropdown-item"
+                [class.selected]="selectedProvince?.code === province.code"
+                (mousedown)="onProvinceSelect(province)"
+              >
+                {{ province.name }}
+              </div>
+              <div *ngIf="getFilteredProvinces().length === 0" class="dropdown-empty">
+                Không tìm thấy kết quả
+              </div>
+            </div>
+          </div>
+          <span *ngIf="errors.province" class="error-message">
+            {{ errors.province }}
+          </span>
+        </div>
+
+        <!-- District Select -->
+        <div class="form-group">
+          <label for="district" class="form-label">
+            Quận/Huyện <span class="required">*</span>
+          </label>
+          <div class="select-wrapper">
+            <input
+              type="text"
+              id="district"
+              class="form-input select-input"
+              [(ngModel)]="districtSearch"
+              name="districtSearch"
+              placeholder="Chọn quận/huyện"
+              (focus)="showDistrictDropdown = true"
+              (blur)="onDistrictBlur()"
+              [disabled]="isLoading || !selectedProvince"
+              [class.error]="errors.district"
+              autocomplete="off"
+            />
+            <span class="material-symbols-outlined select-icon">expand_more</span>
+            
+            <div *ngIf="showDistrictDropdown && selectedProvince" class="dropdown-menu">
+              <div
+                *ngFor="let district of getFilteredDistricts()"
+                class="dropdown-item"
+                [class.selected]="selectedDistrict?.code === district.code"
+                (mousedown)="onDistrictSelect(district)"
+              >
+                {{ district.name }}
+              </div>
+              <div *ngIf="getFilteredDistricts().length === 0" class="dropdown-empty">
+                Không tìm thấy kết quả
+              </div>
+            </div>
+          </div>
+          <span *ngIf="errors.district" class="error-message">
+            {{ errors.district }}
+          </span>
+        </div>
+
+        <!-- Ward Select -->
+        <div class="form-group">
+          <label for="ward" class="form-label">
+            Phường/Xã <span class="required">*</span>
+          </label>
+          <div class="select-wrapper">
+            <input
+              type="text"
+              id="ward"
+              class="form-input select-input"
+              [(ngModel)]="wardSearch"
+              name="wardSearch"
+              placeholder="Chọn phường/xã"
+              (focus)="showWardDropdown = true"
+              (blur)="onWardBlur()"
+              [disabled]="isLoading || !selectedDistrict"
+              [class.error]="errors.ward"
+              autocomplete="off"
+            />
+            <span class="material-symbols-outlined select-icon">expand_more</span>
+            
+            <div *ngIf="showWardDropdown && selectedDistrict" class="dropdown-menu">
+              <div
+                *ngFor="let ward of getFilteredWards()"
+                class="dropdown-item"
+                [class.selected]="selectedWard?.code === ward.code"
+                (mousedown)="onWardSelect(ward)"
+              >
+                {{ ward.name }}
+              </div>
+              <div *ngIf="getFilteredWards().length === 0" class="dropdown-empty">
+                Không tìm thấy kết quả
+              </div>
+            </div>
+          </div>
+          <span *ngIf="errors.ward" class="error-message">
+            {{ errors.ward }}
+          </span>
+        </div>
+
+        <!-- Street Address -->
+        <div class="form-group">
+          <label for="streetAddress" class="form-label">
+            Địa chỉ cụ thể <span class="required">*</span>
+          </label>
+          <input
+            type="text"
+            id="streetAddress"
+            class="form-input"
+            [(ngModel)]="streetAddress"
+            name="streetAddress"
+            placeholder="Số nhà, tên đường"
+            [disabled]="isLoading"
+            [class.error]="errors.streetAddress"
+          />
+          <span *ngIf="errors.streetAddress" class="error-message">
+            {{ errors.streetAddress }}
+          </span>
+        </div>
+
+        <!-- Label (Optional) -->
+        <div class="form-group">
+          <label for="label" class="form-label">
+            Nhãn địa chỉ (Tùy chọn)
+          </label>
+          <input
+            type="text"
+            id="label"
+            class="form-input"
+            [(ngModel)]="label"
+            name="label"
+            placeholder="Ví dụ: Nhà, Công ty"
+            [disabled]="isLoading"
+          />
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="isLoading"
+      >
+        Hủy
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="onSave()"
+        [disabled]="!isFormValid() || isLoading"
+      >
+        <span *ngIf="isLoading" class="spinner"></span>
+        <span *ngIf="!isLoading">{{ address ? 'Cập nhật' : 'Lưu' }}</span>
+      </button>
+    </div>
+  </div>
+</div>

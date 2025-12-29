@@ -18,6 +18,8 @@
 
 .avatar-wrapper {
   flex-shrink: 0;
+  position: relative;
+  cursor: pointer;
 }
 
 .avatar {
@@ -28,6 +30,35 @@
   background-position: center;
   background-repeat: no-repeat;
   border: 2px solid var(--border-default);
+  transition: all var(--transition-base);
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.avatar-edit-overlay .material-symbols-outlined {
+  color: white;
+  font-size: 24px;
+}
+
+.avatar-wrapper:hover .avatar-edit-overlay {
+  opacity: 1;
+}
+
+.avatar-wrapper:hover .avatar {
+  transform: scale(1.05);
 }
 
 .user-details {
