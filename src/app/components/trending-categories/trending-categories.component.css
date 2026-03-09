@@ -2,3 +2,44 @@
 :host {
   display: block;
 }
+
+/* Trending Categories - Dark Mode Support */
+
+.trending-section {
+  background-color: var(--bg-subtle);
+  transition: var(--theme-transition);
+}
+
+.trending-title {
+  color: var(--text-primary);
+}
+
+.trending-card {
+  background-color: var(--bg-card);
+  transition: var(--theme-transition);
+}
+
+.trending-card:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+.trending-card-title {
+  color: var(--text-primary);
+}
+
+.trending-card-subtitle {
+  color: var(--text-secondary);
+}
+
+.trending-card-price {
+  color: var(--text-muted);
+}
+
+.trending-card-border {
+  border-color: transparent;
+  transition: border-color var(--transition-base);
+}
+
+.trending-card:hover .trending-card-border {
+  border-color: var(--color-info-light);
+}

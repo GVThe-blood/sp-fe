@@ -1,0 +1,152 @@
+# Implementation Plan
+
+- [x] 1. Implement unified modal close button
+  - [x] 1.1 Create shared CSS class `.modal-close-btn` in theme.css
+    - Circular white button, shadow, positioned top-right overlapping corner
+    - Hover scale animation
+    - _Requirements: 1.1, 1.2, 1.3_
+  - [x] 1.2 Update ProductDetailModal close button to use new style
+    - Replace current close button with unified style
+    - _Requirements: 1.1_
+  - [x] 1.3 Update PromoCodeModal close button to use new style
+    - Replace current close button with unified style
+    - _Requirements: 1.1_
+  - [x] 1.4 Update AddressModal close button to use new style
+    - Replace current close button with unified style
+    - _Requirements: 1.1_
+  - [x] 1.5 Write property test for modal close button consistency
+    - **Property 1: Modal close button consistency**
+    - **Validates: Requirements 1.1**
+
+- [x] 2. Update ProductDetailModal quantity controls and option selectors
+  - [x] 2.1 Reduce quantity button size and apply color coding
+    - Decrease button: orange (--color-primary)
+    - Increase button: green (--color-success)
+    - Smaller size (32px instead of 40px)
+    - _Requirements: 2.1, 2.2, 2.3_
+  - [x] 2.2 Replace circular radio buttons with rounded square checkboxes
+    - Create `.option-checkbox` class with border-radius: 4px
+    - Match style from promo code component
+    - Apply to all option selectors (size, temperature, toppings)
+    - _Requirements: 2.4, 2.5_
+
+- [x] 3. Update StoreDetailComponent
+  - [x] 3.1 Reduce favorite shop button size
+    - Make button more compact (smaller padding, font)
+    - _Requirements: 3.1_
+  - [x] 3.2 Add footer component to store detail page
+    - Import and add `<app-footer>` at bottom of page
+    - _Requirements: 3.2_
+
+- [x] 4. Implement FoodCare insurance dropdown in OrderComponent
+  - [x] 4.1 Create FoodCare dropdown structure
+    - Add `foodCareExpanded` and `foodCareConfirmed` signals
+    - Create collapsible header with chevron icon
+    - _Requirements: 4.1_
+  - [x] 4.2 Implement expandable content with confirmation
+    - Show insurance info when expanded
+    - Add confirmation checkbox with terms text
+    - Show price (1.000đ/đơn hàng)
+    - _Requirements: 4.2_
+  - [x] 4.3 Implement confirmation state styling
+    - Green color when confirmed
+    - Default/neutral when not confirmed
+    - _Requirements: 4.3, 4.4_
+  - [x] 4.4 Change payment button to green color
+    - Use --color-success for "Đặt món" button
+    - _Requirements: 4.5_
+  - [x] 4.5 Write property test for FoodCare dropdown expansion
+    - **Property 2: FoodCare dropdown expansion**
+    - **Validates: Requirements 4.2**
+  - [x] 4.6 Write property test for FoodCare confirmation state
+    - **Property 3: FoodCare confirmation state change**
+    - **Validates: Requirements 4.3**
+
+- [x] 5. Enhance PromoCodeModal with disabled state and click zones
+  - [x] 5.1 Add disabled state styling for promo codes
+    - Gray out disabled promos
+    - Prevent click/selection on disabled promos
+    - Add `isDisabled` and `disabledReason` to PromoCode interface
+    - _Requirements: 5.1_
+  - [x] 5.2 Implement separate click zones
+    - Checkbox area: toggle selection
+    - Info area: open detail modal
+    - Use `$event.stopPropagation()` to prevent bubbling
+    - _Requirements: 5.2, 5.3_
+  - [x] 5.3 Write property test for disabled promo not selectable
+    - **Property 4: Disabled promo codes not selectable**
+    - **Validates: Requirements 5.1**
+  - [x] 5.4 Write property test for checkbox area toggles selection
+    - **Property 5: Promo checkbox area toggles selection**
+    - **Validates: Requirements 5.2**
+
+- [x] 6. Implement PromoDetailModal
+  - [x] 6.1 Create promo detail modal structure
+    - Back arrow button to return to main modal
+    - Close button (X) to close all modals
+    - Promo image, title, expiry date
+    - Detailed conditions list
+    - Apply button at bottom
+    - _Requirements: 5.4_
+  - [x] 6.2 Wire up navigation between modals
+    - Click info area → open detail modal
+    - Click back arrow → return to main modal
+    - Click apply → apply promo and close
+    - _Requirements: 5.3, 5.4_
+  - [x] 6.3 Write property test for promo info opens detail modal
+    - **Property 6: Promo info area opens detail modal**
+    - **Validates: Requirements 5.3**
+
+- [x] 7. Implement promo code display limits and sorting
+  - [x] 7.1 Limit displayed promos to 10 per category
+    - Create `getDisplayedPromos(type)` method
+    - Slice array to max 10 items
+    - _Requirements: 5.5_
+  - [x] 7.2 Sort promos with available first
+    - Sort by `isDisabled` (false first, true last)
+    - Apply before slicing to 10
+    - _Requirements: 5.6_
+  - [x] 7.3 Write property test for maximum 10 promos per category
+    - **Property 7: Maximum 10 promos per category**
+    - **Validates: Requirements 5.5**
+  - [x] 7.4 Write property test for available promos sorted first
+    - **Property 8: Available promos sorted before disabled**
+    - **Validates: Requirements 5.6**
+
+- [x] 8. Implement promo selection limit
+  - [x] 8.1 Enforce maximum 2 promo codes (1 delivery + 1 product)
+    - Create `canSelectPromo(promo)` method
+    - Check if same type already selected
+    - Show feedback when limit reached
+    - _Requirements: 5.7_
+  - [x] 8.2 Write property test for maximum 2 promo selection
+    - **Property 9: Maximum 2 promo codes selection**
+    - **Validates: Requirements 5.7**
+
+- [x] 9. Update OrderComponent order items layout
+  - [x] 9.1 Separate quantity from product name
+    - Create separate element for quantity (e.g., "2X")
+    - Position quantity vertically centered
+    - _Requirements: 6.1, 6.2_
+  - [x] 9.2 Position delete button vertically centered
+    - Use flexbox align-items: center
+    - Ensure consistent vertical alignment
+    - _Requirements: 6.3_
+
+- [x] 10. Reduce payment section font size
+  - [x] 10.1 Apply smaller font to payment options
+    - Reduce font-size for payment method items
+    - Keep section title at current size
+    - _Requirements: 7.1, 7.2_
+
+- [x] 11. Checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 12. Final polish and testing
+  - [x] 12.1 Verify all modals have consistent close button
+  - [x] 12.2 Test promo code flow end-to-end
+  - [x] 12.3 Test FoodCare insurance flow
+  - [x] 12.4 Verify responsive design on mobile
+  - [x] 12.5 Cross-browser testing
+
+

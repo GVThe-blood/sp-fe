@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "webstorm": {
+      "transport": {
+        "type": "sse",
+        "url": "http://localhost:64343/sse"
+      },
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

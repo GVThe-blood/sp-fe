@@ -1,0 +1,381 @@
+<div class="order-page min-h-screen">
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Page Title -->
+    <h1 class="text-2xl font-bold order-title mb-6">
+      Thanh toán - {{ storeName() }}
+    </h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left Column - Delivery & Order Details -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Delivery Section -->
+        <div class="order-card rounded-xl shadow-sm p-6">
+          <h2 class="text-lg font-semibold order-title mb-4">Giao tới</h2>
+          
+          <!-- Address Selection -->
+          <div class="mb-4">
+            <label class="text-sm font-medium order-label mb-2 block">Địa chỉ</label>
+            
+            <!-- Has Address -->
+            <div 
+              *ngIf="selectedAddress()"
+              class="relative border rounded-lg p-4 cursor-pointer transition-all address-card"
+              [class.border-primary]="selectedAddress()"
+              [class.bg-primary-lighter]="selectedAddress()"
+              (click)="openAddressModal()"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                  <span class="material-symbols-outlined text-primary mt-0.5">location_on</span>
+                  <div class="flex-1 min-w-0">
+                    <p class="order-text line-clamp-2">{{ selectedAddress()?.address }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 ml-3 flex-shrink-0">
+                  <span class="text-primary font-bold text-lg">✓</span>
+                  <span class="material-symbols-outlined order-icon-muted cursor-pointer hover:opacity-80">scope</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- No Address -->
+            <button 
+              *ngIf="!selectedAddress()"
+              (click)="openAddressModal()"
+              class="w-full p-4 border border-dashed add-address-btn rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <span class="material-symbols-outlined">add_location</span>
+              <span class="font-medium">Thêm địa chỉ giao hàng</span>
+            </button>
+          </div>
+
+          <!-- Driver Note -->
+          <div class="mb-4">
+            <label for="driverNote" class="text-sm font-medium order-label mb-2 block">Ghi chú cho tài xế</label>
+            <textarea 
+              id="driverNote"
+              [(ngModel)]="driverNote"
+              placeholder="Vd: Bác tài vui lòng gọi trước khi đến giao"
+              class="order-input w-full p-3 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none"
+              rows="2"
+            ></textarea>
+          </div>
+
+          <!-- Door Delivery Toggle -->
+          <div class="flex items-center justify-between py-2">
+            <span class="text-sm order-label">Giao hàng tận cửa chỉ với 5.000đ</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                [checked]="doorDelivery()"
+                (change)="toggleDoorDelivery()"
+                class="sr-only peer"
+              >
+              <div class="toggle-switch w-11 h-6 rounded-full peer peer-checked:bg-primary after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Order Items Section -->
+        <div class="order-card rounded-xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold order-title">
+              ĐƠN HÀNG ({{ cartItems().length }})
+            </h2>
+            <button class="text-primary font-semibold hover:text-primary-hover transition-colors">
+              Thêm món
+            </button>
+          </div>
+
+          <!-- Items List with Scroll -->
+          <div 
+            class="space-y-4"
+            [class.max-h-80]="cartItems().length > maxDisplayItems"
+            [class.overflow-y-auto]="cartItems().length > maxDisplayItems"
+            [class.pr-2]="cartItems().length > maxDisplayItems"
+          >
+            <div 
+              *ngFor="let item of cartItems(); let i = index; trackBy: trackByItemId"
+              class="order-item flex items-center gap-4 p-3 rounded-lg order-item-hover transition-colors group"
+            >
+              <!-- Product Image -->
+              <img 
+                [src]="item.imageUrl" 
+                [alt]="item.name" 
+                class="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+              >
+              
+              <!-- Product Info -->
+              <div class="flex-1 min-w-0">
+                <p class="font-semibold order-text">{{ item.name }}</p>
+                <p class="text-sm order-text-muted truncate">{{ item.options }}</p>
+                <button 
+                  (click)="editItem(item, i)"
+                  class="text-primary text-sm font-semibold hover:text-primary-hover transition-colors mt-1"
+                >
+                  Chỉnh sửa món
+                </button>
+              </div>
+              
+              <!-- Quantity - vertically centered -->
+              <div class="item-quantity flex items-center justify-center flex-shrink-0">
+                <span class="font-semibold order-text">{{ item.quantity }}X</span>
+              </div>
+              
+              <!-- Price -->
+              <div class="item-price text-right flex-shrink-0">
+                <p *ngIf="item.originalPrice" class="text-xs order-text-disabled line-through">
+                  {{ formatPrice(item.originalPrice * item.quantity) }}
+                </p>
+                <p class="font-semibold order-text">
+                  {{ formatPrice(item.price * item.quantity) }}
+                </p>
+              </div>
+              
+              <!-- Delete button - vertically centered -->
+              <button 
+                (click)="removeItem(item.id)"
+                class="delete-btn p-2 rounded-lg transition-colors opacity-0 group-hover:opacity-100 flex items-center justify-center flex-shrink-0"
+                title="Xóa món"
+              >
+                <span class="material-symbols-outlined text-xl">delete</span>
+              </button>
+            </div>
+
+            <!-- Empty Cart -->
+            <div *ngIf="cartItems().length === 0" class="text-center py-8">
+              <span class="material-symbols-outlined text-6xl order-icon-muted mb-4">shopping_cart</span>
+              <p class="order-text-muted">Giỏ hàng trống</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Payment & Summary -->
+      <div class="space-y-6">
+        <!-- Payment Method & Promo -->
+        <div class="order-card rounded-xl shadow-sm p-6">
+          <h2 class="payment-section-title order-title mb-4">Hình thức thanh toán & ưu đãi</h2>
+          
+          <!-- Payment Methods -->
+          <div class="space-y-3 mb-4">
+            <!-- Cash -->
+            <div 
+              class="payment-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all"
+              [class.border-primary]="selectedPaymentMethod() === 'cash'"
+              [class.bg-primary-lighter]="selectedPaymentMethod() === 'cash'"
+              [class.payment-option-unselected]="selectedPaymentMethod() !== 'cash'"
+              (click)="selectPaymentMethod('cash')"
+            >
+              <!-- Checkbox vuông bo tròn -->
+              <div 
+                class="w-5 h-5 rounded-[4px] border-[1.5px] flex items-center justify-center flex-shrink-0"
+                [class.border-primary]="selectedPaymentMethod() === 'cash'"
+                [class.bg-primary]="selectedPaymentMethod() === 'cash'"
+                [class.payment-checkbox-unselected]="selectedPaymentMethod() !== 'cash'"
+              >
+                <svg *ngIf="selectedPaymentMethod() === 'cash'" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span class="material-symbols-outlined text-green-500 text-lg">account_balance_wallet</span>
+              <span class="flex-1 font-medium order-text">Tiền mặt</span>
+            </div>
+
+            <!-- VNPay -->
+            <div 
+              class="payment-option flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all"
+              [class.border-primary]="selectedPaymentMethod() === 'vnpay'"
+              [class.bg-primary-lighter]="selectedPaymentMethod() === 'vnpay'"
+              [class.payment-option-unselected]="selectedPaymentMethod() !== 'vnpay'"
+              (click)="selectPaymentMethod('vnpay')"
+            >
+              <!-- Checkbox vuông bo tròn -->
+              <div 
+                class="w-5 h-5 rounded-[4px] border-[1.5px] flex items-center justify-center flex-shrink-0"
+                [class.border-primary]="selectedPaymentMethod() === 'vnpay'"
+                [class.bg-primary]="selectedPaymentMethod() === 'vnpay'"
+                [class.payment-checkbox-unselected]="selectedPaymentMethod() !== 'vnpay'"
+              >
+                <svg *ngIf="selectedPaymentMethod() === 'vnpay'" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <!-- VNPay Logo -->
+              <img 
+                src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png" 
+                alt="VNPay" 
+                class="h-5 object-contain"
+              >
+              <span class="flex-1 font-medium order-text">VNPay</span>
+            </div>
+          </div>
+
+          <!-- Promo Code Section -->
+          <div 
+            class="payment-option promo-section flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors"
+            (click)="openPromoModal()"
+          >
+            <span class="material-symbols-outlined text-primary text-lg">sell</span>
+            <div class="flex-1">
+              <span *ngIf="appliedPromoCodes().length === 0" class="order-text-secondary">Chọn mã khuyến mại</span>
+              <span *ngIf="appliedPromoCodes().length > 0" class="order-text font-medium">
+                Đã áp dụng {{ appliedPromoCodes().length }} mã KM
+              </span>
+            </div>
+            <span class="text-primary font-semibold">Chọn mã</span>
+          </div>
+          <p class="text-xs order-text-muted mt-2">Bạn có thể áp dụng nhiều mã giảm giá một lúc</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary-card rounded-xl shadow-sm p-6">
+          <h2 class="text-lg font-semibold summary-title mb-4">Thanh toán</h2>
+          
+          <!-- FoodCare Insurance Dropdown -->
+          <div 
+            class="foodcare-section rounded-lg mb-4 border overflow-hidden transition-all"
+            [class.foodcare-confirmed]="foodCareConfirmed()"
+            [class.border-green-200]="foodCareConfirmed()"
+            [class.bg-green-50]="foodCareConfirmed()"
+            [class.foodcare-unconfirmed]="!foodCareConfirmed()"
+          >
+            <!-- Header - Clickable to expand -->
+            <div 
+              class="foodcare-header flex items-center justify-between p-3 cursor-pointer"
+              (click)="toggleFoodCare()"
+            >
+              <div class="flex items-center gap-2">
+                <span 
+                  class="material-symbols-outlined"
+                  [class.text-green-500]="foodCareConfirmed()"
+                  [class.order-icon-muted]="!foodCareConfirmed()"
+                >verified_user</span>
+                <span 
+                  class="text-sm font-medium"
+                  [class.text-green-700]="foodCareConfirmed()"
+                  [class.summary-text-secondary]="!foodCareConfirmed()"
+                >Đơn hàng có Bảo hiểm Food Care</span>
+              </div>
+              <svg 
+                class="w-5 h-5 transition-transform duration-200"
+                [class.rotate-180]="foodCareExpanded()"
+                [class.text-green-500]="foodCareConfirmed()"
+                [class.order-icon-muted]="!foodCareConfirmed()"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </div>
+            
+            <!-- Expandable Content -->
+            <div 
+              *ngIf="foodCareExpanded()" 
+              class="foodcare-content px-3 pb-3 border-t"
+              [class.border-green-200]="foodCareConfirmed()"
+              [class.summary-divider]="!foodCareConfirmed()"
+            >
+              <div class="flex items-start gap-3 pt-3">
+                <!-- Confirmation Checkbox -->
+                <div 
+                  class="confirm-checkbox w-5 h-5 min-w-[20px] rounded border-[1.5px] flex items-center justify-center cursor-pointer transition-all"
+                  [class.bg-green-500]="foodCareConfirmed()"
+                  [class.border-green-500]="foodCareConfirmed()"
+                  [class.foodcare-checkbox-unconfirmed]="!foodCareConfirmed()"
+                  (click)="toggleFoodCareConfirm(); $event.stopPropagation()"
+                >
+                  <svg *ngIf="foodCareConfirmed()" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+                
+                <!-- Insurance Info -->
+                <div class="flex-1">
+                  <h4 class="text-sm font-semibold summary-title mb-1">Bảo hiểm Food Care</h4>
+                  <p class="text-xs summary-text-secondary mb-2">
+                    Bằng việc giữ chọn ô "BH Food Care", bạn đồng ý với các điều khoản và điều kiện của chương trình bảo hiểm đơn hàng.
+                  </p>
+                  <p class="text-sm font-semibold text-green-600">{{ formatPrice(foodCarePrice) }}/đơn hàng</p>
+                </div>
+              </div>
+              
+              <!-- Detail Link -->
+              <button class="text-xs text-primary font-medium mt-2 hover:underline">
+                Chi tiết >
+              </button>
+            </div>
+          </div>
+
+          <!-- Price Breakdown -->
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="summary-text-secondary">Tạm tính ({{ itemCount() }} phần)</span>
+              <span class="summary-text">{{ formatPrice(subtotal()) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <div class="flex items-center gap-1">
+                <span class="summary-text-secondary">Phí áp dụng</span>
+                <span class="material-symbols-outlined summary-text-muted text-sm cursor-help">info</span>
+              </div>
+              <span class="summary-text">{{ formatPrice(deliveryFee()) }}</span>
+            </div>
+            
+            <!-- Applied Promos -->
+            <div *ngFor="let promo of appliedPromoCodes()" class="flex justify-between text-green-600">
+              <span class="truncate max-w-[180px]">{{ promo.title }}</span>
+              <span>-{{ formatPrice(calculatePromoDiscount(promo)) }}</span>
+            </div>
+
+            <hr class="summary-divider my-3">
+
+            <!-- Total -->
+            <div class="flex justify-between items-center">
+              <span class="font-bold summary-title">Tổng số tiền</span>
+              <div class="text-right">
+                <span *ngIf="totalDiscount() > 0" class="summary-text-muted line-through text-sm mr-2">
+                  {{ formatPrice(originalTotal()) }}
+                </span>
+                <span class="font-bold text-lg summary-title">{{ formatPrice(total()) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Place Order Button -->
+          <button 
+            (click)="placeOrder()"
+            class="w-full mt-6 py-3.5 bg-success hover:bg-success-hover text-white font-bold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            [disabled]="cartItems().length === 0"
+          >
+            Đặt món
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-promo-code-modal
+  [isOpen]="isPromoModalOpen()"
+  [appliedPromoCodes]="appliedPromoCodes()"
+  (closeModal)="closePromoModal()"
+  (applyPromos)="onApplyPromos($event)"
+></app-promo-code-modal>
+
+<app-address-modal
+  [isOpen]="isAddressModalOpen()"
+  [currentAddressId]="selectedAddress()?.id || null"
+  (closeModal)="closeAddressModal()"
+  (selectAddress)="onSelectAddress($event)"
+  (addNewAddress)="onAddNewAddress()"
+></app-address-modal>
+
+<app-product-detail-modal
+  [isOpen]="isProductModalOpen()"
+  [product]="editingProduct()"
+  [editingCartItem]="editingCartItem()"
+  (close)="closeProductModal()"
+  (updateCart)="onUpdateCart($event)"
+></app-product-detail-modal>

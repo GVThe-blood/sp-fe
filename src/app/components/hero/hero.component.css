@@ -1,0 +1,27 @@
+/* Hero Component - Dark Mode Support */
+
+.hero-section {
+  background-color: var(--bg-subtle);
+  transition: var(--theme-transition);
+}
+
+.hero-title {
+  color: var(--text-primary);
+}
+
+.hero-subtitle {
+  color: var(--text-muted);
+}
+
+.hero-text {
+  color: var(--text-primary);
+}
+
+.hero-link {
+  color: var(--color-info);
+  transition: color var(--transition-base);
+}
+
+.hero-link:hover {
+  color: var(--color-info-hover);
+}

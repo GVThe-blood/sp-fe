@@ -1,0 +1,10 @@
+/* Featured Products Component - Dark Mode Support */
+
+.featured-section {
+  background-color: var(--bg-subtle);
+  transition: var(--theme-transition);
+}
+
+.featured-title {
+  color: var(--text-primary);
+}

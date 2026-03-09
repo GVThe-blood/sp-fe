@@ -1,14 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import './styles/theme.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Hide scrollbar for carousel */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+/* You can add global styles to this file, and also import other style files */
 
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================
+   GLOBAL CHECKBOX STYLING - Hình vuông bo tròn
+   Chỉ áp dụng cho checkbox selection, KHÔNG áp dụng cho toggle switch
+   Toggle switch dùng class .sr-only nên không bị ảnh hưởng
+   ============================================ */
+input[type="checkbox"]:not(.sr-only):not(.toggle-switch) {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease-out;
+  flex-shrink: 0;
+}
+
+input[type="checkbox"]:not(.sr-only):not(.toggle-switch):checked {
+  background-color: var(--color-primary, #ff6b35);
+  border-color: var(--color-primary, #ff6b35);
+}
+
+input[type="checkbox"]:not(.sr-only):not(.toggle-switch):checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 5px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+input[type="checkbox"]:not(.sr-only):not(.toggle-switch):focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
+}
+
+input[type="checkbox"]:not(.sr-only):not(.toggle-switch):hover:not(:checked) {
+  border-color: #9ca3af;
 }

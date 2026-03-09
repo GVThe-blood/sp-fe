@@ -1,0 +1,240 @@
+<div class="bg-background-light dark:bg-background-dark font-display text-neutral-800 dark:text-neutral-200 flex flex-col min-h-screen">
+  <header class="py-12">
+    <div class="container mx-auto px-4 flex flex-col items-center justify-center">
+      <a class="text-5xl font-bold tracking-tight cursor-pointer" routerLink="/">
+        <span class="text-[#34a853]">Spring</span><span class="text-[#f97316]">Food</span>
+      </a>
+      <p class="mt-2 text-lg text-neutral-600 dark:text-neutral-400 tracking-wide">Food For Spring</p>
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="w-full max-w-lg space-y-8">
+      <div>
+        <h1 class="text-center text-4xl font-bold tracking-tight text-neutral-900 dark:text-white">
+          Tạo tài khoản mới
+        </h1>
+        <p class="mt-2 text-center text-sm text-neutral-600 dark:text-neutral-400">
+          Bắt đầu hành trình ẩm thực của bạn với chúng tôi.
+        </p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-6">
+        <div class="gradient-border-form">
+          <div class="inner-form-content">
+            <!-- First Name & Last Name -->
+            <div class="grid grid-cols-1 sm:grid-cols-2">
+              <div class="relative">
+                <label class="sr-only" for="first-name">Họ</label>
+                <input
+                  formControlName="firstName"
+                  autocomplete="given-name"
+                  class="input-field rounded-tl-lg sm:rounded-tr-none"
+                  id="first-name"
+                  placeholder="Họ"
+                  type="text" />
+              </div>
+              <div class="relative">
+                <label class="sr-only" for="last-name">Tên</label>
+                <input
+                  formControlName="lastName"
+                  autocomplete="family-name"
+                  class="input-field border-t sm:border-t-0 sm:border-l border-neutral-300/50 dark:border-neutral-700/50 rounded-tr-lg sm:rounded-bl-none"
+                  id="last-name"
+                  placeholder="Tên"
+                  type="text" />
+              </div>
+            </div>
+            <div *ngIf="getFieldError('firstName') || getFieldError('lastName')" class="error-message">
+              {{ getFieldError('firstName') || getFieldError('lastName') }}
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Username -->
+            <div class="relative">
+              <label class="sr-only" for="username">Tên đăng nhập</label>
+              <input
+                formControlName="username"
+                autocomplete="username"
+                class="input-field"
+                id="username"
+                placeholder="Tên đăng nhập"
+                type="text" />
+            </div>
+            <div *ngIf="getFieldError('username')" class="error-message">
+              {{ getFieldError('username') }}
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Email -->
+            <div class="relative">
+              <label class="sr-only" for="email-address">Email</label>
+              <input
+                formControlName="email"
+                autocomplete="email"
+                class="input-field"
+                id="email-address"
+                placeholder="Email"
+                type="email" />
+            </div>
+            <div *ngIf="getFieldError('email')" class="error-message">
+              {{ getFieldError('email') }}
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Password -->
+            <div class="relative">
+              <label class="sr-only" for="password">Mật khẩu</label>
+              <input
+                formControlName="password"
+                autocomplete="new-password"
+                class="input-field pr-10"
+                id="password"
+                placeholder="Mật khẩu"
+                [type]="showPassword ? 'text' : 'password'" />
+              <button
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                type="button"
+                (click)="togglePasswordVisibility()">
+                <span class="material-symbols-outlined !text-xl">
+                  {{ showPassword ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <div *ngIf="getFieldError('password')" class="error-message">
+              {{ getFieldError('password') }}
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Confirm Password -->
+            <div class="relative">
+              <label class="sr-only" for="confirm-password">Xác nhận mật khẩu</label>
+              <input
+                formControlName="confirmPassword"
+                autocomplete="new-password"
+                class="input-field pr-10"
+                id="confirm-password"
+                placeholder="Xác nhận mật khẩu"
+                [type]="showConfirmPassword ? 'text' : 'password'" />
+              <button
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                type="button"
+                (click)="toggleConfirmPasswordVisibility()">
+                <span class="material-symbols-outlined !text-xl">
+                  {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <div *ngIf="getFieldError('confirmPassword')" class="error-message">
+              {{ getFieldError('confirmPassword') }}
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Gender -->
+            <div class="px-3 py-3">
+              <div class="flex items-center space-x-6" role="group">
+                <span class="text-sm text-neutral-600 dark:text-neutral-400">Giới tính:</span>
+                <div class="minimal-radio">
+                  <input formControlName="gender" id="gender-male" type="radio" value="MALE" />
+                  <label for="gender-male">Nam</label>
+                </div>
+                <div class="minimal-radio">
+                  <input formControlName="gender" id="gender-female" type="radio" value="FEMALE" />
+                  <label for="gender-female">Nữ</label>
+                </div>
+                <div class="minimal-radio">
+                  <input formControlName="gender" id="gender-other" type="radio" value="OTHER" />
+                  <label for="gender-other">Khác</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-neutral-300/50 dark:border-neutral-700/50"></div>
+
+            <!-- Phone -->
+            <div class="relative flex items-center">
+              <div class="flex items-center pl-3">
+                <select
+                  formControlName="countryCode"
+                  class="bg-transparent border-0 outline-none focus:ring-0 text-sm text-neutral-700 dark:text-neutral-300 appearance-none pr-8"
+                  id="country-code"
+                  style="background-image: none">
+                  <option value="+84">🇻🇳 +84</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                </select>
+                <span class="material-symbols-outlined !text-base text-neutral-500 -ml-5 pointer-events-none">expand_more</span>
+              </div>
+              <div class="h-6 w-px bg-neutral-300/50 dark:border-neutral-700/50 mx-2"></div>
+              <label class="sr-only" for="phone">Số điện thoại</label>
+              <input
+                formControlName="phone"
+                autocomplete="tel"
+                class="input-field !px-0 rounded-b-lg"
+                id="phone"
+                placeholder="Số điện thoại"
+                type="tel" />
+            </div>
+            <div *ngIf="getFieldError('phone')" class="error-message">
+              {{ getFieldError('phone') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div>
+          <div class="gradient-border-button group">
+            <button
+              type="submit"
+              [disabled]="registerForm.invalid"
+              class="w-full justify-center rounded-[5px] bg-neutral-200 dark:bg-neutral-800 group-hover:bg-neutral-300/70 dark:group-hover:bg-neutral-700/80 py-3 px-4 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light dark:focus:ring-offset-background-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <span class="bg-gradient-to-r from-[#34a853] to-[#f97316] dark:from-[#4ad174] dark:to-[#ff8c42] bg-clip-text text-transparent">Đăng ký</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="text-center text-sm text-neutral-600 dark:text-neutral-400">
+          <p>Đã có tài khoản? <a class="font-medium text-primary hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer" routerLink="/login">Đăng nhập</a></p>
+        </div>
+
+        <div class="relative flex items-center justify-center my-4">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-neutral-300 dark:border-neutral-700"></div>
+          </div>
+          <div class="relative flex justify-center text-sm">
+            <span class="bg-background-light dark:bg-background-dark px-2 text-neutral-500 dark:text-neutral-400">Hoặc tiếp tục với</span>
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            class="w-full inline-flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm bg-neutral-200/80 dark:bg-neutral-800/80 text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-300/70 dark:hover:bg-neutral-700/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"></path>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"></path>
+              <path d="M1 1h22v22H1z" fill="none"></path>
+            </svg>
+            <span class="ml-3">Đăng ký với Google</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="bg-neutral-100 dark:bg-neutral-900/50 mt-auto">
+    <div class="container mx-auto py-8 px-6 text-center text-neutral-600 dark:text-neutral-400">
+      <a class="text-xl font-bold tracking-tight mb-4 inline-block cursor-pointer" routerLink="/">
+        <span class="text-[#34a853]">Spring</span><span class="text-[#f97316]">Food</span>
+      </a>
+      <p class="text-sm">© 2024 SpringFood Inc. All rights reserved.</p>
+    </div>
+  </footer>
+</div>

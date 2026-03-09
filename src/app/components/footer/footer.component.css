@@ -1,0 +1,87 @@
+/* ============================================
+   FOOTER DARK MODE STYLES
+   ============================================ */
+
+/* Footer background */
+.footer-bg {
+  background-color: var(--bg-card);
+}
+
+/* Footer border */
+.footer-border {
+  border-color: var(--border-default);
+}
+
+/* Footer heading text */
+.footer-heading {
+  color: var(--text-primary);
+}
+
+/* Footer body text */
+.footer-text {
+  color: var(--text-secondary);
+}
+
+/* Footer muted text */
+.footer-muted {
+  color: var(--text-muted);
+}
+
+/* Footer link */
+.footer-link {
+  color: var(--text-secondary);
+  transition: color var(--transition-base);
+}
+
+.footer-link:hover {
+  color: var(--color-success);
+}
+
+/* Footer input */
+.footer-input {
+  flex-grow: 1;
+  width: 100%;
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-base);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--font-size-sm);
+  transition: var(--theme-transition);
+}
+
+.footer-input::placeholder {
+  color: var(--text-muted);
+}
+
+.footer-input:focus {
+  outline: none;
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.2);
+}
+
+/* Footer button */
+.footer-btn {
+  background-color: var(--color-success);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-base);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  transition: background-color var(--transition-base);
+}
+
+.footer-btn:hover {
+  background-color: var(--color-success-hover);
+}
+
+.footer-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 168, 83, 0.4);
+}
+
+/* Footer divider */
+.footer-divider {
+  border-color: var(--border-default);
+}

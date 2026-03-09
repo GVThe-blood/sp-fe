@@ -1,0 +1,328 @@
+<div 
+  *ngIf="isOpen" 
+  class="fixed inset-0 z-50 flex items-center justify-center"
+  [class.animate-fadeIn]="!isClosing()"
+  [class.animate-fadeOut]="isClosing()"
+  (click)="onOverlayClick($event)"
+>
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/50"></div>
+  
+  <!-- Modal Content -->
+  <div 
+    class="modal-container"
+    [class.animate-slideUp]="!isClosing()"
+    [class.animate-slideDown]="isClosing()"
+  >
+    <!-- Floating Close Button - Unified modal close button style -->
+    <button 
+      (click)="close()"
+      class="modal-close-btn"
+      aria-label="Đóng cửa sổ khuyến mại"
+      type="button"
+    >
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="promo-modal-header flex items-center justify-center p-4 border-b">
+      <h2 class="text-xl font-bold promo-modal-title">Khuyến mại</h2>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="promo-search-section p-4 border-b">
+      <div class="flex items-center gap-2">
+        <div class="relative flex-1">
+          <span class="promo-search-icon absolute left-3 top-1/2 -translate-y-1/2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Nhập mã ưu đãi"
+            [value]="searchTerm()"
+            (input)="onSearchChange($event)"
+            class="promo-search-input w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+          >
+        </div>
+        <button class="promo-apply-text px-4 py-2.5 font-medium transition-colors">
+          Áp dụng
+        </button>
+      </div>
+    </div>
+
+    <!-- Promo List -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+      <!-- Food Promos Section -->
+      <div *ngIf="foodPromoCodes().length > 0">
+        <h3 class="text-sm font-semibold promo-section-title uppercase mb-3">Ưu đãi ăn uống</h3>
+        <div class="space-y-3">
+          <div 
+            *ngFor="let promo of foodPromoCodes()"
+            class="ticket-card"
+            [class.cursor-pointer]="!isPromoDisabled(promo)"
+            [class.ticket-selected]="isSelected(promo.id)"
+            [class.ticket-disabled]="isPromoDisabled(promo)"
+          >
+            <!-- Left Side - Badge -->
+            <div class="ticket-left bg-gradient-to-br from-yellow-400 to-orange-500">
+              <div class="text-center">
+                <span class="text-white font-bold text-xs leading-tight block">Deal Ngon</span>
+                <span class="text-white font-bold text-xs leading-tight block">Quán Mới</span>
+              </div>
+            </div>
+            
+            <!-- Right Side - Content -->
+            <div class="ticket-right">
+              <!-- Info Area - Click to open detail modal (task 5.2) -->
+              <div 
+                class="ticket-content promo-info-area"
+                (click)="openPromoDetail(promo, $event)"
+              >
+                <h4 class="font-semibold promo-title text-sm line-clamp-1">{{ promo.title }}</h4>
+                <p class="text-xs promo-description mt-0.5">{{ promo.description }}</p>
+                <p class="text-xs promo-expiry mt-1">HSD: {{ formatDate(promo.expiryDate) }}</p>
+              </div>
+              
+              <!-- Checkbox Area - Click to toggle selection (task 5.2) -->
+              <div 
+                class="ticket-checkbox promo-checkbox-area"
+                (click)="togglePromo(promo); $event.stopPropagation()"
+              >
+                <div 
+                  class="flex items-center justify-center transition-all"
+                  [class.checkbox-checked]="isSelected(promo.id)"
+                  [class.checkbox-unchecked]="!isSelected(promo.id) && !isPromoDisabled(promo)"
+                  [class.checkbox-disabled]="isPromoDisabled(promo)"
+                >
+                  <svg 
+                    *ngIf="isSelected(promo.id)"
+                    class="w-3 h-3 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Promos Section -->
+      <div *ngIf="deliveryPromoCodes().length > 0">
+        <h3 class="text-sm font-semibold promo-section-title uppercase mb-3">Ưu đãi giao hàng</h3>
+        <div class="space-y-3">
+          <div 
+            *ngFor="let promo of deliveryPromoCodes()"
+            class="ticket-card"
+            [class.cursor-pointer]="!isPromoDisabled(promo)"
+            [class.ticket-selected]="isSelected(promo.id)"
+            [class.ticket-disabled]="isPromoDisabled(promo)"
+          >
+            <!-- Left Side -->
+            <div class="ticket-left bg-gradient-to-br from-green-400 to-teal-500">
+              <svg class="w-8 h-8 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+              </svg>
+            </div>
+            
+            <!-- Right Side -->
+            <div class="ticket-right">
+              <!-- Info Area - Click to open detail modal (task 5.2) -->
+              <div 
+                class="ticket-content promo-info-area"
+                (click)="openPromoDetail(promo, $event)"
+              >
+                <h4 class="font-semibold promo-title text-sm line-clamp-1">{{ promo.title }}</h4>
+                <p class="text-xs promo-description mt-0.5">{{ promo.description }}</p>
+                <p class="text-xs promo-expiry mt-1">HSD: {{ formatDate(promo.expiryDate) }}</p>
+              </div>
+              
+              <!-- Checkbox Area - Click to toggle selection (task 5.2) -->
+              <div 
+                class="ticket-checkbox promo-checkbox-area"
+                (click)="togglePromo(promo); $event.stopPropagation()"
+              >
+                <div 
+                  class="flex items-center justify-center transition-all"
+                  [class.checkbox-checked]="isSelected(promo.id)"
+                  [class.checkbox-unchecked]="!isSelected(promo.id) && !isPromoDisabled(promo)"
+                  [class.checkbox-disabled]="isPromoDisabled(promo)"
+                >
+                  <svg 
+                    *ngIf="isSelected(promo.id)"
+                    class="w-3 h-3 text-white" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredPromoCodes().length === 0" class="text-center py-8">
+        <svg class="w-16 h-16 promo-empty-icon mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <p class="promo-empty-text">Không tìm thấy mã khuyến mại</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="promo-modal-footer p-4 border-t">
+      <!-- Selection limit feedback message -->
+      <div 
+        *ngIf="selectionLimitMessage()" 
+        class="mb-3 p-2 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 flex items-center gap-2"
+      >
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span>{{ selectionLimitMessage() }}</span>
+      </div>
+      <div class="flex items-center justify-between">
+        <span class="text-sm promo-footer-text">
+          Đã chọn <span class="font-semibold text-primary">{{ selectedCount() }}</span>/2 ưu đãi
+        </span>
+        <button 
+          (click)="onApply()"
+          class="px-6 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          [disabled]="selectedCount() === 0"
+        >
+          Áp dụng
+        </button>
+      </div>
+    </div>
+
+    <!-- Promo Detail Modal - Slides in from right, INSIDE the main modal -->
+    <div 
+      *ngIf="showDetailModal() && selectedPromoForDetail()"
+      class="promo-detail-modal"
+      [class.animate-slideInRight]="showDetailModal()"
+    >
+    <!-- Floating Close Button - Same style as main modal -->
+    <button 
+      (click)="closeAllModals()"
+      class="promo-detail-close-btn"
+      aria-label="Đóng cửa sổ"
+      type="button"
+    >
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="promo-detail-header">
+      <button 
+        (click)="closeDetailModal()"
+        class="back-btn"
+        aria-label="Quay lại danh sách khuyến mại"
+        type="button"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <h2 class="text-lg font-bold promo-modal-title">Chi tiết khuyến mại</h2>
+      <div class="w-8"></div> <!-- Spacer để căn giữa title -->
+    </div>
+
+    <!-- Modal Content -->
+    <div class="promo-detail-content">
+      <!-- Promo Image/Badge -->
+      <div class="promo-detail-image">
+        <div 
+          class="promo-badge-large"
+          [ngClass]="{
+            'bg-gradient-to-br from-yellow-400 to-orange-500': selectedPromoForDetail()?.category === 'food' || selectedPromoForDetail()?.category === 'special',
+            'bg-gradient-to-br from-green-400 to-teal-500': selectedPromoForDetail()?.category === 'delivery'
+          }"
+        >
+          <ng-container *ngIf="selectedPromoForDetail()?.category === 'food' || selectedPromoForDetail()?.category === 'special'">
+            <span class="text-white font-bold text-lg leading-tight block">Deal Ngon</span>
+            <span class="text-white font-bold text-lg leading-tight block">Quán Mới</span>
+          </ng-container>
+          <ng-container *ngIf="selectedPromoForDetail()?.category === 'delivery'">
+            <svg class="w-12 h-12 text-white mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+            </svg>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Promo Title and Code -->
+      <div class="promo-detail-title">
+        <h3 class="text-xl font-bold promo-title">{{ selectedPromoForDetail()?.title }}</h3>
+        <p class="text-sm promo-description mt-1">Mã: <span class="font-semibold text-primary">{{ selectedPromoForDetail()?.code }}</span></p>
+      </div>
+
+      <!-- Expiry Date -->
+      <div class="promo-detail-expiry">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-sm">Hạn sử dụng: {{ formatDate(selectedPromoForDetail()!.expiryDate) }}</span>
+      </div>
+
+      <!-- Discount Info -->
+      <div class="promo-detail-discount">
+        <div class="discount-badge">
+          <span class="discount-value">{{ formatDiscount(selectedPromoForDetail()!) }}</span>
+          <span class="discount-label" *ngIf="selectedPromoForDetail()?.maxDiscount">
+            Tối đa {{ selectedPromoForDetail()!.maxDiscount! / 1000 }}K
+          </span>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">{{ selectedPromoForDetail()?.description }}</p>
+      </div>
+
+      <!-- Conditions List -->
+      <div class="promo-detail-conditions" *ngIf="selectedPromoForDetail()?.conditions?.length">
+        <h4 class="text-sm font-semibold text-gray-700 mb-2">Chi tiết điều kiện</h4>
+        <ul class="conditions-list">
+          <li *ngFor="let condition of selectedPromoForDetail()?.conditions" class="condition-item">
+            <svg class="w-4 h-4 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span class="text-sm text-gray-600">{{ condition }}</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Disabled Reason (if applicable) -->
+      <div class="promo-detail-disabled" *ngIf="selectedPromoForDetail()?.isDisabled && selectedPromoForDetail()?.disabledReason">
+        <svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span class="text-sm text-red-600">{{ selectedPromoForDetail()?.disabledReason }}</span>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="promo-detail-footer">
+      <button 
+        (click)="applyPromoFromDetail()"
+        class="apply-btn"
+        [class.apply-btn-disabled]="selectedPromoForDetail()?.isDisabled"
+        [disabled]="selectedPromoForDetail()?.isDisabled"
+      >
+        {{ selectedPromoForDetail()?.isDisabled ? 'Không khả dụng' : 'Dùng ngay' }}
+      </button>
+    </div>
+  </div>
+  <!-- End of Promo Detail Modal -->
+  </div>
+  <!-- End of Modal Content -->
+</div>

@@ -1,4 +1,4 @@
-<section class="py-12 bg-[#f5f5f7]">
+<section class="carousel-section py-12">
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 relative">
     <div #carousel class="flex items-start space-x-4 sm:space-x-8 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
       @for (category of categories(); track category.name) {
@@ -7,18 +7,18 @@
             <div class="h-24 flex items-center justify-center">
               <img [src]="category.imageUrl" [alt]="category.name" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
             </div>
-            <p class="mt-2 text-sm font-semibold text-gray-800 group-hover:text-blue-600">{{ category.name }}</p>
+            <p class="mt-2 text-sm font-semibold carousel-category-name group-hover:text-blue-600">{{ category.name }}</p>
           </a>
         </div>
       }
     </div>
     @if (showPrev()) {
-      <button (click)="scroll('left')" class="absolute top-1/2 -translate-y-1/2 left-0 -ml-4 w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm shadow-md flex items-center justify-center text-gray-600 hover:bg-white transition-all">
+      <button (click)="scroll('left')" class="carousel-nav-btn absolute top-1/2 -translate-y-1/2 left-0 -ml-4 w-12 h-12 rounded-full backdrop-blur-sm flex items-center justify-center transition-all">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
       </button>
     }
     @if (showNext()) {
-      <button (click)="scroll('right')" class="absolute top-1/2 -translate-y-1/2 right-0 -mr-4 w-12 h-12 rounded-full bg-white/70 backdrop-blur-sm shadow-md flex items-center justify-center text-gray-600 hover:bg-white transition-all">
+      <button (click)="scroll('right')" class="carousel-nav-btn absolute top-1/2 -translate-y-1/2 right-0 -mr-4 w-12 h-12 rounded-full backdrop-blur-sm flex items-center justify-center transition-all">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
       </button>
     }

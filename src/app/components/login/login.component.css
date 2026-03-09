@@ -1,0 +1,78 @@
+.gradient-border-form {
+  position: relative;
+  padding: 1px;
+  border-radius: 1.125rem;
+  background: linear-gradient(145deg, #34a853, #f97316);
+  overflow: hidden;
+}
+
+.dark .gradient-border-form {
+  background: linear-gradient(145deg, #34a853, #f97316);
+}
+
+.gradient-border-form:focus-within {
+  background: linear-gradient(145deg, #4ad174, #ff8c42);
+}
+
+.inner-form-content {
+  background-color: #f5f5f7;
+  border-radius: calc(1.125rem - 1px);
+}
+
+.dark .inner-form-content {
+  background-color: #28282b;
+}
+
+.inner-form-content input {
+  background-color: transparent !important;
+  border: 0;
+  outline: 0;
+  box-shadow: none !important;
+}
+
+.inner-form-content input:focus {
+  ring: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Fix browser autofill background color */
+.inner-form-content input:-webkit-autofill,
+.inner-form-content input:-webkit-autofill:hover,
+.inner-form-content input:-webkit-autofill:focus,
+.inner-form-content input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #f5f5f7 inset !important;
+  -webkit-text-fill-color: #171717 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #171717;
+}
+
+.dark .inner-form-content input:-webkit-autofill,
+.dark .inner-form-content input:-webkit-autofill:hover,
+.dark .inner-form-content input:-webkit-autofill:focus,
+.dark .inner-form-content input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #28282b inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff;
+}
+
+/* Error message styling */
+.error-message {
+  @apply text-xs text-red-600 dark:text-red-500 pl-3 py-1;
+}
+
+/* Toast notification animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}

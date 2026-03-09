@@ -1,0 +1,37 @@
+/* Product Category Carousel - Dark Mode Support */
+
+.carousel-section {
+  background-color: var(--bg-subtle);
+  transition: var(--theme-transition);
+}
+
+.carousel-category-name {
+  color: var(--text-primary);
+  transition: color var(--transition-base);
+}
+
+.carousel-category-name:hover {
+  color: var(--color-info);
+}
+
+.carousel-nav-btn {
+  background-color: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-md);
+  transition: var(--theme-transition);
+}
+
+.carousel-nav-btn:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Hide scrollbar */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,48 @@
+<aside class="sidebar">
+  <!-- User Info -->
+  <div class="user-info">
+    <div class="avatar-wrapper" (click)="onAvatarEditClick()">
+      <div class="avatar" [style.background-image]="'url(' + user()?.avatarUrl + ')'"></div>
+      <div class="avatar-edit-overlay">
+        <span class="material-symbols-outlined">photo_camera</span>
+      </div>
+    </div>
+    <div class="user-details">
+      <h2 class="user-name">{{ user()?.firstName }} {{ user()?.lastName }}</h2>
+      <p class="user-since">Member since {{ user()?.joinDate }}</p>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="menu">
+    @for (item of menuItems(); track item.id) {
+      <a 
+        [routerLink]="item.route"
+        class="menu-item"
+        [class.active]="isActive(item.route)"
+        [class.sale-item]="item.isSpecial"
+        [class.sale-active]="item.isSpecial && item.saleEventName">
+        <span 
+          class="material-symbols-outlined menu-icon"
+          [class.filled]="isActive(item.route)"
+          [style.font-variation-settings]="isActive(item.route) ? '\'FILL\' 1' : '\'FILL\' 0'">{{ item.icon }}</span>
+        <span class="menu-label">{{ item.label }}</span>
+        @if (item.isSpecial && item.saleEventName) {
+          <span class="sale-badge">HOT</span>
+        }
+      </a>
+    }
+  </nav>
+
+  <!-- Bottom Actions -->
+  <div class="bottom-actions">
+    <a routerLink="/settings" class="menu-item">
+      <span class="material-symbols-outlined menu-icon">settings</span>
+      <span class="menu-label">Cài đặt</span>
+    </a>
+    <button (click)="logout()" class="menu-item logout-btn">
+      <span class="material-symbols-outlined menu-icon">logout</span>
+      <span class="menu-label">Đăng xuất</span>
+    </button>
+  </div>
+</aside>

@@ -1,0 +1,468 @@
+<!-- Modal Overlay -->
+<div *ngIf="isOpen && product" 
+     class="fixed inset-0 z-50 flex items-center justify-center"
+     [class.animate-fadeIn]="!isClosing()"
+     [class.animate-fadeOut]="isClosing()"
+     [class.dual-modal-active]="showReviewModal()"
+     (click)="closeAllModals()"
+     role="dialog"
+     aria-modal="true"
+     [attr.aria-labelledby]="'modal-title-' + product.id"
+     [attr.aria-describedby]="'modal-description-' + product.id">
+  
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/50"></div>
+  
+  <!-- Dual Modal Wrapper - Centers both modals -->
+  <div class="dual-modal-wrapper" [class.has-review]="showReviewModal()">
+  
+  <!-- Modal Content -->
+  <div #modalContent class="modal-container product-modal"
+       [class.animate-slideUp]="!isClosing()"
+       [class.animate-slideDown]="isClosing()"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Floating Close Button - Giống promo-code-modal -->
+    <button (click)="closeModal()" 
+            class="modal-close-btn"
+            aria-label="Đóng cửa sổ chi tiết sản phẩm"
+            type="button">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Scrollable Content Wrapper -->
+    <div class="modal-scroll-content">
+    
+    <!-- Product Image - Smaller height to match compact modal -->
+    <div class="relative w-full h-48 md:h-52 overflow-hidden md:rounded-t-xl" 
+         style="background-color: var(--color-gray-200);">
+      <img [src]="product.image" 
+           [alt]="product.name"
+           class="w-full h-full object-cover"
+           loading="lazy"
+           (error)="onImageError($event)">
+    </div>
+
+    <!-- Product Details -->
+    <div class="p-4 md:p-6">
+      <!-- Product Name -->
+      <h2 [id]="'modal-title-' + product.id" class="text-2xl font-bold mb-2" style="color: var(--text-primary);">{{ product.name }}</h2>
+
+      <!-- Rating and Sold Count -->
+      <div class="flex items-center gap-4 mb-4">
+        <app-star-rating 
+          *ngIf="product.rating"
+          [rating]="product.rating" 
+          [size]="'sm'"
+          [showNumber]="true">
+        </app-star-rating>
+        <span class="text-sm" style="color: var(--text-muted);">Đã bán {{ product.sold }}</span>
+      </div>
+
+      <!-- Price -->
+      <div class="flex items-center gap-2 mb-4">
+        <span class="text-2xl font-bold" style="color: var(--color-primary);">{{ formatPrice(product.price) }}đ</span>
+        <span *ngIf="product.originalPrice" 
+              class="text-lg line-through" style="color: var(--text-muted);">{{ formatPrice(product.originalPrice) }}đ</span>
+      </div>
+
+      <!-- Description -->
+      <p *ngIf="product.description" [id]="'modal-description-' + product.id" class="mb-4" style="color: var(--text-secondary);">{{ product.description }}</p>
+
+      <!-- View Product Details Link -->
+      <button 
+        (click)="openReviewModal()"
+        class="flex items-center gap-1 text-sm font-medium mb-4 hover:underline"
+        style="color: var(--color-primary);"
+        type="button">
+        Xem chi tiết sản phẩm
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Customization Options -->
+      <div *ngIf="product.customizationGroups && product.customizationGroups.length > 0">
+        <!-- Small groups in two-column grid (size, temperature, etc.) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div *ngFor="let group of getSmallGroups(); trackBy: trackByGroup">
+            <h3 class="text-base font-semibold mb-3" style="color: var(--text-primary);">
+              {{ group.name }}
+              <span *ngIf="group.required" class="text-sm" style="color: var(--color-error);">*</span>
+            </h3>
+            
+            <!-- Validation error message -->
+            <p *ngIf="getValidationError(group.id)" 
+               class="text-sm mb-2 fade-in" 
+               style="color: var(--color-error);"
+               role="alert"
+               aria-live="polite"
+               [id]="'error-' + group.id">
+              {{ getValidationError(group.id) }}
+            </p>
+            
+            <div class="space-y-2">
+              <label *ngFor="let option of group.options; trackBy: trackByOption" 
+                     class="flex items-center justify-between p-3 rounded-lg cursor-pointer"
+                     style="border: 1px solid var(--border-default); transition: all var(--transition-base);"
+                     [style.border-color]="isOptionSelected(group.id, option.id) ? 'var(--color-primary)' : 'var(--border-default)'"
+                     [style.background-color]="isOptionSelected(group.id, option.id) ? 'var(--color-primary-light)' : 'transparent'"
+                     onmouseover="if (!this.classList.contains('selected')) this.style.backgroundColor='var(--bg-hover)'"
+                     onmouseout="if (!this.classList.contains('selected')) this.style.backgroundColor='transparent'"
+                     [class.selected]="isOptionSelected(group.id, option.id)"
+                     (click)="selectOption(group.id, option.id)">
+                <div class="flex items-center gap-3">
+                  <!-- Rounded square checkbox instead of circular radio button -->
+                  <div class="option-checkbox" 
+                       [class.checked]="isOptionSelected(group.id, option.id)"
+                       role="radio"
+                       [attr.aria-checked]="isOptionSelected(group.id, option.id)"
+                       [attr.aria-describedby]="getValidationError(group.id) ? 'error-' + group.id : null"
+                       [attr.aria-label]="option.name + (option.priceModifier > 0 ? ', thêm ' + formatPrice(option.priceModifier) + ' đồng' : '')">
+                    <svg *ngIf="isOptionSelected(group.id, option.id)" class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <span class="text-sm" style="color: var(--text-primary);">{{ option.name }}</span>
+                </div>
+                <span *ngIf="option.priceModifier > 0" 
+                      class="text-sm font-medium" style="color: var(--color-primary);">+{{ formatPrice(option.priceModifier) }}đ</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider if there are small groups -->
+        <div *ngIf="getSmallGroups().length > 0" class="divider"></div>
+
+        <!-- Large groups full-width (toppings, add-ons, etc.) -->
+        <div *ngFor="let group of getLargeGroups(); trackBy: trackByGroup" class="mb-4">
+          <h3 class="text-base font-semibold mb-3" style="color: var(--text-primary);">
+            {{ group.name }}
+            <span *ngIf="group.required" class="text-sm" style="color: var(--color-error);">*</span>
+          </h3>
+          
+          <!-- Validation error message -->
+          <p *ngIf="getValidationError(group.id)" 
+             class="text-sm mb-2 fade-in" 
+             style="color: var(--color-error);"
+             role="alert"
+             aria-live="polite"
+             [id]="'error-' + group.id">
+            {{ getValidationError(group.id) }}
+          </p>
+          
+          <div class="space-y-2">
+            <label *ngFor="let option of group.options; trackBy: trackByOption" 
+                   class="flex items-center justify-between p-3 rounded-lg cursor-pointer"
+                   style="border: 1px solid var(--border-default); transition: all var(--transition-base);"
+                   [style.border-color]="isOptionSelected(group.id, option.id) ? 'var(--color-primary)' : 'var(--border-default)'"
+                   [style.background-color]="isOptionSelected(group.id, option.id) ? 'var(--color-primary-light)' : 'transparent'"
+                   onmouseover="if (!this.classList.contains('selected')) this.style.backgroundColor='var(--bg-hover)'"
+                   onmouseout="if (!this.classList.contains('selected')) this.style.backgroundColor='transparent'"
+                   [class.selected]="isOptionSelected(group.id, option.id)"
+                   (click)="selectOption(group.id, option.id)">
+              <div class="flex items-center gap-3">
+                <!-- Rounded square checkbox instead of circular radio button -->
+                <div class="option-checkbox" 
+                     [class.checked]="isOptionSelected(group.id, option.id)"
+                     role="radio"
+                     [attr.aria-checked]="isOptionSelected(group.id, option.id)"
+                     [attr.aria-describedby]="getValidationError(group.id) ? 'error-' + group.id : null"
+                     [attr.aria-label]="option.name + (option.priceModifier > 0 ? ', thêm ' + formatPrice(option.priceModifier) + ' đồng' : '')">
+                  <svg *ngIf="isOptionSelected(group.id, option.id)" class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span style="color: var(--text-primary);">{{ option.name }}</span>
+              </div>
+              <span *ngIf="option.priceModifier > 0" 
+                    class="font-medium" style="color: var(--color-primary);">+{{ formatPrice(option.priceModifier) }}đ</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Divider after customization options -->
+        <div *ngIf="getLargeGroups().length > 0" class="divider"></div>
+      </div>
+
+      <!-- Customer Note -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium mb-2" style="color: var(--text-primary);">
+          Ghi chú cho quán
+        </label>
+        <textarea 
+          [ngModel]="customerNote()"
+          (ngModelChange)="customerNote.set($event)"
+          rows="3"
+          placeholder="Ví dụ: Ít đường, nhiều đá..."
+          class="w-full px-4 py-2 rounded-lg resize-none"
+          style="border: 1px solid var(--border-default); transition: all var(--transition-base); background: var(--bg-card); color: var(--text-primary);"
+          onfocus="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px var(--color-primary-light)'"
+          onblur="this.style.borderColor='var(--border-default)'; this.style.boxShadow='none'"
+          aria-label="Ghi chú cho quán">
+        </textarea>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Bottom Action Bar: Quantity Controls + Add to Cart Button -->
+      <div class="flex items-center gap-4">
+        <!-- Quantity Controls (left side) - Smaller size with color coding -->
+        <div class="flex items-center gap-2">
+          <!-- Decrease button - Orange (--color-primary) -->
+          <button (click)="decrementQuantity()"
+                  [disabled]="quantity() <= 1"
+                  class="quantity-btn quantity-btn-decrease"
+                  aria-label="Giảm số lượng"
+                  type="button">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+            </svg>
+          </button>
+          <span class="text-lg font-semibold w-8 text-center" style="color: var(--text-primary);" aria-live="polite" aria-atomic="true">{{ quantity() }}</span>
+          <!-- Increase button - Green (--color-success) -->
+          <button (click)="incrementQuantity()"
+                  class="quantity-btn quantity-btn-increase"
+                  aria-label="Tăng số lượng"
+                  type="button">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Add to Cart Button (flex-1 to take remaining space) - Always enabled -->
+        <button (click)="onAddToCart()"
+                [disabled]="product.isSoldOut || isAddingToCart()"
+                class="flex-1 py-4 font-semibold rounded-xl"
+                style="background-color: var(--color-primary); color: var(--text-on-primary); transition: all var(--transition-slow);"
+                [style.background-color]="(product.isSoldOut || isAddingToCart()) ? 'var(--color-gray-300)' : 'var(--color-primary)'"
+                [style.cursor]="(product.isSoldOut || isAddingToCart()) ? 'not-allowed' : 'pointer'"
+                onmouseover="if (!this.disabled) this.style.backgroundColor='var(--color-primary-hover)'; if (!this.disabled) this.style.boxShadow='var(--shadow-lg)'"
+                onmouseout="if (!this.disabled) this.style.backgroundColor='var(--color-primary)'; if (!this.disabled) this.style.boxShadow='none'"
+                onmousedown="if (!this.disabled) this.style.transform='scale(0.98)'"
+                onmouseup="if (!this.disabled) this.style.transform='scale(1)'"
+                type="button"
+                [attr.aria-label]="product.isSoldOut ? 'Sản phẩm hết hàng' : (isEditMode() ? 'Cập nhật giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng' : 'Thêm vào giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng')">
+          <span *ngIf="!product.isSoldOut && !isAddingToCart()">
+            {{ isEditMode() ? 'Cập nhật' : 'Thêm vào giỏ' }} - {{ formatPrice(totalPrice()) }}đ
+          </span>
+          <span *ngIf="isAddingToCart()" aria-live="polite">{{ isEditMode() ? 'Đang cập nhật...' : 'Đang thêm...' }}</span>
+          <span *ngIf="product.isSoldOut">Hết hàng</span>
+        </button>
+      </div>
+    </div>
+    </div>
+    <!-- End of Scrollable Content Wrapper -->
+  </div>
+  <!-- End of Modal Content -->
+  
+  <!-- Product Review Modal - Slides in from right -->
+  <div 
+    *ngIf="showReviewModal()"
+    class="review-modal-container"
+    [class.animate-slideInRight]="!isReviewModalClosing()"
+    [class.animate-slideOutRight]="isReviewModalClosing()"
+    (click)="$event.stopPropagation()">
+    
+    <!-- Close Button -->
+    <button 
+      (click)="closeReviewModal()"
+      class="modal-close-btn"
+      aria-label="Đóng cửa sổ đánh giá"
+      type="button">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+    
+    <!-- Fixed Header - Only Product Name -->
+    <div class="review-modal-header">
+      <div class="p-4 pb-3" style="border-bottom: 1px solid var(--border-default);">
+        <div class="text-center">
+          <h3 class="font-bold text-lg mb-2" style="color: var(--text-primary);">{{ product.name }}</h3>
+          <div class="w-16 h-0.5 mx-auto" style="background: linear-gradient(to right, transparent, var(--color-primary), transparent);"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Scrollable Content -->
+    <div class="review-modal-scroll">
+      <!-- Product Description Card -->
+      <div class="p-5 pt-4" style="border-bottom: 1px solid var(--border-default);">
+        <div class="rounded-xl p-4" style="background: var(--color-primary-lighter);">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style="background: var(--color-primary-light);">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-primary);">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h4 class="font-semibold text-sm mb-2" style="color: var(--text-primary);">Thông tin chi tiết</h4>
+              <p *ngIf="product.description" class="text-sm leading-relaxed" style="color: var(--text-secondary);">{{ product.description }}</p>
+              <p *ngIf="!product.description" class="text-sm italic" style="color: var(--text-muted);">Chưa có thông tin chi tiết về sản phẩm này.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Rating Summary - Creative Design -->
+      <div class="px-5 py-4" style="background: var(--color-primary-lighter); border-bottom: 1px solid var(--border-default);">
+        <div class="flex items-center justify-between">
+          <!-- Left: Rating Score Circle - Size scales with rating -->
+          <div class="flex items-center gap-3">
+            <div class="relative">
+              <div class="rounded-full flex items-center justify-center shadow-lg transition-all duration-300"
+                   style="background: linear-gradient(135deg, var(--color-warning), var(--color-primary));"
+                   [style.width.px]="getRatingCircleSize()"
+                   [style.height.px]="getRatingCircleSize()">
+                <span class="font-bold transition-all duration-300" style="color: var(--text-on-primary);"
+                      [style.font-size.px]="getRatingFontSize()">{{ getAverageRating() }}</span>
+              </div>
+              <div class="absolute -top-1 -right-1 rounded-full flex items-center justify-center shadow transition-all duration-300"
+                   style="background: var(--color-primary);"
+                   [style.width.px]="getStarBadgeSize()"
+                   [style.height.px]="getStarBadgeSize()">
+                <svg fill="currentColor" viewBox="0 0 20 20" style="color: var(--text-on-primary);"
+                     [style.width.px]="getStarBadgeSize() * 0.6"
+                     [style.height.px]="getStarBadgeSize() * 0.6">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div class="flex mb-1 gap-0.5">
+                <div *ngFor="let star of [1,2,3,4,5]" class="relative w-4 h-4">
+                  <!-- Empty star (gray background) -->
+                  <svg class="absolute inset-0" fill="currentColor" viewBox="0 0 20 20" style="color: var(--color-gray-300);">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  <!-- Filled star (yellow) with clip-path for partial fill -->
+                  <svg class="absolute inset-0" fill="currentColor" viewBox="0 0 20 20" style="color: var(--color-warning);"
+                       [style.clip-path]="'inset(0 ' + (100 - getStarFillPercentage(star)) + '% 0 0)'">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                </div>
+              </div>
+              <p class="text-xs font-medium" style="color: var(--text-muted);">{{ productReviews().length }} đánh giá</p>
+            </div>
+          </div>
+          
+          <!-- Right: Rating Distribution Bars (Real Data) -->
+          <div class="space-y-1">
+            <div *ngFor="let item of getRatingDistribution()" class="flex items-center gap-2 text-xs">
+              <span class="w-6 text-right font-medium" style="color: var(--text-muted);">{{ item.star }}★</span>
+              <div class="w-20 h-1.5 rounded-full overflow-hidden" style="background: var(--color-gray-200);">
+                <div class="h-full rounded-full transition-all duration-300" 
+                     style="background: linear-gradient(to right, var(--color-warning), var(--color-primary));"
+                     [style.width.%]="item.percentage"></div>
+              </div>
+              <span class="w-4 text-right" style="color: var(--text-muted);">{{ item.count }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Reviews List - Compact -->
+      <div class="p-4 space-y-3">
+        <h4 class="text-sm font-semibold mb-2" style="color: var(--text-primary);">Đánh giá từ khách hàng</h4>
+        
+        <div *ngFor="let review of productReviews()" class="py-3 last:border-0" style="border-bottom: 1px solid var(--border-default);">
+          <!-- User Row -->
+          <div class="flex items-center justify-between mb-1.5">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center" style="background: var(--color-primary-light);">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style="color: var(--color-primary);">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="font-medium text-sm" style="color: var(--text-primary);">{{ review.userName }}</span>
+            </div>
+            <span class="text-xs" style="color: var(--text-muted);">{{ review.date }}</span>
+          </div>
+          
+          <!-- Stars - Smaller -->
+          <div class="flex mb-1.5">
+            <svg *ngFor="let star of [1,2,3,4,5]" 
+                 class="w-4 h-4"
+                 [style.color]="star <= review.rating ? 'var(--color-warning)' : 'var(--color-gray-300)'"
+                 fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+            </svg>
+          </div>
+          
+          <!-- Comment -->
+          <p class="text-sm leading-relaxed" style="color: var(--text-secondary);">{{ review.comment }}</p>
+        </div>
+        
+        <!-- Empty State -->
+        <div *ngIf="productReviews().length === 0" class="text-center py-6">
+          <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-gray-300);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <p class="text-sm" style="color: var(--text-muted);">Chưa có đánh giá nào</p>
+        </div>
+      </div>
+      
+      <!-- Add Comment Section - Refined -->
+      <div class="p-4 sticky bottom-0" style="border-top: 1px solid var(--border-default); background: var(--bg-card);">
+        <!-- Rating Selection - Inline -->
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-xs font-medium" style="color: var(--text-secondary);">Đánh giá:</span>
+          <div class="flex gap-0.5">
+            <button *ngFor="let star of [1,2,3,4,5]"
+                    (click)="setNewRating(star)"
+                    class="p-0 transition-all hover:scale-110 focus:outline-none"
+                    type="button"
+                    [attr.aria-label]="star + ' sao'">
+              <svg class="w-5 h-5"
+                   [style.color]="star <= newRating() ? 'var(--color-warning)' : 'var(--color-gray-300)'"
+                   fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Comment Input - Aligned heights -->
+        <div class="comment-input-row">
+          <textarea 
+            #commentInput
+            [value]="newCommentValue"
+            (input)="onCommentInput($event)"
+            rows="1"
+            placeholder="Viết nhận xét của bạn..."
+            class="flex-1 text-sm rounded-xl comment-textarea"
+            style="border: 1px solid var(--border-default); max-height: 120px; resize: none; overflow-y: auto; background: var(--bg-card); color: var(--text-primary);"
+            onfocus="this.style.borderColor='var(--color-primary)'; this.style.boxShadow='0 0 0 3px var(--color-primary-light)'"
+            onblur="this.style.borderColor='var(--border-default)'; this.style.boxShadow='none'">
+          </textarea>
+          <button 
+            (click)="submitComment()"
+            [disabled]="!isCommentValid()"
+            class="rounded-xl transition-all flex items-center justify-center"
+            [class.opacity-50]="!isCommentValid()"
+            [class.cursor-not-allowed]="!isCommentValid()"
+            style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover)); color: var(--text-on-primary); box-shadow: var(--shadow-md);"
+            type="button"
+            aria-label="Gửi đánh giá">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End of Review Modal -->
+  
+  </div>
+  <!-- End of Dual Modal Wrapper -->
+</div>

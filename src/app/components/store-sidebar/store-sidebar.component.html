@@ -1,0 +1,60 @@
+<aside class="store-sidebar">
+  <!-- Store Info Header -->
+  <div class="store-header">
+    <div class="store-avatar">
+      <span class="material-symbols-outlined">storefront</span>
+    </div>
+    <div class="store-info">
+      <h3 class="store-name">{{ user()?.firstName }}'s Store</h3>
+      <p class="store-username">{{ '@' }}{{ user()?.username }}</p>
+    </div>
+  </div>
+
+  <!-- Menu Sections -->
+  <nav class="store-menu">
+    <!-- HOẠT ĐỘNG Section -->
+    <div class="menu-section">
+      <h4 class="section-header">HOẠT ĐỘNG</h4>
+      <ul class="menu-list">
+        @for (item of operationsItems; track item.id) {
+          <li class="menu-item" [class.active]="isActive(item.route)">
+            <a [routerLink]="item.route" class="menu-link">
+              <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- PHÂN TÍCH & TĂNG TRƯỞNG Section -->
+    <div class="menu-section">
+      <h4 class="section-header">PHÂN TÍCH & TĂNG TRƯỞNG</h4>
+      <ul class="menu-list">
+        @for (item of analyticsItems; track item.id) {
+          <li class="menu-item" [class.active]="isActive(item.route)">
+            <a [routerLink]="item.route" class="menu-link">
+              <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- QUẢN TRỊ Section -->
+    <div class="menu-section">
+      <h4 class="section-header">QUẢN TRỊ</h4>
+      <ul class="menu-list">
+        @for (item of managementItems; track item.id) {
+          <li class="menu-item" [class.active]="isActive(item.route)">
+            <a [routerLink]="item.route" class="menu-link">
+              <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+              <span class="menu-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </nav>
+</aside>

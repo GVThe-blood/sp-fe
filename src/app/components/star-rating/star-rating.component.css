@@ -1,0 +1,14 @@
+/* Star rating component styles */
+:host {
+  display: inline-block;
+}
+
+/* Smooth transitions for star fills */
+.star-icon {
+  transition: all 0.2s ease-out;
+}
+
+/* Star container animation */
+.star-container {
+  transition: transform 0.2s ease-out;
+}

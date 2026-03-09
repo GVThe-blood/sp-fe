@@ -1,0 +1,71 @@
+/* Theme Toggle Button Styles */
+/* Requirements: 6.2, 6.3, 6.4 */
+
+.theme-toggle-btn {
+  /* Icon-only button without background (Requirement 6.2) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  border-radius: 0.375rem;
+  transition: color 200ms ease, transform 200ms ease;
+}
+
+/* Subtle visual feedback on hover (Requirement 6.3) */
+.theme-toggle-btn:hover {
+  color: var(--text-secondary, #4b5563);
+  transform: scale(1.05);
+}
+
+.theme-toggle-btn:focus {
+  outline: none;
+}
+
+.theme-toggle-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #ff6b35);
+  outline-offset: 2px;
+}
+
+/* Theme icon base styles */
+.theme-icon {
+  display: block;
+  transition: transform 300ms ease, opacity 150ms ease;
+}
+
+/* Rotation/morph animation between icons (Requirement 6.4) */
+.theme-icon.rotating {
+  transform: rotate(180deg) scale(0.8);
+  opacity: 0.7;
+}
+
+/* Sun icon specific animation */
+.sun-icon.rotating {
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* Moon icon specific animation */
+.moon-icon.rotating {
+  transform: rotate(-90deg) scale(0.9);
+}
+
+/* Animation state for the button */
+.theme-toggle-btn.animating {
+  pointer-events: none;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle-btn,
+  .theme-icon {
+    transition: none;
+  }
+  
+  .theme-icon.rotating {
+    transform: none;
+    opacity: 1;
+  }
+}

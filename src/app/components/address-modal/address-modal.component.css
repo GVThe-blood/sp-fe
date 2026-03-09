@@ -1,0 +1,145 @@
+/* Address Modal Styles */
+/* Animations are defined in theme.css */
+
+/* ============================================
+   DARK MODE SUPPORT - Semantic Classes
+   ============================================ */
+
+/* Modal header */
+.modal-header {
+  border-color: var(--border-default, #e5e7eb);
+  background-color: var(--bg-card, #ffffff);
+}
+
+/* Modal title */
+.modal-title {
+  color: var(--text-primary, #111827);
+}
+
+/* Address card */
+.address-card {
+  background-color: var(--bg-card, #ffffff);
+  transition: var(--theme-transition), transform 0.2s;
+}
+
+.address-card:hover {
+  transform: translateX(4px);
+}
+
+/* Address card unselected state */
+.address-card-unselected {
+  border-color: var(--border-default, #e5e7eb);
+}
+
+.address-card-unselected:hover {
+  border-color: var(--border-strong, #d1d5db);
+}
+
+/* Address name */
+.address-name {
+  color: var(--text-primary, #111827);
+}
+
+/* Address phone */
+.address-phone {
+  color: var(--text-secondary, #4b5563);
+}
+
+/* Address text */
+.address-text {
+  color: var(--text-secondary, #374151);
+}
+
+/* Checkbox unselected */
+.checkbox-unselected {
+  border-color: var(--border-strong, #d1d5db);
+  background-color: transparent;
+}
+
+/* Add new address button */
+.add-address-btn {
+  border-color: var(--border-strong, #d1d5db);
+  color: var(--text-muted, #6b7280);
+  background-color: transparent;
+  transition: var(--theme-transition);
+}
+
+.add-address-btn:hover {
+  border-color: var(--text-muted, #9ca3af);
+  color: var(--text-secondary, #4b5563);
+}
+
+/* Empty state text */
+.empty-state-icon {
+  color: var(--border-strong, #d1d5db);
+}
+
+.empty-state-text {
+  color: var(--text-muted, #6b7280);
+}
+
+/* Modal footer */
+.modal-footer {
+  border-color: var(--border-default, #e5e7eb);
+  background-color: var(--bg-subtle, #f9fafb);
+}
+
+/* Cancel button */
+.btn-cancel {
+  border-color: var(--border-strong, #d1d5db);
+  color: var(--text-secondary, #374151);
+  background-color: transparent;
+  transition: var(--theme-transition);
+}
+
+.btn-cancel:hover {
+  background-color: var(--bg-hover, #f3f4f6);
+}
+
+/* Line clamp for address text */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: var(--bg-subtle, #f1f1f1);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--border-strong, #c1c1c1);
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted, #a1a1a1);
+}
+
+/* Primary color classes using CSS variables */
+.bg-primary {
+  background-color: var(--color-primary, #ff6b35);
+}
+
+.bg-primary-hover:hover {
+  background-color: var(--color-primary-hover, #ff5722);
+}
+
+.bg-primary-light {
+  background-color: var(--color-primary-light, #fff5f2);
+}
+
+.border-primary {
+  border-color: var(--color-primary, #ff6b35);
+}
+
+.text-primary {
+  color: var(--color-primary, #ff6b35);
+}

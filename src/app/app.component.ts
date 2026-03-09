@@ -1,26 +1,47 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './components/header/header.component';
-import { HeroComponent } from './components/hero/hero.component';
-import { ProductCategoryCarouselComponent } from './components/product-category-carousel/product-category-carousel.component';
-import { FeaturedProductsComponent } from './components/featured-products/featured-products.component';
-import { ColorRibbonComponent } from './components/color-ribbon/color-ribbon.component';
-import { TrendingCategoriesComponent } from './components/trending-categories/trending-categories.component';
+import { FooterComponent } from './components/footer/footer.component';
+import { ToastContainerComponent } from './components/toast-container/toast-container.component';
+import { ThemeService } from './services/theme.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [
     RouterOutlet,
     HeaderComponent,
-    HeroComponent,
-    ProductCategoryCarouselComponent,
-    FeaturedProductsComponent,
-    ColorRibbonComponent,
-    TrendingCategoriesComponent
+    FooterComponent,
+    ToastContainerComponent,
+    CommonModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'springfood';
+  
+  private router = inject(Router);
+  
+  // Inject ThemeService to initialize theme on app bootstrap (Requirement 4.4)
+  private themeService = inject(ThemeService);
+  
+  // Routes that should hide header/footer
+  private authRoutes = ['/login', '/register'];
+  
+  showHeaderFooter = true;
+  
+  constructor() {
+    // Subscribe to router events to update showHeaderFooter
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      this.showHeaderFooter = !this.authRoutes.includes(event.urlAfterRedirects);
+    });
+    
+    // Check initial route
+    this.showHeaderFooter = !this.authRoutes.includes(this.router.url);
+  }
 }

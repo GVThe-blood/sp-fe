@@ -1,0 +1,81 @@
+<!-- Modal Backdrop -->
+<div *ngIf="isOpen" class="modal-backdrop" (click)="onBackdropClick($event)">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">Chọn ảnh đại diện</h2>
+      <button class="close-button" (click)="onClose()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Preset Avatars Section -->
+      <div class="section">
+        <h3 class="section-title">Chọn từ thư viện</h3>
+        <div class="avatar-grid">
+          <div
+            *ngFor="let avatar of presetAvatars"
+            class="avatar-item"
+            [class.selected]="isSelected(avatar)"
+            (click)="onPresetSelect(avatar)"
+          >
+            <img [src]="avatar" [alt]="'Avatar preset'" class="avatar-image" />
+            <div *ngIf="isSelected(avatar)" class="selected-indicator">
+              <span class="material-symbols-outlined">check_circle</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Section -->
+      <div class="section">
+        <h3 class="section-title">Hoặc tải ảnh lên</h3>
+        <div class="upload-area">
+          <input
+            type="file"
+            id="avatar-upload"
+            class="file-input"
+            accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+            (change)="onFileSelect($event)"
+            [disabled]="isLoading"
+          />
+          <label for="avatar-upload" class="upload-label" [class.disabled]="isLoading">
+            <span *ngIf="!isLoading" class="material-symbols-outlined upload-icon">cloud_upload</span>
+            <span *ngIf="isLoading" class="spinner-small"></span>
+            <span class="upload-text">{{ isLoading ? 'Đang tải...' : 'Chọn ảnh từ máy tính' }}</span>
+            <span *ngIf="!isLoading" class="upload-hint">JPG, JPEG, PNG, WEBP, GIF</span>
+          </label>
+
+          <!-- Upload Preview -->
+          <div *ngIf="uploadedPreview" class="upload-preview">
+            <img [src]="uploadedPreview" alt="Preview" class="preview-image" />
+            <div class="preview-label">Ảnh đã chọn</div>
+          </div>
+
+          <!-- File Error -->
+          <div *ngIf="fileError" class="file-error">
+            <span class="material-symbols-outlined">error</span>
+            <span>{{ fileError }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onClose()">
+        Hủy
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="onSave()"
+        [disabled]="!canSave()"
+      >
+        <span *ngIf="isLoading" class="spinner"></span>
+        <span *ngIf="!isLoading">Lưu</span>
+      </button>
+    </div>
+  </div>
+</div>

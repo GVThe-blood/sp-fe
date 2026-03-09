@@ -1,3 +1,121 @@
+/* ============================================
+   HEADER DARK MODE STYLES
+   ============================================ */
+
+/* Header background - uses CSS variables for theme support */
+.header-bg {
+  background-color: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+/* Navigation link styles */
+.nav-link {
+  color: var(--text-primary);
+  transition: color var(--transition-base);
+}
+
+.nav-link:hover {
+  color: var(--text-secondary);
+}
+
+/* Dropdown menu container */
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 0.5rem;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-base);
+  box-shadow: var(--shadow-xl);
+  padding: 0.5rem 0;
+  min-width: 160px;
+  z-index: 50;
+  border: 1px solid var(--border-default);
+}
+
+/* Dropdown menu item */
+.dropdown-item {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  transition: background-color var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdown-item:hover {
+  background-color: var(--bg-hover);
+}
+
+.dropdown-item-active {
+  background-color: var(--bg-subtle);
+}
+
+/* Mega menu background */
+.mega-menu-bg {
+  background-color: var(--bg-card);
+}
+
+/* Menu column title */
+.menu-column-title {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Menu link */
+.menu-link {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  transition: color var(--transition-base);
+  display: block;
+}
+
+.menu-link:hover {
+  color: var(--color-info);
+}
+
+/* Search input */
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  font-size: var(--font-size-sm);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-full);
+  border: none;
+}
+
+.search-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Search icon */
+.search-icon {
+  color: var(--text-muted);
+}
+
+/* Backdrop overlay */
+.backdrop-overlay {
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
 /* Dropdown fade and slide animation - Apple style with smooth easing */
 @keyframes dropdownFade {
   0% { 
