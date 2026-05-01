@@ -1,21 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CartService, MergeCartResponse, AdjustedItem } from '../../services/cart.service';
+import { AuthService } from '../../services/auth.service';
 
 // Validation patterns
 export const EMAIL_PATTERN = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // Validation error messages
 export const LOGIN_VALIDATION_MESSAGES = {
-  email: {
-    required: 'Email không được để trống',
-    pattern: 'Email không hợp lệ'
+  username: {
+    required: 'Tên đăng nhập không được để trống',
+    minlength: 'Tên đăng nhập phải có ít nhất 3 ký tự'
   },
   password: {
     required: 'Mật khẩu không được để trống',
-    minlength: 'Mật khẩu phải có ít nhất 6 ký tự'
+    minlength: 'Mật khẩu phải có ít nhất 8 ký tự'
   }
 };
 
@@ -33,32 +34,34 @@ export const MERGE_NOTIFICATION_MESSAGES = {
   styleUrl: './login.component.css'
 })
 export class LoginComponent {
+  private fb = inject(FormBuilder);
+  private router = inject(Router);
+  private cartService = inject(CartService);
+  private authService = inject(AuthService);
+
   loginForm: FormGroup;
   showMergeNotification = false;
   mergeNotificationMessage = '';
   adjustedItems: AdjustedItem[] = [];
   isLoading = false;
+  errorMessage = '';
 
-  constructor(
-    private fb: FormBuilder, 
-    private router: Router,
-    private cartService: CartService
-  ) {
+  constructor() {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.pattern(EMAIL_PATTERN)]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       rememberMe: [false]
     });
   }
 
-  getEmailError(): string | null {
-    const control = this.loginForm.get('email');
+  getUsernameError(): string | null {
+    const control = this.loginForm.get('username');
     if (control?.touched && control?.errors) {
       if (control.errors['required']) {
-        return LOGIN_VALIDATION_MESSAGES.email.required;
+        return LOGIN_VALIDATION_MESSAGES.username.required;
       }
-      if (control.errors['pattern']) {
-        return LOGIN_VALIDATION_MESSAGES.email.pattern;
+      if (control.errors['minlength']) {
+        return LOGIN_VALIDATION_MESSAGES.username.minlength;
       }
     }
     return null;
@@ -80,12 +83,22 @@ export class LoginComponent {
   onSubmit(): void {
     if (this.loginForm.valid) {
       this.isLoading = true;
-      // TODO: Implement actual login API call
-      console.log('Login form submitted:', this.loginForm.value);
+      this.errorMessage = '';
       
-      // Simulate successful login (in real app, this would be after receiving JWT token)
-      // After receiving JWT token, call mergeGuestCart (Requirement 3.1)
-      this.performCartMergeAndRedirect();
+      const { username, password } = this.loginForm.value;
+      
+      this.authService.login({ username, password }).subscribe({
+        next: (response) => {
+          console.log('Login successful:', response);
+          // After successful login, merge guest cart
+          this.performCartMergeAndRedirect();
+        },
+        error: (error) => {
+          console.error('Login failed:', error);
+          this.isLoading = false;
+          this.errorMessage = error.error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.';
+        }
+      });
     } else {
       // Mark all fields as touched to show errors
       Object.keys(this.loginForm.controls).forEach(key => {

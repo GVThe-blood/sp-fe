@@ -1,9 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-hero',
-  imports: [],
+  standalone: true,
+  imports: [TranslateModule],
   templateUrl: './hero.component.html',
-  styleUrl: './hero.component.css'
+  styleUrl: './hero.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroComponent {}
+export class HeroComponent {
+  // Hero background image signal
+  heroImage = signal('assets/images/hero-background.jpg');
+}

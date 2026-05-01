@@ -1,14 +1,42 @@
-<section class="featured-section py-12">
+<section class="py-12">
   <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-    <h2 class="text-4xl md:text-5xl font-bold tracking-tight featured-title mb-8">
-      <span class="text-blue-600">The latest.</span> Truly awe-inspired gifts.
+    <!-- Section Title -->
+    <h2 class="text-4xl font-bold text-[#181c1e] mb-8">
+      {{ 'homepage.featuredProducts.title' | translate }}
     </h2>
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      @for (product of products(); track product.title) {
-        <div [class]="(products().indexOf(product) === 0 ? 'lg:col-span-2' : '')">
-          <app-product-card [product]="product"></app-product-card>
-        </div>
+    
+    <!-- Product Grid (3 columns desktop, 2 tablet, 1 mobile) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      @for (product of products(); track product.id) {
+        <app-product-item 
+          [product]="product"
+          (productClick)="onProductClick($event)"
+          (favoriteClick)="onFavoriteClick($event)"
+          (addToCartClick)="onAddToCartClick($event)">
+        </app-product-item>
       }
     </div>
+    
+    <!-- Load More Button -->
+    @if (hasMore()) {
+      <div class="mt-8 flex items-center gap-4">
+        <!-- Left Line -->
+        <div class="flex-1 h-px bg-[#c1cab5]"></div>
+        
+        <!-- Load More Button -->
+        <button 
+          (click)="loadMore()"
+          class="flex items-center gap-2 px-6 py-3 text-[#6db33f] font-semibold 
+                 hover:text-[#90d960] transition-colors duration-300">
+          <span>{{ 'homepage.featuredProducts.loadMore' | translate }}</span>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+        
+        <!-- Right Line -->
+        <div class="flex-1 h-px bg-[#c1cab5]"></div>
+      </div>
+    }
   </div>
 </section>

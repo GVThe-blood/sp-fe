@@ -1,8 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { HotToastService } from '@ngxpert/hot-toast';
 import { UserService, Address } from '../../services/user.service';
-import { ToastService } from '../../services/toast.service';
 import { ProfileSidebarComponent } from '../../components/profile-sidebar/profile-sidebar.component';
 import { AddressCardComponent } from '../../components/address-card/address-card.component';
 import { AddressFormModalComponent } from '../../components/address-form-modal/address-form-modal.component';
@@ -23,8 +23,9 @@ import { AvatarPickerModalComponent } from '../../components/avatar-picker-modal
   styleUrl: './profile.component.css'
 })
 export class ProfileComponent {
-  userService = inject(UserService);
-  toastService = inject(ToastService);
+  private userService = inject(UserService);
+  private toast = inject(HotToastService);
+  
   user = this.userService.currentUser;
   
   // Address management state
@@ -64,15 +65,15 @@ export class ProfileComponent {
       if (this.editingAddress) {
         // Update existing address
         this.userService.updateAddress(this.editingAddress.id, address);
-        this.toastService.show('Cập nhật địa chỉ thành công', 'success');
+        this.toast.success('Cập nhật địa chỉ thành công');
       } else {
         // Add new address
         this.userService.addAddress(address);
-        this.toastService.show('Thêm địa chỉ mới thành công', 'success');
+        this.toast.success('Thêm địa chỉ mới thành công');
       }
       this.closeAddressModal();
     } catch (error) {
-      this.toastService.show('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+      this.toast.error('Có lỗi xảy ra. Vui lòng thử lại.');
     }
   }
   
@@ -83,9 +84,9 @@ export class ProfileComponent {
     setTimeout(() => {
       try {
         this.userService.setDefaultAddress(address.id);
-        this.toastService.show('Đã đặt làm địa chỉ mặc định', 'success');
+        this.toast.success('Đã đặt làm địa chỉ mặc định');
       } catch (error) {
-        this.toastService.show('Không thể đặt địa chỉ mặc định. Vui lòng thử lại.', 'error');
+        this.toast.error('Không thể đặt địa chỉ mặc định. Vui lòng thử lại.');
       } finally {
         this.loadingAddressId = null;
       }
@@ -104,9 +105,9 @@ export class ProfileComponent {
       setTimeout(() => {
         try {
           this.userService.deleteAddress(address.id);
-          this.toastService.show('Xóa địa chỉ thành công', 'success');
+          this.toast.success('Xóa địa chỉ thành công');
         } catch (error) {
-          this.toastService.show('Không thể xóa địa chỉ. Vui lòng thử lại.', 'error');
+          this.toast.error('Không thể xóa địa chỉ. Vui lòng thử lại.');
         } finally {
           this.loadingAddressId = null;
         }
@@ -133,15 +134,17 @@ export class ProfileComponent {
   onAvatarSelect(avatarUrl: string): void {
     try {
       this.userService.updateUser({ avatarUrl });
-      this.toastService.show('Cập nhật avatar thành công', 'success');
+      this.toast.success('Cập nhật avatar thành công');
       this.closeAvatarPicker();
     } catch (error) {
-      this.toastService.show('Không thể cập nhật avatar. Vui lòng thử lại.', 'error');
+      this.toast.error('Không thể cập nhật avatar. Vui lòng thử lại.');
     }
   }
   
   // Handle avatar upload
   onAvatarUpload(file: File): void {
+    const uploadToast = this.toast.loading('Đang tải lên avatar...');
+    
     try {
       // In a real application, this would upload the file to a server
       // For now, we'll create a local URL for preview
@@ -149,15 +152,18 @@ export class ProfileComponent {
       reader.onload = (e) => {
         const avatarUrl = e.target?.result as string;
         this.userService.updateUser({ avatarUrl });
-        this.toastService.show('Tải lên avatar thành công', 'success');
+        uploadToast.close();
+        this.toast.success('Tải lên avatar thành công');
       };
       reader.onerror = () => {
-        this.toastService.show('Không thể đọc file. Vui lòng thử lại.', 'error');
+        uploadToast.close();
+        this.toast.error('Không thể đọc file. Vui lòng thử lại.');
       };
       reader.readAsDataURL(file);
       this.closeAvatarPicker();
     } catch (error) {
-      this.toastService.show('Không thể tải lên avatar. Vui lòng thử lại.', 'error');
+      uploadToast.close();
+      this.toast.error('Không thể tải lên avatar. Vui lòng thử lại.');
     }
   }
 }
