@@ -63,7 +63,12 @@ export class FlashSaleComponent implements OnInit, OnDestroy {
   private timerInterval?: ReturnType<typeof setInterval>;
   
   ngOnInit(): void {
-    this.loadFlashSaleProducts();
+    // Start countdown with a default end time (4 hours from now for demo)
+    const demoEndTime = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString();
+    this.startCountdown(demoEndTime);
+    
+    // Uncomment to load from API
+    // this.loadFlashSaleProducts();
   }
   
   ngOnDestroy(): void {

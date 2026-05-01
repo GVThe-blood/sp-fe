@@ -1,61 +1,52 @@
-<!-- Flash Sale Hero Banner (Combined Hero + Flash Sale from Stitch Design) -->
-<div class="relative rounded-3xl overflow-hidden h-[500px] mx-4 lg:mx-8 mb-20">
-  <!-- Background Image with Gradient Overlay -->
-  <img 
-    src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=1920&h=500&fit=crop" 
-    alt="Flash Sale Background"
-    class="absolute inset-0 w-full h-full object-cover"
-  >
-  <div class="absolute inset-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent"></div>
+<!-- Flash Sale Hero Banner -->
+<section class="w-full rounded-[24px] overflow-hidden relative min-h-[400px] md:min-h-[500px] flex items-center justify-start p-8 md:p-16 soft-shadow group">
+  <!-- Background Image -->
+  <div class="absolute inset-0 z-0">
+    <img 
+      alt="Delicious food spread" 
+      class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbaeZcWsT5Zbrc3wu9VwzpRO5aAQsyuvg_rIFo7LE6rxw5bwdR557qCTt4B2ByWDow6QUs61eXJvVCQiVBpPL_nrGICw2be1sLJ6o5qEOxNncXw8sM1hZpdOLQDzVOpA493uwbFPd_Q8O87cshbRhsM3o6e2DaCm5uZ0IJ0tiD91OBd9RlpgJ1jrsCEdjWg9m2wMEmFNHXdQdxUGzX9ufPDlPqv5Aaq22bYaZgt03S8UQmhyHx9PxMIk2hl4BtLKlgvZKuH3jOVcB4"
+    />
+    <!-- Gradient Overlay for text legibility -->
+    <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+  </div>
   
   <!-- Content -->
-  <div class="relative z-10 h-full flex flex-col justify-center items-center text-center px-8">
-    <!-- Flash Sale Badge -->
-    <div class="inline-flex items-center gap-2 px-4 py-2 bg-[#ff8928] rounded-full mb-6">
-      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z"/>
-      </svg>
-      <span class="text-sm font-bold text-white uppercase tracking-wider">
-        {{ 'homepage.flashSale.badge' | translate }}
-      </span>
-    </div>
-    
-    <!-- Title -->
-    <h1 class="text-5xl lg:text-6xl font-bold text-white mb-8 max-w-3xl">
-      {{ 'homepage.flashSale.title' | translate }}
+  <div class="relative z-10 max-w-lg text-on-primary">
+    <span class="inline-block px-3 py-1 bg-secondary-container text-on-secondary-container font-label-md text-[12px] uppercase tracking-widest rounded-full mb-4">
+      Flash Sale
+    </span>
+    <h1 class="font-display-lg text-display-lg mb-6 leading-tight">
+      Ưu đãi cực hời -<br/>Chỉ hôm nay!
     </h1>
     
     <!-- Countdown Timer (Glassmorphic) -->
     @if (!isExpired()) {
-      <div class="inline-flex gap-3 px-6 py-4 rounded-2xl 
-                  bg-white/70 backdrop-blur-[16px] border border-white/30 mb-8"
+      <div class="glass-panel rounded-xl p-4 inline-flex items-center gap-4 mb-8"
            role="timer"
            [attr.aria-label]="'homepage.flashSale.timeRemaining' | translate">
         <div class="flex flex-col items-center">
-          <span class="text-3xl font-bold text-[#181c1e]">{{ formatTime(timeRemaining().hours) }}</span>
-          <span class="text-xs text-[#41493a] uppercase tracking-wider">{{ 'homepage.flashSale.hours' | translate }}</span>
+          <span class="font-headline-md text-headline-md text-secondary-container">{{ formatTime(timeRemaining().hours) }}</span>
+          <span class="font-label-md text-[10px] uppercase text-on-primary/80">Hours</span>
         </div>
-        <span class="text-3xl font-bold text-[#181c1e]">:</span>
+        <span class="text-2xl font-bold text-on-primary/50 mb-4">:</span>
         <div class="flex flex-col items-center">
-          <span class="text-3xl font-bold text-[#181c1e]">{{ formatTime(timeRemaining().minutes) }}</span>
-          <span class="text-xs text-[#41493a] uppercase tracking-wider">{{ 'homepage.flashSale.minutes' | translate }}</span>
+          <span class="font-headline-md text-headline-md text-secondary-container">{{ formatTime(timeRemaining().minutes) }}</span>
+          <span class="font-label-md text-[10px] uppercase text-on-primary/80">Mins</span>
         </div>
-        <span class="text-3xl font-bold text-[#181c1e]">:</span>
+        <span class="text-2xl font-bold text-on-primary/50 mb-4">:</span>
         <div class="flex flex-col items-center">
-          <span class="text-3xl font-bold text-[#181c1e]">{{ formatTime(timeRemaining().seconds) }}</span>
-          <span class="text-xs text-[#41493a] uppercase tracking-wider">{{ 'homepage.flashSale.seconds' | translate }}</span>
+          <span class="font-headline-md text-headline-md text-secondary-container">{{ formatTime(timeRemaining().seconds) }}</span>
+          <span class="font-label-md text-[10px] uppercase text-on-primary/80">Secs</span>
         </div>
       </div>
     }
     
-    <!-- CTA Button -->
-    <button class="inline-flex items-center gap-2 px-8 py-4 bg-[#6db33f] text-white 
-                   rounded-xl font-semibold text-lg hover:bg-[#90d960] 
-                   transition-all duration-300 shadow-lg hover:shadow-xl">
-      <span>{{ 'homepage.flashSale.cta' | translate }}</span>
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-      </svg>
-    </button>
+    <div>
+      <button class="bg-primary-container hover:bg-primary-container/90 text-on-primary font-label-md text-label-md px-8 py-4 rounded-full transition-transform active:scale-95 shadow-lg flex items-center gap-2">
+        Mua Ngay
+        <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+      </button>
+    </div>
   </div>
-</div>
+</section>
