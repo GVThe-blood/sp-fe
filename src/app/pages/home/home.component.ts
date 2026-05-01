@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { HotToastService } from '@ngxpert/hot-toast';
+import { ColorRibbonComponent } from '../../components/color-ribbon/color-ribbon.component';
 import { FlashSaleComponent } from '../../components/flash-sale/flash-sale.component';
 import { FeaturedProductsComponent } from '../../components/featured-products/featured-products.component';
 
@@ -28,6 +29,7 @@ interface Category {
   standalone: true,
   imports: [
     CommonModule,
+    ColorRibbonComponent,
     FlashSaleComponent,
     FeaturedProductsComponent
   ],
