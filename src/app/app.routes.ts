@@ -6,6 +6,7 @@ import { StoreDetailComponent } from './pages/store-detail/store-detail.componen
 import { OrderComponent } from './pages/order/order.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { MyStoreComponent } from './pages/my-store/my-store.component';
+import { StoreAnalyticsComponent } from './pages/store-analytics/store-analytics.component';
 
 export const routes: Routes = [
     { path: '', component: HomeComponent },
@@ -14,5 +15,6 @@ export const routes: Routes = [
     { path: 'store/:id', component: StoreDetailComponent },
     { path: 'order', component: OrderComponent },
     { path: 'profile', component: ProfileComponent },
-    { path: 'my-store', component: MyStoreComponent }
+    { path: 'my-store', component: MyStoreComponent },
+    { path: 'my-store/analytics', component: StoreAnalyticsComponent }
 ];

@@ -1,0 +1,255 @@
+<div class="analytics-page">
+  <!-- Sidebar -->
+  <app-store-sidebar [activeRoute]="'/my-store/analytics'"></app-store-sidebar>
+
+  <!-- Main Content -->
+  <div class="analytics-content">
+
+    <!-- Top Nav / Header Equivalent -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-40 flex justify-between items-center px-8 h-16 w-full shadow-sm rounded-2xl mb-8">
+      <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-gray-900">Phân Tích Dữ Liệu</h2>
+        <span class="text-slate-300">|</span>
+        <p class="text-base text-slate-500">Tổng quan hiệu suất thời gian thực</p>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="relative flex items-center hidden md:flex">
+          <span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+          <input class="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-full text-sm focus:ring-2 focus:ring-green-500 w-64 transition-all" placeholder="Tìm kiếm phân tích..." type="text"/>
+        </div>
+        <div class="flex items-center gap-4 text-slate-500">
+          <button class="hover:bg-slate-50 p-2 rounded-full transition-colors relative">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="space-y-8">
+      <!-- KPI Summary Grid -->
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- KPI 1: Profit -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-lime-50 text-lime-600 rounded-xl">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+            </div>
+            <span class="text-green-700 font-bold text-xs bg-lime-50 px-2 py-1 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">trending_up</span> +12.4%
+            </span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Tổng Lợi Nhuận</p>
+            <h3 class="text-4xl font-bold text-gray-900 mt-1">$42,850.00</h3>
+          </div>
+        </div>
+        <!-- KPI 2: Conversion Rate -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">ads_click</span>
+            </div>
+            <span class="text-blue-600 font-bold text-xs bg-blue-50 px-2 py-1 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">trending_up</span> +3.2%
+            </span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Tỷ Lệ Chuyển Đổi</p>
+            <h3 class="text-4xl font-bold text-gray-900 mt-1">4.85%</h3>
+          </div>
+        </div>
+        <!-- KPI 3: Order Success -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-orange-50 text-orange-600 rounded-xl">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            </div>
+            <span class="text-orange-600 font-bold text-xs bg-orange-50 px-2 py-1 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">remove</span> 0.0%
+            </span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Tỷ Lệ Thành Công</p>
+            <h3 class="text-4xl font-bold text-gray-900 mt-1">98.2%</h3>
+          </div>
+        </div>
+        <!-- KPI 4: Active Customers -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-slate-100 text-slate-600 rounded-xl">
+              <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">groups</span>
+            </div>
+            <span class="text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded-full flex items-center gap-1">
+              <span class="material-symbols-outlined text-[14px]">trending_down</span> -1.5%
+            </span>
+          </div>
+          <div>
+            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Khách Hàng Hoạt Động</p>
+            <h3 class="text-4xl font-bold text-gray-900 mt-1">2,481</h3>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Chart Section -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Line Chart: Profit over time -->
+        <div class="lg:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+          <div class="flex justify-between items-center mb-8">
+            <div>
+              <h4 class="text-xl font-bold text-gray-900">Lợi Nhuận Theo Thời Gian</h4>
+              <p class="text-base text-slate-500">Phân tích thu nhập hàng ngày trong giai đoạn đã chọn</p>
+            </div>
+            <div class="flex bg-slate-50 p-1 rounded-xl">
+              <button class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-gray-900 transition-colors">Hôm nay</button>
+              <button class="px-4 py-1.5 text-xs font-bold rounded-lg bg-white shadow-sm text-green-700">Tuần</button>
+              <button class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-gray-900 transition-colors">Tháng</button>
+              <button class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-gray-900 transition-colors">Năm</button>
+            </div>
+          </div>
+          <div class="h-80 w-full relative">
+            <canvas #lineChart></canvas>
+          </div>
+        </div>
+
+        <!-- Breakdown: Sales Channels -->
+        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
+          <h4 class="text-xl font-bold text-gray-900 mb-2">Kênh Bán Hàng</h4>
+          <p class="text-base text-slate-500 mb-8">Phân phối Trực tuyến và Trực tiếp</p>
+
+          <div class="relative flex-1 flex items-center justify-center h-48 w-full mb-4">
+             <canvas #doughnutChart></canvas>
+             <!-- Center Text Overlay -->
+             <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span class="text-4xl block leading-none font-extrabold text-gray-900">72%</span>
+                <span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Trực tuyến</span>
+             </div>
+          </div>
+
+          <div class="mt-8 space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full" style="background-color: #6db33f;"></span>
+                <span class="text-base font-medium text-gray-900">Đơn hàng Trực tuyến</span>
+              </div>
+              <span class="text-base font-bold text-gray-900">$30,852</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="w-3 h-3 rounded-full" style="background-color: #ff8928;"></span>
+                <span class="text-base font-medium text-gray-900">Trực tiếp/POS</span>
+              </div>
+              <span class="text-base font-bold text-gray-900">$11,998</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bento Grid: Secondary Metrics & Traffic -->
+      <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Avg Order Value -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <p class="text-sm font-semibold tracking-wider text-slate-500 mb-2 uppercase">Giá Trị Đơn Trung Bình</p>
+          <h4 class="text-2xl font-bold text-gray-900 mb-4">$34.50</h4>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div class="h-full w-[65%]" style="background-color: #6db33f;"></div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Mục tiêu: $40.00</p>
+        </div>
+        <!-- Return Rate -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+          <p class="text-sm font-semibold tracking-wider text-slate-500 mb-2 uppercase">Tỷ Lệ Trả Hàng</p>
+          <h4 class="text-2xl font-bold text-red-600 mb-4">1.2%</h4>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div class="bg-red-600 h-full w-[12%]"></div>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase">Dưới trung bình (Tốt)</p>
+        </div>
+        <!-- Traffic Sources -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
+          <div class="flex justify-between items-center mb-4">
+            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Nguồn Lưu Lượng</p>
+            <button class="text-green-700 text-xs font-bold flex items-center">Xem chi tiết <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+          </div>
+          <div class="grid grid-cols-3 gap-4">
+            <div class="text-center p-3 bg-slate-50 rounded-xl">
+              <span class="text-base font-bold block text-gray-900">Mạng xã hội</span>
+              <span class="text-xs text-slate-400">45%</span>
+            </div>
+            <div class="text-center p-3 bg-slate-50 rounded-xl">
+              <span class="text-base font-bold block text-gray-900">Trực tiếp</span>
+              <span class="text-xs text-slate-400">30%</span>
+            </div>
+            <div class="text-center p-3 bg-slate-50 rounded-xl">
+              <span class="text-base font-bold block text-gray-900">Tìm kiếm</span>
+              <span class="text-xs text-slate-400">25%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Top Selling Products Table -->
+      <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-8 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-50 gap-4">
+          <div>
+            <h4 class="text-xl font-bold text-gray-900">Sản Phẩm Bán Chạy Nhất</h4>
+            <p class="text-base text-slate-500">Các sản phẩm hoạt động tốt nhất trong tuần này</p>
+          </div>
+          <button class="bg-slate-50 text-slate-700 font-bold px-6 py-2.5 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">download</span>
+            Xuất Dữ Liệu
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-slate-50/50">
+              <tr>
+                <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Sản phẩm</th>
+                <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Kho hàng</th>
+                <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Doanh số</th>
+                <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Doanh thu</th>
+                <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 text-right">Hiệu suất</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+
+              @for (product of topProducts; track product.sku) {
+                <tr class="hover:bg-slate-50/30 transition-colors">
+                  <td class="px-8 py-4">
+                    <div class="flex items-center gap-4">
+                      <img [alt]="product.name" class="w-12 h-12 rounded-xl object-cover shadow-sm" [src]="product.image"/>
+                      <div>
+                        <p class="text-base font-bold text-gray-900">{{ product.name }}</p>
+                        <p class="text-xs text-slate-400">SKU: {{ product.sku }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-8 py-4">
+                    <span class="text-base font-medium" [ngClass]="{'text-red-600 font-bold': product.inventoryWarning, 'text-gray-900': !product.inventoryWarning}">
+                      {{ product.inventory }}
+                    </span>
+                  </td>
+                  <td class="px-8 py-4 font-bold text-gray-900">{{ product.sales }}</td>
+                  <td class="px-8 py-4 font-bold text-green-700">{{ product.revenue }}</td>
+                  <td class="px-8 py-4">
+                    <div class="flex justify-end items-center gap-2">
+                      <span class="font-bold text-xs px-2 py-1 rounded-full" [ngClass]="product.performanceClass">{{ product.performanceLabel }}</span>
+                      <div class="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                        <div class="h-full" [style.width.%]="product.performanceProgress" [ngClass]="product.performanceProgressClass"></div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              }
+
+            </tbody>
+          </table>
+        </div>
+        <div class="p-6 bg-slate-50 text-center">
+          <button class="text-green-700 font-bold hover:underline">Xem tất cả báo cáo hiệu suất</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
