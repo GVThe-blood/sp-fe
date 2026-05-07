@@ -1,0 +1,88 @@
+<div class="rounded-lg p-3 flex gap-4 relative group product-card h-[140px]" 
+     style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
+
+  <!-- Product Image -->
+  <div class="relative w-28 h-28 flex-shrink-0 cursor-pointer rounded-md" 
+       style="background-color: var(--bg-hover);" 
+       (click)="productClick.emit(product())">
+    <img [src]="product().image" 
+         [alt]="product().name" 
+         class="w-full h-full object-cover rounded-md" 
+         loading="lazy" 
+         (error)="onImageError($event)">
+    @if (product().isSoldOut) {
+      <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-md">
+        <span class="text-white font-bold text-xs px-2 py-1 border border-white rounded">HẾT MÓN</span>
+      </div>
+    }
+  </div>
+
+  <!-- Product Info -->
+  <div class="flex-1 flex flex-col justify-between min-w-0">
+    <div class="flex-1 min-h-0">
+      <h3 class="font-semibold text-base mb-1 cursor-pointer hover:text-blue-600 line-clamp-1" 
+          style="color: var(--text-primary);" 
+          (click)="productClick.emit(product())">
+        {{ product().name }}@if (product().shopName) {<span class="text-gray-500 font-normal"> - {{ product().shopName }}</span>}
+      </h3>
+      @if (product().description) {
+        <div class="text-xs line-clamp-1 mb-1" style="color: var(--text-muted);">
+          {{ product().description }}
+        </div>
+      }
+      <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
+        @if (product().sold) {
+          <span class="whitespace-nowrap">Đã bán {{ product().sold }}+</span>
+        }
+        @if (product().rating !== undefined) {
+          <span class="flex-shrink-0">
+            <app-star-rating [rating]="product().rating!" [size]="'sm'" [showNumber]="true"></app-star-rating>
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-2">
+      <div class="flex items-end gap-2">
+        <div class="font-bold text-base" style="color: var(--text-primary);">
+          {{ product().price | number }}đ
+        </div>
+        @if (product().originalPrice !== undefined && product().originalPrice! > product().price) {
+          <div class="text-xs line-through mb-0.5" style="color: var(--text-disabled);">
+            {{ product().originalPrice | number }}đ
+          </div>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        <!-- Like Button -->
+        <button 
+          (click)="favoriteClick.emit(product().id); $event.stopPropagation()" 
+          class="p-1.5 transition-all duration-300 ease-out hover:scale-110 active:scale-125 favorite-icon"
+          [class.text-red-500]="isFavorite()"
+          [style.color]="!isFavorite() ? 'var(--text-muted)' : null">
+          <!-- Filled heart when favorited -->
+          @if (isFavorite()) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+          } @else {
+            <!-- Outline heart when not favorited -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          }
+        </button>
+
+        <!-- Add Button -->
+        <button (click)="addToCartClick.emit(product()); $event.stopPropagation()"
+                [disabled]="product().isSoldOut"
+                class="w-7 h-7 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm transition-all duration-300 add-to-cart-btn bg-[#6db33f] text-white hover:bg-[#90d960]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

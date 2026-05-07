@@ -1,0 +1,27 @@
+{
+  "header": {
+    "nav": {
+      "store": "Magasin",
+      "categories": "Catégories",
+      "recipes": "Recettes",
+      "mealPlans": "Plans de repas",
+      "support": "Support"
+    },
+    "user": {
+      "signIn": "Se connecter",
+      "profile": "Profil",
+      "myStore": "Ma boutique",
+      "signOut": "Se déconnecter"
+    },
+    "search": {
+      "placeholder": "Rechercher des produits...",
+      "popularSearches": "Recherches populaires"
+    }
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "close": "Fermer"
+  }
+}

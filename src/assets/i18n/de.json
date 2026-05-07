@@ -1,0 +1,27 @@
+{
+  "header": {
+    "nav": {
+      "store": "Geschäft",
+      "categories": "Kategorien",
+      "recipes": "Rezepte",
+      "mealPlans": "Essenspläne",
+      "support": "Unterstützung"
+    },
+    "user": {
+      "signIn": "Anmelden",
+      "profile": "Profil",
+      "myStore": "Mein Geschäft",
+      "signOut": "Abmelden"
+    },
+    "search": {
+      "placeholder": "Produkte suchen...",
+      "popularSearches": "Beliebte Suchen"
+    }
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "close": "Schließen"
+  }
+}
