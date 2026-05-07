@@ -1,0 +1,30 @@
+<div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col">
+  <h4 class="text-xl font-bold text-gray-900 mb-2">Kênh Bán Hàng</h4>
+  <p class="text-base text-slate-500 mb-8">Phân phối Trực tuyến và Trực tiếp</p>
+
+  <div class="relative flex-1 flex items-center justify-center h-48 w-full mb-4">
+    <canvas #chartCanvas></canvas>
+    <!-- Center Text Overlay -->
+    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+      <span class="text-4xl block leading-none font-extrabold text-gray-900">{{ data().online }}%</span>
+      <span class="text-[10px] text-slate-400 uppercase font-bold tracking-widest mt-1">Trực tuyến</span>
+    </div>
+  </div>
+
+  <div class="mt-8 space-y-4">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full" style="background-color: #6db33f;"></span>
+        <span class="text-base font-medium text-gray-900">Đơn hàng Trực tuyến</span>
+      </div>
+      <span class="text-base font-bold text-gray-900">{{ data().onlineRevenue }}</span>
+    </div>
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="w-3 h-3 rounded-full" style="background-color: #ff8928;"></span>
+        <span class="text-base font-medium text-gray-900">Trực tiếp/POS</span>
+      </div>
+      <span class="text-base font-bold text-gray-900">{{ data().offlineRevenue }}</span>
+    </div>
+  </div>
+</div>

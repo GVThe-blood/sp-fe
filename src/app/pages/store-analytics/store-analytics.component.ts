@@ -1,30 +1,141 @@
-import { Component, AfterViewInit, ElementRef, ViewChild, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Chart, registerables } from 'chart.js';
+import { Component, ChangeDetectionStrategy, signal, computed, inject } from '@angular/core';
 import { StoreSidebarComponent } from '../../components/store-sidebar/store-sidebar.component';
 import { UserService } from '../../services/user.service';
-
-Chart.register(...registerables);
+import { KpiCardComponent } from './components/kpi-card/kpi-card.component';
+import { MetricCardComponent } from './components/metric-card/metric-card.component';
+import { ProfitChartComponent } from './components/profit-chart/profit-chart.component';
+import { SalesChannelChartComponent } from './components/sales-channel-chart/sales-channel-chart.component';
+import { TopProductsTableComponent } from './components/top-products-table/top-products-table.component';
+import { 
+  KpiData, 
+  MetricData, 
+  ProfitChartData, 
+  SalesChannelData, 
+  TopProduct,
+  TrafficSource 
+} from './models/analytics.models';
 
 @Component({
   selector: 'app-store-analytics',
   standalone: true,
-  imports: [CommonModule, StoreSidebarComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    StoreSidebarComponent,
+    KpiCardComponent,
+    MetricCardComponent,
+    ProfitChartComponent,
+    SalesChannelChartComponent,
+    TopProductsTableComponent
+  ],
   templateUrl: './store-analytics.component.html',
   styleUrl: './store-analytics.component.css'
 })
-export class StoreAnalyticsComponent implements AfterViewInit {
-  @ViewChild('lineChart') lineChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('doughnutChart') doughnutChartRef!: ElementRef<HTMLCanvasElement>;
-
-  userService = inject(UserService);
+export class StoreAnalyticsComponent {
+  private userService = inject(UserService);
+  
+  // User signal
   user = this.userService.currentUser;
 
-  lineChart: any;
-  doughnutChart: any;
+  // KPI Data signals
+  kpiData = signal<KpiData[]>([
+    {
+      icon: 'payments',
+      iconFilled: true,
+      label: 'Tổng Lợi Nhuận',
+      value: '$42,850.00',
+      trend: {
+        value: '+12.4%',
+        direction: 'up',
+        color: '#15803d',
+        bgColor: '#f0fdf4'
+      },
+      iconBgColor: '#f0fdf4',
+      iconColor: '#65a30d'
+    },
+    {
+      icon: 'ads_click',
+      iconFilled: true,
+      label: 'Tỷ Lệ Chuyển Đổi',
+      value: '4.85%',
+      trend: {
+        value: '+3.2%',
+        direction: 'up',
+        color: '#2563eb',
+        bgColor: '#eff6ff'
+      },
+      iconBgColor: '#eff6ff',
+      iconColor: '#2563eb'
+    },
+    {
+      icon: 'check_circle',
+      iconFilled: true,
+      label: 'Tỷ Lệ Thành Công',
+      value: '98.2%',
+      trend: {
+        value: '0.0%',
+        direction: 'neutral',
+        color: '#ea580c',
+        bgColor: '#fff7ed'
+      },
+      iconBgColor: '#fff7ed',
+      iconColor: '#ea580c'
+    },
+    {
+      icon: 'groups',
+      iconFilled: true,
+      label: 'Khách Hàng Hoạt Động',
+      value: '2,481',
+      trend: {
+        value: '-1.5%',
+        direction: 'down',
+        color: '#dc2626',
+        bgColor: '#fef2f2'
+      },
+      iconBgColor: '#f1f5f9',
+      iconColor: '#64748b'
+    }
+  ]);
 
-  // Mock data for top selling products
-  topProducts = [
+  // Metrics data signals
+  avgOrderValue = signal<MetricData>({
+    label: 'Giá Trị Đơn Trung Bình',
+    value: '$34.50',
+    progress: 65,
+    progressColor: '#6db33f',
+    target: 'Mục tiêu: $40.00'
+  });
+
+  returnRate = signal<MetricData>({
+    label: 'Tỷ Lệ Trả Hàng',
+    value: '1.2%',
+    progress: 12,
+    progressColor: '#dc2626',
+    target: 'Dưới trung bình (Tốt)',
+    isWarning: true
+  });
+
+  // Chart data signals
+  profitChartData = signal<ProfitChartData>({
+    labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
+    data: [2500, 3200, 2800, 4100, 5000, 7500, 8420]
+  });
+
+  salesChannelData = signal<SalesChannelData>({
+    online: 72,
+    offline: 28,
+    onlineRevenue: '$30,852',
+    offlineRevenue: '$11,998'
+  });
+
+  // Traffic sources signal
+  trafficSources = signal<TrafficSource[]>([
+    { name: 'Mạng xã hội', percentage: 45 },
+    { name: 'Trực tiếp', percentage: 30 },
+    { name: 'Tìm kiếm', percentage: 25 }
+  ]);
+
+  // Top products signal
+  topProducts = signal<TopProduct[]>([
     {
       name: 'Cải xoăn hữu cơ tươi',
       sku: 'VG-001-KLE',
@@ -64,116 +175,11 @@ export class StoreAnalyticsComponent implements AfterViewInit {
       performanceProgressClass: 'bg-secondary-container',
       inventoryWarning: true
     }
-  ];
+  ]);
 
-  ngAfterViewInit(): void {
-    this.initLineChart();
-    this.initDoughnutChart();
-  }
-
-  initLineChart() {
-    const ctx = this.lineChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    // Create gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(109, 179, 63, 0.2)');
-    gradient.addColorStop(1, 'rgba(109, 179, 63, 0)');
-
-    this.lineChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'],
-        datasets: [{
-          label: 'Lợi Nhuận',
-          data: [2500, 3200, 2800, 4100, 5000, 7500, 8420],
-          borderColor: '#306c00', // primary color
-          backgroundColor: gradient,
-          borderWidth: 4,
-          pointBackgroundColor: '#306c00',
-          pointBorderColor: '#ffffff',
-          pointBorderWidth: 2,
-          pointRadius: 6,
-          pointHoverRadius: 8,
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            backgroundColor: '#181c1e', // on-surface
-            titleColor: 'rgba(255,255,255,0.7)',
-            bodyColor: '#ffffff',
-            padding: 12,
-            displayColors: false,
-            callbacks: {
-              label: (context) => `$${context.raw}`
-            }
-          }
-        },
-        scales: {
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: '#94a3b8', // slate-400
-              font: {
-                size: 10,
-                weight: 'bold',
-                family: "'Plus Jakarta Sans', sans-serif"
-              }
-            }
-          },
-          y: {
-            display: false,
-            min: 0,
-            max: 10000
-          }
-        }
-      }
-    });
-  }
-
-  initDoughnutChart() {
-    const ctx = this.doughnutChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    this.doughnutChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Trực tuyến', 'Trực tiếp/POS'],
-        datasets: [{
-          data: [72, 28],
-          backgroundColor: [
-            '#6db33f', // primary-container
-            '#ff8928'  // secondary-container
-          ],
-          borderWidth: 0,
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '80%',
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              label: (context) => `${context.label}: ${context.raw}%`
-            }
-          }
-        }
-      }
-    });
+  // Event handlers
+  handleExportData(): void {
+    console.log('Exporting data...');
+    // TODO: Implement export functionality
   }
 }

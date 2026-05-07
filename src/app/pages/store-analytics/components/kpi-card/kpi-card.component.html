@@ -1,0 +1,26 @@
+<div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col gap-4">
+  <div class="flex justify-between items-start">
+    <div class="p-3 rounded-xl" [style.background-color]="data().iconBgColor" [style.color]="data().iconColor">
+      <span class="material-symbols-outlined" [attr.style]="data().iconFilled ? 'font-variation-settings: \'FILL\' 1;' : null">
+        {{ data().icon }}
+      </span>
+    </div>
+    <span 
+      class="font-bold text-xs px-2 py-1 rounded-full flex items-center gap-1"
+      [style.color]="data().trend.color"
+      [style.background-color]="data().trend.bgColor">
+      @if (data().trend.direction === 'up') {
+        <span class="material-symbols-outlined text-[14px]">trending_up</span>
+      } @else if (data().trend.direction === 'down') {
+        <span class="material-symbols-outlined text-[14px]">trending_down</span>
+      } @else {
+        <span class="material-symbols-outlined text-[14px]">remove</span>
+      }
+      {{ data().trend.value }}
+    </span>
+  </div>
+  <div>
+    <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">{{ data().label }}</p>
+    <h3 class="text-4xl font-bold text-gray-900 mt-1">{{ data().value }}</h3>
+  </div>
+</div>

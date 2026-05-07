@@ -1,0 +1,73 @@
+<section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+  <div class="p-8 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-50 gap-4">
+    <div>
+      <h4 class="text-xl font-bold text-gray-900">Sản Phẩm Bán Chạy Nhất</h4>
+      <p class="text-base text-slate-500">Các sản phẩm hoạt động tốt nhất trong tuần này</p>
+    </div>
+    <button 
+      (click)="onExport()"
+      class="bg-slate-50 text-slate-700 font-bold px-6 py-2.5 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-2">
+      <span class="material-symbols-outlined text-[20px]">download</span>
+      Xuất Dữ Liệu
+    </button>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left">
+      <thead class="bg-slate-50/50">
+        <tr>
+          <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Sản phẩm</th>
+          <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Kho hàng</th>
+          <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Doanh số</th>
+          <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Doanh thu</th>
+          <th class="px-8 py-4 text-[10px] font-extrabold uppercase tracking-widest text-slate-400 text-right">Hiệu suất</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-50">
+        @for (product of products(); track product.sku) {
+          <tr class="hover:bg-slate-50/30 transition-colors">
+            <td class="px-8 py-4">
+              <div class="flex items-center gap-4">
+                <img 
+                  [alt]="product.name" 
+                  class="w-12 h-12 rounded-xl object-cover shadow-sm" 
+                  [src]="product.image"/>
+                <div>
+                  <p class="text-base font-bold text-gray-900">{{ product.name }}</p>
+                  <p class="text-xs text-slate-400">SKU: {{ product.sku }}</p>
+                </div>
+              </div>
+            </td>
+            <td class="px-8 py-4">
+              <span 
+                class="text-base font-medium" 
+                [ngClass]="{'text-red-600 font-bold': product.inventoryWarning, 'text-gray-900': !product.inventoryWarning}">
+                {{ product.inventory }}
+              </span>
+            </td>
+            <td class="px-8 py-4 font-bold text-gray-900">{{ product.sales }}</td>
+            <td class="px-8 py-4 font-bold text-green-700">{{ product.revenue }}</td>
+            <td class="px-8 py-4">
+              <div class="flex justify-end items-center gap-2">
+                <span 
+                  class="font-bold text-xs px-2 py-1 rounded-full" 
+                  [ngClass]="product.performanceClass">
+                  {{ product.performanceLabel }}
+                </span>
+                <div class="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div 
+                    class="h-full" 
+                    [style.width.%]="product.performanceProgress" 
+                    [ngClass]="product.performanceProgressClass">
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <div class="p-6 bg-slate-50 text-center">
+    <button class="text-green-700 font-bold hover:underline">Xem tất cả báo cáo hiệu suất</button>
+  </div>
+</section>

@@ -1,0 +1,49 @@
+<div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h4 class="text-xl font-bold text-gray-900">Lợi Nhuận Theo Thời Gian</h4>
+      <p class="text-base text-slate-500">Phân tích thu nhập hàng ngày trong giai đoạn đã chọn</p>
+    </div>
+    <div class="flex bg-slate-50 p-1 rounded-xl">
+      <button 
+        (click)="selectRange('today')"
+        [class.bg-white]="selectedRange() === 'today'"
+        [class.shadow-sm]="selectedRange() === 'today'"
+        [class.text-green-700]="selectedRange() === 'today'"
+        [class.text-slate-500]="selectedRange() !== 'today'"
+        class="px-4 py-1.5 text-xs font-bold rounded-lg hover:text-gray-900 transition-colors">
+        Hôm nay
+      </button>
+      <button 
+        (click)="selectRange('week')"
+        [class.bg-white]="selectedRange() === 'week'"
+        [class.shadow-sm]="selectedRange() === 'week'"
+        [class.text-green-700]="selectedRange() === 'week'"
+        [class.text-slate-500]="selectedRange() !== 'week'"
+        class="px-4 py-1.5 text-xs font-bold rounded-lg hover:text-gray-900 transition-colors">
+        Tuần
+      </button>
+      <button 
+        (click)="selectRange('month')"
+        [class.bg-white]="selectedRange() === 'month'"
+        [class.shadow-sm]="selectedRange() === 'month'"
+        [class.text-green-700]="selectedRange() === 'month'"
+        [class.text-slate-500]="selectedRange() !== 'month'"
+        class="px-4 py-1.5 text-xs font-bold rounded-lg hover:text-gray-900 transition-colors">
+        Tháng
+      </button>
+      <button 
+        (click)="selectRange('year')"
+        [class.bg-white]="selectedRange() === 'year'"
+        [class.shadow-sm]="selectedRange() === 'year'"
+        [class.text-green-700]="selectedRange() === 'year'"
+        [class.text-slate-500]="selectedRange() !== 'year'"
+        class="px-4 py-1.5 text-xs font-bold rounded-lg hover:text-gray-900 transition-colors">
+        Năm
+      </button>
+    </div>
+  </div>
+  <div class="h-80 w-full relative">
+    <canvas #chartCanvas></canvas>
+  </div>
+</div>
