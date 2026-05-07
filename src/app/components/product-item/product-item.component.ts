@@ -1,10 +1,12 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
+import { environment } from '../../../environments/environment';
 
 export interface ProductItem {
   id: string;
   name: string;
+  shopName?: string;
   description?: string;
   image: string;
   price: number;
@@ -42,11 +44,14 @@ export class ProductItemComponent {
   favoriteClick = output<string>();
   addToCartClick = output<ProductItem>();
   
+  // Placeholder image from environment
+  private readonly placeholderImage = environment.placeholders.product;
+  
   /**
    * Handle product image error
    */
   onImageError(event: Event): void {
     const img = event.target as HTMLImageElement;
-    img.src = 'assets/images/placeholder-product.png';
+    img.src = this.placeholderImage;
   }
 }

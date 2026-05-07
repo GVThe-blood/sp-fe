@@ -1,0 +1,13 @@
+/* Featured Shops Component Styles */
+
+/* Responsive grid adjustments */
+@media (max-width: 640px) {
+  .grid {
+    gap: 0.75rem;
+  }
+}
+
+/* Section header */
+h2 {
+  letter-spacing: -0.02em;
+}

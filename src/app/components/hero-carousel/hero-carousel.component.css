@@ -1,0 +1,49 @@
+/* Hero Carousel Component Styles */
+
+/* Smooth slide transitions */
+.transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dot indicator animations */
+button[aria-label^="Go to slide"] {
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+button[aria-label^="Go to slide"]:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Active dot indicator - elongated pill shape */
+button[aria-label^="Go to slide"].w-8 {
+  transition: width 0.3s ease-in-out;
+}
+
+/* Ensure slides are properly layered */
+.absolute.inset-0 {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* Prevent pointer events on hidden slides */
+.pointer-events-none {
+  pointer-events: none;
+}
+
+/* Soft shadow for carousel container */
+.soft-shadow {
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode support */
+:host-context(.dark) button[aria-label^="Go to slide"].bg-white {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+:host-context(.dark) button[aria-label^="Go to slide"].bg-white\/50 {
+  background-color: rgba(255, 255, 255, 0.4);
+}

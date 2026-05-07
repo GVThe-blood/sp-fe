@@ -1,4 +1,4 @@
-<div class="rounded-lg p-3 flex gap-4 relative group product-card" 
+<div class="rounded-lg p-3 flex gap-4 relative group product-card h-[140px]" 
      style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);">
 
   <!-- Product Image -->
@@ -18,24 +18,24 @@
   </div>
 
   <!-- Product Info -->
-  <div class="flex-1 flex flex-col justify-between">
-    <div>
-      <h3 class="font-semibold text-base mb-1 cursor-pointer hover:text-blue-600" 
+  <div class="flex-1 flex flex-col justify-between min-w-0">
+    <div class="flex-1 min-h-0">
+      <h3 class="font-semibold text-base mb-1 cursor-pointer hover:text-blue-600 line-clamp-1" 
           style="color: var(--text-primary);" 
           (click)="productClick.emit(product())">
-        {{ product().name }}
+        {{ product().name }}@if (product().shopName) {<span class="text-gray-500 font-normal"> - {{ product().shopName }}</span>}
       </h3>
       @if (product().description) {
-        <div class="text-xs line-clamp-2 mb-1" style="color: var(--text-muted);">
+        <div class="text-xs line-clamp-1 mb-1" style="color: var(--text-muted);">
           {{ product().description }}
         </div>
       }
       <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
         @if (product().sold) {
-          <span>Đã bán {{ product().sold }}+</span>
+          <span class="whitespace-nowrap">Đã bán {{ product().sold }}+</span>
         }
         @if (product().rating !== undefined) {
-          <span>
+          <span class="flex-shrink-0">
             <app-star-rating [rating]="product().rating!" [size]="'sm'" [showNumber]="true"></app-star-rating>
           </span>
         }

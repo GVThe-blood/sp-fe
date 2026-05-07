@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { TranslateService } from '@ngx-translate/core';
 import { HotToastService } from '@ngxpert/hot-toast';
 import { ColorRibbonComponent } from '../../components/color-ribbon/color-ribbon.component';
-import { FlashSaleComponent } from '../../components/flash-sale/flash-sale.component';
+import { HeroCarouselComponent } from '../../components/hero-carousel/hero-carousel.component';
 import { FeaturedProductsComponent } from '../../components/featured-products/featured-products.component';
+import { FeaturedShopsComponent } from '../../components/featured-shops/featured-shops.component';
 
 interface Category {
   id: number;
@@ -17,10 +18,11 @@ interface Category {
  * HomeComponent - Main homepage container
  * 
  * Orchestrates homepage sections based on Stitch design:
- * - Delivery Location Bar
+ * - Hero Carousel (auto-rotating banners with flash sale, promotions, announcements)
  * - Category Chips
- * - Flash Sale Hero Banner (combined hero + flash sale)
+ * - Delivery Location Bar
  * - Featured Products section
+ * - Featured Shops section
  * 
  * Requirements: 3.1, 3.2, 3.3, 3.7, 3.8
  */
@@ -30,8 +32,9 @@ interface Category {
   imports: [
     CommonModule,
     ColorRibbonComponent,
-    FlashSaleComponent,
-    FeaturedProductsComponent
+    HeroCarouselComponent,
+    FeaturedProductsComponent,
+    FeaturedShopsComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
@@ -55,20 +58,45 @@ export class HomeComponent {
 
   activeCategoryId = signal(1);
   
-  // Flash sale active state
-  flashSaleActive = signal(true);
+  // Scroll state for categories
+  canScrollLeft = signal(false);
+  canScrollRight = signal(false);
   
   setActiveCategory(id: number) {
     this.activeCategoryId.set(id);
   }
   
   /**
-   * Handle flash sale ended event
+   * Scroll categories left
    */
-  onFlashSaleEnded(): void {
-    this.flashSaleActive.set(false);
-    this.toast.info(
-      this.translate.instant('homepage.flashSale.ended')
+  scrollCategoriesLeft(container: HTMLElement) {
+    container.scrollBy({ left: -200, behavior: 'smooth' });
+    setTimeout(() => this.updateScrollButtons(container), 300);
+  }
+  
+  /**
+   * Scroll categories right
+   */
+  scrollCategoriesRight(container: HTMLElement) {
+    container.scrollBy({ left: 200, behavior: 'smooth' });
+    setTimeout(() => this.updateScrollButtons(container), 300);
+  }
+  
+  /**
+   * Update scroll button visibility
+   */
+  updateScrollButtons(container: HTMLElement) {
+    this.canScrollLeft.set(container.scrollLeft > 0);
+    this.canScrollRight.set(
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 10
     );
+  }
+  
+  /**
+   * Initialize scroll buttons on container
+   */
+  onCategoryContainerInit(container: HTMLElement) {
+    this.updateScrollButtons(container);
+    container.addEventListener('scroll', () => this.updateScrollButtons(container));
   }
 }
