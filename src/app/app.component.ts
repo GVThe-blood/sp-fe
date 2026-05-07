@@ -5,6 +5,7 @@ import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
 import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 import { ThemeService } from './services/theme.service';
+import { ChatModalComponent } from './components/chat-modal/chat-modal.component';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -15,7 +16,8 @@ import { filter } from 'rxjs/operators';
     HeaderComponent,
     FooterComponent,
     ToastContainerComponent,
-    CommonModule
+    CommonModule,
+    ChatModalComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
