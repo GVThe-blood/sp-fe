@@ -11,7 +11,7 @@ import { ChatInputComponent } from './chat-input/chat-input.component';
   imports: [ChatHeaderComponent, ChatMessageListComponent, ChatInputComponent],
   template: `
     <div 
-      class="fixed bottom-6 right-6 w-[360px] h-[600px] bg-surface-container-lowest rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden border border-outline-variant animate-slide-up"
+      class="fixed bottom-6 right-6 w-[360px] h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 animate-slide-up pointer-events-auto"
     >
       <app-chat-header (close)="close.emit()" />
       

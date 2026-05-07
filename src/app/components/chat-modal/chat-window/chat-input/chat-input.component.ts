@@ -7,11 +7,11 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule],
   template: `
-    <div class="p-4 bg-surface-container-lowest border-t border-outline-variant">
+    <div class="p-4 bg-white border-t border-gray-200 flex-shrink-0">
       <div class="flex items-end gap-2">
         <!-- Emoji Button -->
         <button 
-          class="p-2 text-outline hover:text-on-surface hover:bg-surface-container rounded-full transition-all flex-shrink-0"
+          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all flex-shrink-0"
           aria-label="Add emoji"
           type="button"
         >
@@ -22,7 +22,7 @@ import { FormsModule } from '@angular/forms';
         
         <!-- Attachment Button -->
         <button 
-          class="p-2 text-outline hover:text-on-surface hover:bg-surface-container rounded-full transition-all flex-shrink-0"
+          class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-all flex-shrink-0"
           aria-label="Attach file"
           type="button"
         >
@@ -44,13 +44,26 @@ import { FormsModule } from '@angular/forms';
           ></textarea>
         </div>
         
+        <!-- Input Field -->
+        <div class="flex-1 relative">
+          <textarea
+            #messageInput
+            [(ngModel)]="messageText"
+            (keydown)="handleKeyDown($event)"
+            class="w-full bg-gray-100 text-gray-800 border border-gray-300 rounded-2xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#4CAF50] focus:border-transparent outline-none transition-all placeholder-gray-500 resize-none max-h-32 min-h-[42px]"
+            placeholder="Type your message..."
+            rows="1"
+            [attr.aria-label]="'Message input'"
+          ></textarea>
+        </div>
+        
         <!-- Send Button -->
         <button 
           (click)="handleSend()"
           [disabled]="!messageText().trim()"
           [class.opacity-50]="!messageText().trim()"
           [class.cursor-not-allowed]="!messageText().trim()"
-          class="p-3 bg-primary text-on-primary rounded-full hover:bg-primary/90 transition-all flex-shrink-0 disabled:hover:bg-primary shadow-md hover:shadow-lg active:scale-95"
+          class="p-3 bg-[#4CAF50] text-white rounded-full hover:bg-[#45a049] transition-all flex-shrink-0 disabled:hover:bg-[#4CAF50] shadow-md hover:shadow-lg active:scale-95"
           aria-label="Send message"
           type="button"
         >
@@ -62,7 +75,7 @@ import { FormsModule } from '@angular/forms';
       
       <!-- Character count (optional) -->
       @if (messageText().length > 0) {
-        <div class="mt-2 text-xs text-outline text-right">
+        <div class="mt-2 text-xs text-gray-500 text-right">
           {{ messageText().length }} / 1000
         </div>
       }

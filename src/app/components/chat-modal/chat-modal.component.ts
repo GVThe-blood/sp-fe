@@ -16,19 +16,21 @@ export interface ChatMessage {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatBubbleComponent, ChatWindowComponent],
   template: `
-    <app-chat-bubble 
-      [isOpen]="isOpen()"
-      (toggle)="toggleChat()"
-    />
-    
-    @if (isOpen()) {
-      <app-chat-window 
-        [messages]="messages()"
-        [isTyping]="isTyping()"
-        (close)="closeChat()"
-        (sendMessage)="handleSendMessage($event)"
+    <div class="pointer-events-none fixed inset-0 z-50">
+      <app-chat-bubble 
+        [isOpen]="isOpen()"
+        (toggle)="toggleChat()"
       />
-    }
+      
+      @if (isOpen()) {
+        <app-chat-window 
+          [messages]="messages()"
+          [isTyping]="isTyping()"
+          (close)="closeChat()"
+          (sendMessage)="handleSendMessage($event)"
+        />
+      }
+    </div>
   `,
   styles: [`
     :host {

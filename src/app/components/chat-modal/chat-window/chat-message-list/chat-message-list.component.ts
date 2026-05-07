@@ -10,25 +10,25 @@ import { ChatMessage } from '../../chat-modal.component';
   template: `
     <div 
       #messageContainer
-      class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-surface-bright scroll-smooth"
+      class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 bg-gray-50 scroll-smooth"
     >
       @for (message of messages(); track message.id) {
         @if (message.isUser) {
           <!-- User Message -->
           <div class="flex gap-2 items-end justify-end animate-fade-in">
             <div class="flex flex-col gap-1 max-w-[80%] items-end">
-              <div class="bg-primary text-on-primary p-3 rounded-2xl rounded-br-md shadow-md">
-                <p class="text-sm leading-relaxed">{{ message.content }}</p>
+              <div class="bg-[#4CAF50] text-white p-3 rounded-2xl rounded-br-md shadow-md">
+                <p class="text-sm leading-relaxed break-words">{{ message.content }}</p>
               </div>
               <div class="flex items-center gap-1 px-1">
-                <span class="text-[10px] text-outline">
+                <span class="text-[10px] text-gray-500">
                   {{ message.timestamp | date: 'shortTime' }}
                 </span>
                 @if (message.status) {
                   <svg 
                     class="w-4 h-4"
-                    [class.text-primary]="message.status === 'read'"
-                    [class.text-outline]="message.status !== 'read'"
+                    [class.text-green-600]="message.status === 'read'"
+                    [class.text-gray-400]="message.status !== 'read'"
                     fill="currentColor" 
                     viewBox="0 0 24 24"
                   >
@@ -41,7 +41,7 @@ import { ChatMessage } from '../../chat-modal.component';
         } @else {
           <!-- Bot Message -->
           <div class="flex gap-2 items-end animate-fade-in">
-            <div class="w-7 h-7 rounded-full overflow-hidden bg-primary-container flex-shrink-0 ring-2 ring-primary/10">
+            <div class="w-7 h-7 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 ring-2 ring-gray-100">
               <img 
                 alt="AI Avatar" 
                 class="w-full h-full object-cover"
@@ -49,10 +49,10 @@ import { ChatMessage } from '../../chat-modal.component';
               />
             </div>
             <div class="flex flex-col gap-1 max-w-[80%]">
-              <div class="bg-surface-container text-on-surface p-3 rounded-2xl rounded-bl-md shadow-sm">
-                <p class="text-sm leading-relaxed">{{ message.content }}</p>
+              <div class="bg-white text-gray-800 p-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-200">
+                <p class="text-sm leading-relaxed break-words">{{ message.content }}</p>
               </div>
-              <span class="text-[10px] text-outline px-1">
+              <span class="text-[10px] text-gray-500 px-1">
                 {{ message.timestamp | date: 'shortTime' }}
               </span>
             </div>
@@ -63,18 +63,18 @@ import { ChatMessage } from '../../chat-modal.component';
       <!-- Typing Indicator -->
       @if (isTyping()) {
         <div class="flex gap-2 items-end animate-fade-in">
-          <div class="w-7 h-7 rounded-full overflow-hidden bg-primary-container flex-shrink-0">
+          <div class="w-7 h-7 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
             <img 
               alt="AI Avatar" 
               class="w-full h-full object-cover"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMniJWXGEJsrVDPwGz_jo8bRWwVh6IdBilxtNf8BIy3Z_wPbKoKR1_r_jvBDEyFKC1QTGdr2Hq_PXxZefuvK8kSKSLGWS0OmkozvljDnreE1wDhi5YKpqcRvLp1i0HTqO-6ClV_m1w5KiTi3wM7Ozgl4B1aEmANu-o7cq7qKDLjHp2s8fBe9jOZDZKvSMmFmBvxmsPFY6lG1_9hQiU0bM9ILp7k-s8hWCstr65sEnawTiAsVhvVkiFEYk72YOB4Ox7rz6T8klZYeIU"
             />
           </div>
-          <div class="bg-surface-container text-on-surface p-3 rounded-2xl rounded-bl-md shadow-sm">
+          <div class="bg-white text-gray-800 p-3 rounded-2xl rounded-bl-md shadow-sm border border-gray-200">
             <div class="flex items-center gap-1">
-              <div class="w-2 h-2 bg-outline rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-              <div class="w-2 h-2 bg-outline rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-              <div class="w-2 h-2 bg-outline rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+              <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
             </div>
           </div>
         </div>

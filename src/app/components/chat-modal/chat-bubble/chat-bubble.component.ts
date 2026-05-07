@@ -8,7 +8,7 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
     <button
       (click)="toggle.emit()"
       [class.scale-0]="isOpen()"
-      class="fixed bottom-6 right-6 w-16 h-16 bg-primary text-on-primary rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out flex items-center justify-center z-50 group hover:scale-110 active:scale-95"
+      class="fixed bottom-6 right-6 w-16 h-16 bg-[#4CAF50] text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out flex items-center justify-center z-50 group hover:scale-110 active:scale-95 pointer-events-auto"
       [attr.aria-label]="isOpen() ? 'Close chat' : 'Open chat with SpringFood AI'"
     >
       <!-- SpringFood AI Logo/Icon -->
@@ -26,17 +26,17 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
         </svg>
         
         <!-- AI Badge -->
-        <div class="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-on-secondary rounded-full flex items-center justify-center text-[10px] font-bold shadow-md">
+        <div class="absolute -top-1 -right-1 w-5 h-5 bg-[#FF9800] text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-md">
           AI
         </div>
         
         <!-- Online Status Indicator -->
-        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-tertiary border-2 border-surface rounded-full animate-pulse"></div>
+        <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-[#4CAF50] border-2 border-white rounded-full animate-pulse"></div>
       </div>
       
       <!-- Notification Badge (optional) -->
       @if (unreadCount() > 0) {
-        <div class="absolute -top-2 -right-2 w-6 h-6 bg-error text-on-error rounded-full flex items-center justify-center text-xs font-bold shadow-md animate-bounce">
+        <div class="absolute -top-2 -right-2 w-6 h-6 bg-[#F44336] text-white rounded-full flex items-center justify-center text-xs font-bold shadow-md animate-bounce">
           {{ unreadCount() > 9 ? '9+' : unreadCount() }}
         </div>
       }
