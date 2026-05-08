@@ -4,7 +4,7 @@ import { ChatHeaderComponent } from '../chat-header/chat-header.component';
 import { MessageBubbleComponent } from '../message-bubble/message-bubble.component';
 import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.component';
 import { ChatInputComponent } from '../chat-input/chat-input.component';
-import { ChatMessage } from '../../../services/websocket.service';
+import { ChatMessage, MessageButton } from '../../../models/chat-message.model';
 
 @Component({
   selector: 'app-chat-window',
@@ -28,7 +28,10 @@ import { ChatMessage } from '../../../services/websocket.service';
       <div class="messages-container" #messagesContainer>
         <div class="messages-list">
           @for (message of messages(); track message.id) {
-            <app-message-bubble [message]="message" />
+            <app-message-bubble 
+              [message]="message"
+              (buttonClick)="buttonClick.emit($event)"
+            />
           }
           
           @if (isTyping()) {
@@ -138,6 +141,7 @@ export class ChatWindowComponent {
   
   close = output<void>();
   sendMessage = output<string>();
+  buttonClick = output<MessageButton>();
   
   messagesContainer = viewChild<ElementRef>('messagesContainer');
   

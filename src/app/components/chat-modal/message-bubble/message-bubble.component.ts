@@ -1,29 +1,41 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChatMessage } from '../../../services/websocket.service';
+import { ChatMessage, MessageButton } from '../../../models/chat-message.model';
+import { RichMessageComponent } from '../rich-message/rich-message.component';
 
 @Component({
   selector: 'app-message-bubble',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule],
+  imports: [CommonModule, RichMessageComponent],
   template: `
     <div class="message-container" [class.user]="message().isUser">
       <div class="message-avatar">
         @if (message().isUser) {
+          <!-- User Avatar: Person Icon (filled) -->
           <svg class="avatar-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
           </svg>
         } @else {
+          <!-- AI Avatar: Robot Icon (filled) -->
           <svg class="avatar-icon" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3z"/>
+            <path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zM9 9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm6 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-3 6c-1.65 0-3-1.35-3-3h6c0 1.65-1.35 3-3 3z"/>
           </svg>
         }
       </div>
       
       <div class="message-content">
         <div class="message-bubble" [class.user]="message().isUser">
-          <p class="message-text">{{ message().content }}</p>
+          @if (isRichMessage()) {
+            <!-- Rich Message with buttons, images, cards -->
+            <app-rich-message 
+              [content]="getRichContent()"
+              (buttonClick)="onButtonClick($event)"
+            />
+          } @else {
+            <!-- Plain Text Message -->
+            <p class="message-text">{{ getTextContent() }}</p>
+          }
         </div>
         <span class="message-timestamp">
           {{ message().timestamp | date:'short' }}
@@ -125,4 +137,24 @@ import { ChatMessage } from '../../../services/websocket.service';
 })
 export class MessageBubbleComponent {
   message = input.required<ChatMessage>();
+  buttonClick = output<MessageButton>();
+
+  isRichMessage(): boolean {
+    return typeof this.message().content === 'object';
+  }
+
+  getTextContent(): string {
+    const content = this.message().content;
+    return typeof content === 'string' ? content : '';
+  }
+
+  getRichContent(): any {
+    const content = this.message().content;
+    return typeof content === 'object' ? content : { text: '' };
+  }
+
+  onButtonClick(button: MessageButton): void {
+    console.log('[MessageBubble] Button clicked:', button);
+    this.buttonClick.emit(button);
+  }
 }

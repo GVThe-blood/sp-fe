@@ -1,19 +1,12 @@
-import { Injectable, signal, computed, inject, DestroyRef } from '@angular/core';
+import { Injectable, signal, inject, DestroyRef } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
 import { IMessage } from '@stomp/stompjs';
 import { map, catchError, of, Subject } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { UserService } from './user.service';
 
-export interface ChatMessage {
-  id: string;
-  content: string;
-  timestamp: Date;
-  isUser: boolean;
-  status?: 'sent' | 'delivered' | 'read';
-  senderId?: string;
-  senderName?: string;
-}
+// Re-export ChatMessage from model
+export type { ChatMessage } from '../models/chat-message.model';
 
 export interface AIMessageRequest {
   message: string;
@@ -85,23 +78,32 @@ export class WebSocketService {
   isTyping = signal(false);
 
   constructor() {
-    // Get JWT token from localStorage (will be set by auth service later)
+    // Get JWT token from cookies (backend stores token in HttpOnly cookie)
     const getJwtToken = (): string | null => {
-      return localStorage.getItem('jwt_token');
+      // Parse cookies to get access_token
+      const cookies = document.cookie.split(';');
+      for (const cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'access_token' || name === 'jwt_token' || name === 'token') {
+          return decodeURIComponent(value);
+        }
+      }
+      
+      // Fallback: try localStorage (for development/testing)
+      return localStorage.getItem('access_token') || 
+             localStorage.getItem('jwt_token') ||
+             localStorage.getItem('token') ||
+             null;
     };
 
     // Configure RxStomp for SpringFood AI Assistant
     const stompConfig: RxStompConfig = {
-      // WebSocket endpoint - Connect to chat service via API Gateway
-      // Option 1: Via Gateway (port 8080) - Recommended for REST
-      // Option 2: Direct to service (port 9098) - Required for WebSocket with JWT
+      // WebSocket endpoint - Direct to chat service (port 9098)
+      // Note: Must use direct connection, not via Gateway, for WebSocket
       brokerURL: 'ws://localhost:9098/ws',
       
-      // Connect headers - Add JWT token for authentication
-      connectHeaders: {
-        // JWT token will be added here when available
-        // Authorization: `Bearer ${getJwtToken()}`
-      },
+      // Connect headers - JWT token REQUIRED by backend
+      connectHeaders: {},
       
       // Heartbeat (10s as per backend config)
       heartbeatIncoming: 10000,
@@ -123,12 +125,16 @@ export class WebSocketService {
         this.connectionState.set('connecting');
         console.log('[WebSocket] Connecting to SpringFood AI Assistant...');
         
-        // Update connect headers with latest JWT token
+        // Update connect headers with latest JWT token from cookies
         const token = getJwtToken();
         if (token) {
           stompConfig.connectHeaders = {
             Authorization: `Bearer ${token}`
           };
+          console.log('[WebSocket] JWT token found in cookies, authenticating...');
+        } else {
+          console.warn('[WebSocket] No JWT token found in cookies!');
+          console.warn('[WebSocket] Please login first to use chat feature.');
         }
       }
     };
@@ -145,6 +151,14 @@ export class WebSocketService {
     this.rxStomp.stompErrors$.subscribe((frame: any) => {
       this.connectionState.set('error');
       console.error('[WebSocket] STOMP error:', frame);
+      
+      // Check if it's an authentication error
+      if (frame.headers && frame.headers.message) {
+        const errorMsg = frame.headers.message;
+        if (errorMsg.includes('Authentication failed') || errorMsg.includes('TOKEN_EXPIRED')) {
+          console.error('[WebSocket] Authentication failed! Please login again.');
+        }
+      }
     });
     
     // Listen for WebSocket close
