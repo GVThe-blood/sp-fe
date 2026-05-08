@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
           class="message-input"
           placeholder="Type your message..."
           [(ngModel)]="messageText"
-          (keydown.enter)="handleSend()"
+          (keydown.enter)="handleKeyDown($any($event))"
           [disabled]="disabled()"
           aria-label="Message input"
         />
@@ -124,6 +124,14 @@ export class ChatInputComponent {
   messageText = '';
   disabled = signal(false);
   sendMessage = output<string>();
+  
+  handleKeyDown(event: KeyboardEvent): void {
+    // Ignore Enter key if IME composition is in progress (Vietnamese input)
+    if (event.isComposing || event.keyCode === 229) {
+      return;
+    }
+    this.handleSend();
+  }
   
   handleSend(): void {
     const text = this.messageText.trim();
