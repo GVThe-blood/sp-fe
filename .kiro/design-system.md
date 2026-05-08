@@ -17,52 +17,88 @@
 
 ## 🎨 Colors
 
-### Primary Colors
+### Primary Colors (Spring Green)
 ```css
-/* Brand Colors */
---primary-blue: #3B82F6;      /* blue-500 */
---primary-purple: #A855F7;    /* purple-500 */
---primary-orange: #F97316;    /* orange-500 */
-
-/* Gradient Combinations */
---gradient-primary: linear-gradient(to right, #3B82F6, #A855F7);
---gradient-accent: linear-gradient(to right, #3B82F6, #F97316);
---gradient-search: linear-gradient(to right, #60A5FA, #C084FC, #F472B6);
+/* Spring Green - Main Brand Color */
+--primary: #306c00;              /* Primary base */
+--primary-container: #6db33f;    /* Main primary (buttons, highlights) */
+--primary-light: #90d960;        /* Hover states */
+--primary-lighter: #abf779;      /* Light backgrounds */
+--on-primary: #ffffff;           /* Text on primary */
+--on-primary-container: #1a4100; /* Text on primary container */
 ```
 
-### Neutral Colors
+### Secondary Colors (Warm Orange)
 ```css
-/* Background */
---bg-primary: #F5F5F7;        /* Apple-style light gray */
---bg-white: #FFFFFF;
---bg-card: #FFFFFF;
+/* Warm Orange - Accent & CTAs */
+--secondary: #964900;            /* Secondary base */
+--secondary-container: #ff8928;  /* Main secondary (CTAs, urgency) */
+--secondary-light: #ffb786;      /* Hover states */
+--secondary-lighter: #ffdcc6;    /* Light backgrounds */
+--on-secondary: #ffffff;         /* Text on secondary */
+--on-secondary-container: #642f00; /* Text on secondary container */
+```
+
+### Tertiary Colors (Slate Blue)
+```css
+/* Slate Blue - Supporting Elements */
+--tertiary: #555f71;             /* Tertiary base */
+--tertiary-container: #98a2b7;   /* Main tertiary */
+--tertiary-light: #bdc7dc;       /* Hover states */
+--tertiary-lighter: #d9e3f9;     /* Light backgrounds */
+--on-tertiary: #ffffff;          /* Text on tertiary */
+--on-tertiary-container: #2f394a; /* Text on tertiary container */
+```
+
+### Neutral/Surface Colors
+```css
+/* Backgrounds & Surfaces */
+--background: #f7fafc;           /* Page background */
+--surface: #f7fafc;              /* Surface base */
+--surface-container: #ebeef0;    /* Card backgrounds */
+--surface-container-high: #e5e9eb;
+--surface-container-highest: #e0e3e5;
+--surface-container-low: #f1f4f6;
+--surface-container-lowest: #ffffff; /* Pure white */
+--surface-dim: #d7dadc;
+--surface-bright: #f7fafc;
+--surface-variant: #e0e3e5;
 
 /* Text Colors */
---text-primary: #1F2937;      /* gray-800 */
---text-secondary: #6B7280;    /* gray-500 */
---text-tertiary: #9CA3AF;     /* gray-400 */
---text-muted: #D1D5DB;        /* gray-300 */
+--on-surface: #181c1e;           /* Primary text */
+--on-surface-variant: #41493a;   /* Secondary text */
+--on-background: #181c1e;        /* Text on background */
+
+/* Borders & Outlines */
+--outline: #717a68;              /* Default borders */
+--outline-variant: #c1cab5;      /* Light borders */
+--surface-tint: #306c00;         /* Tint color */
 ```
 
-### Semantic Colors
+### Inverse Colors
 ```css
-/* Interactive States */
---hover-blue: #2563EB;        /* blue-600 */
---hover-gray: #4B5563;        /* gray-600 */
---active-blue: #1D4ED8;       /* blue-700 */
+/* Dark Mode / Inverse */
+--inverse-surface: #2d3133;
+--inverse-on-surface: #eef1f3;
+--inverse-primary: #90d960;
+```
 
-/* Borders */
---border-light: #E5E7EB;      /* gray-200 */
---border-hover: #BFDBFE;      /* blue-200 */
+### Error Colors
+```css
+/* Error States */
+--error: #ba1a1a;
+--on-error: #ffffff;
+--error-container: #ffdad6;
+--on-error-container: #93000a;
 ```
 
 ### Usage Rules
-- **Primary Blue**: CTAs, links, active states
-- **Purple**: Accent elements, gradients
-- **Orange**: Highlights, special offers
-- **Gray-800**: Primary text
-- **Gray-500**: Secondary text, descriptions
-- **#F5F5F7**: Page background (Apple-inspired)
+- **Spring Green (#6db33f)**: Primary buttons, active states, success indicators
+- **Warm Orange (#ff8928)**: CTAs, "Add to Cart", time-sensitive elements
+- **Slate Blue (#98a2b7)**: Supporting UI elements, secondary actions
+- **#f7fafc**: Page background (clean, airy feel)
+- **#181c1e**: Primary text (softer than pure black)
+- **#41493a**: Secondary text, descriptions
 
 ---
 
@@ -70,129 +106,174 @@
 
 ### Font Family
 ```css
-/* System Font Stack (Apple-style) */
-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 
-             'Helvetica Neue', Arial, sans-serif;
+/* Plus Jakarta Sans (from Google Fonts) */
+font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 
+             'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
 ```
 
-### Font Sizes
+### Font Sizes & Styles
 ```css
-/* Headings */
---text-7xl: 4.5rem;    /* 72px - Hero titles */
---text-5xl: 3rem;      /* 48px - Section titles */
---text-4xl: 2.25rem;   /* 36px - Large headings */
---text-3xl: 1.875rem;  /* 30px - Card titles */
---text-2xl: 1.5rem;    /* 24px - Subheadings */
---text-xl: 1.25rem;    /* 20px - Card subtitles */
+/* Display (Hero Titles) */
+--display-lg-size: 48px;
+--display-lg-weight: 700;
+--display-lg-line-height: 1.1;
+--display-lg-letter-spacing: -0.02em;
+
+/* Headlines */
+--headline-lg-size: 32px;
+--headline-lg-weight: 700;
+--headline-lg-line-height: 1.2;
+--headline-lg-letter-spacing: -0.01em;
+
+--headline-md-size: 24px;
+--headline-md-weight: 600;
+--headline-md-line-height: 1.3;
 
 /* Body Text */
---text-base: 1rem;     /* 16px - Body text */
---text-sm: 0.875rem;   /* 14px - Small text */
---text-xs: 0.75rem;    /* 12px - Labels, nav items */
+--body-lg-size: 18px;
+--body-lg-weight: 400;
+--body-lg-line-height: 1.6;
+
+--body-md-size: 16px;
+--body-md-weight: 400;
+--body-md-line-height: 1.5;
+
+/* Labels */
+--label-md-size: 14px;
+--label-md-weight: 600;
+--label-md-line-height: 1.2;
+--label-md-letter-spacing: 0.05em;
 ```
 
 ### Font Weights
 ```css
---font-bold: 700;      /* Headings */
+--font-bold: 700;      /* Display, headlines */
 --font-semibold: 600;  /* Subheadings, emphasis */
 --font-medium: 500;    /* Buttons, labels */
 --font-normal: 400;    /* Body text */
 ```
 
-### Line Heights
-```css
---leading-tight: 1.25;   /* Headings */
---leading-normal: 1.5;   /* Body text */
---leading-relaxed: 1.75; /* Long-form content */
-```
-
 ### Typography Rules
-- **Hero titles**: text-5xl/7xl, font-bold, tracking-tight
-- **Section headings**: text-3xl/4xl, font-semibold, tracking-tight
-- **Card titles**: text-xl/2xl, font-semibold
-- **Body text**: text-sm/base, font-normal
-- **Labels**: text-xs, font-semibold, uppercase, tracking-wider
+- **Hero titles**: 48px, bold (700), tight tracking (-0.02em)
+- **Section headings**: 32px, bold (700), tight tracking (-0.01em)
+- **Card titles**: 24px, semibold (600)
+- **Body text**: 16px, normal (400), line-height 1.5
+- **Labels**: 14px, semibold (600), uppercase, wide tracking (0.05em)
 
 ---
 
 ## 📏 Spacing
 
-### Spacing Scale (Tailwind)
+### Spacing Scale (8px Grid System)
 ```css
---space-1: 0.25rem;   /* 4px */
---space-2: 0.5rem;    /* 8px */
---space-3: 0.75rem;   /* 12px */
---space-4: 1rem;      /* 16px */
---space-6: 1.5rem;    /* 24px */
---space-8: 2rem;      /* 32px */
---space-12: 3rem;     /* 48px */
---space-16: 4rem;     /* 64px */
+--space-unit: 8px;           /* Base unit */
+--space-xs: 4px;             /* 0.5 unit */
+--space-sm: 8px;             /* 1 unit */
+--space-md: 16px;            /* 2 units */
+--space-lg: 24px;            /* 3 units */
+--space-xl: 40px;            /* 5 units */
+--space-2xl: 48px;           /* 6 units */
+--space-3xl: 80px;           /* 10 units - Section gaps */
 ```
 
 ### Common Patterns
 ```css
 /* Component Padding */
---padding-card: 2rem;           /* p-8 */
---padding-card-small: 1.5rem;   /* p-6 */
---padding-section: 3rem 1rem;   /* py-12 px-4 */
+--padding-card: 32px;              /* Large cards */
+--padding-card-small: 24px;        /* Small cards */
+--padding-section: 48px 16px;      /* Mobile sections */
+--padding-section-desktop: 48px;   /* Desktop sections */
 
 /* Component Gaps */
---gap-items: 1rem;              /* gap-4 */
---gap-nav: 2rem;                /* gap-8 */
---gap-grid: 1rem;               /* gap-4 */
+--gap-items: 16px;                 /* Grid items */
+--gap-nav: 24px;                   /* Navigation items */
+--gap-section: 80px;               /* Between sections */
 
 /* Container Max Width */
---container-max: 1536px;        /* max-w-screen-2xl */
---container-content: 896px;     /* max-w-7xl */
+--container-max: 1280px;           /* Max content width */
+--gutter: 24px;                    /* Side gutters */
+--margin-mobile: 16px;             /* Mobile margins */
+--margin-desktop: 48px;            /* Desktop margins */
 ```
 
 ### Spacing Rules
-- Section padding: `py-12` (48px vertical)
-- Card padding: `p-8` (32px) for large, `p-6` (24px) for small
-- Grid gaps: `gap-4` (16px)
-- Nav items: `gap-8` (32px)
-- Button padding: `px-4 py-1.5` for small, `px-6 py-3` for large
+- **Section gaps**: 80px vertical spacing between major sections
+- **Card padding**: 32px for large cards, 24px for small cards
+- **Grid gaps**: 16px between items
+- **Nav items**: 24px horizontal spacing
+- **Mobile margins**: 16px, Desktop margins: 48px
+- **All spacing must be multiples of 8px** (strict 8px grid)
 
 ---
 
 ## 🔲 Border Radius
 
-### Radius Scale
+### Radius Scale (Soft, Organic Shapes)
 ```css
---radius-sm: 0.125rem;    /* 2px - Subtle */
---radius-md: 0.375rem;    /* 6px - Default */
---radius-lg: 0.5rem;      /* 8px - Cards */
---radius-xl: 0.75rem;     /* 12px - Large cards */
---radius-2xl: 1rem;       /* 16px - Featured cards */
---radius-full: 9999px;    /* Circular - Buttons, badges */
+--radius-sm: 4px;      /* 0.25rem - Subtle elements */
+--radius-md: 8px;      /* 0.5rem - Default (ROUND_EIGHT) */
+--radius-lg: 12px;     /* 0.75rem - Standard buttons/inputs */
+--radius-xl: 16px;     /* 1rem - Cards */
+--radius-2xl: 24px;    /* 1.5rem - Large cards, banners */
+--radius-full: 9999px; /* Circular - Pills, badges */
 ```
 
-### Usage
-- **Cards**: `rounded-2xl` (16px)
-- **Dropdowns**: `rounded-lg` (8px)
-- **Buttons**: `rounded-full` (circular)
-- **Input fields**: `rounded-full` (circular)
-- **Images**: `rounded-2xl` or no radius
+### Usage (Based on Stitch Design System)
+- **Standard Buttons & Inputs**: `12px` (0.75rem) - soft touchpoint
+- **Product Cards**: `24px` (1.5rem) - modern, high-end feel
+- **Small Cards**: `16px` (1rem)
+- **Category Chips**: `9999px` (fully rounded pills)
+- **Images**: Inherit parent container radius
+- **Badges**: `9999px` (circular)
+
+### Component-Specific Rules
+```css
+/* Cards */
+.card-large { border-radius: 24px; }
+.card-standard { border-radius: 16px; }
+
+/* Buttons */
+.btn-primary { border-radius: 12px; }
+.btn-pill { border-radius: 9999px; }
+
+/* Inputs */
+.input-field { border-radius: 12px; }
+
+/* Chips/Tags */
+.chip { border-radius: 9999px; }
+```
 
 ---
 
-## 🌑 Shadows
+## 🌑 Shadows (Ambient, Natural Light)
 
-### Shadow Scale
+### Shadow Scale (Soft, Diffused)
 ```css
-/* Elevation Levels */
---shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
---shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
---shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
---shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+/* Level 1 - Base (Subtle borders) */
+--shadow-base: 0 0 0 1px rgba(0, 0, 0, 0.05);
+
+/* Level 2 - Cards/Chips (Lifted) */
+--shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+
+/* Level 3 - Modals/Overlays (Focal) */
+--shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.10);
+
+/* Hover States */
+--shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.08);
 ```
 
-### Usage
-- **Cards (default)**: No shadow
-- **Cards (hover)**: `shadow-xl`
-- **Dropdowns**: `shadow-xl`
-- **Buttons**: `shadow-sm`
-- **Floating elements**: `shadow-xl`
+### Usage (Apple-Inspired Ambient Shadows)
+- **Cards (default)**: `shadow-card` (4px blur, 6% opacity)
+- **Cards (hover)**: `shadow-hover` (8px blur, 8% opacity)
+- **Dropdowns**: `shadow-modal` (12px blur, 10% opacity)
+- **Buttons**: No shadow or `shadow-base`
+- **Floating elements**: `shadow-modal`
+
+### Shadow Philosophy
+- **Highly diffused**: Mimic natural sunlight
+- **Low opacity**: Avoid harsh edges (max 10%)
+- **Vertical offset**: Y-axis only (no X-axis)
+- **No harsh borders**: Use shadows for depth instead
 
 ---
 
@@ -248,61 +329,149 @@ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
 
 ### Buttons
 
-#### Primary Button (CTA)
+#### Primary Button (Spring Green)
 ```html
-<button class="bg-gradient-to-r from-blue-500 to-purple-500 
-               text-white px-4 py-1.5 rounded-full text-xs 
-               font-medium hover:from-blue-600 hover:to-purple-600 
-               transition-all shadow-sm">
+<button class="bg-[#6db33f] text-white px-6 py-3 rounded-xl 
+               font-semibold hover:bg-[#90d960] 
+               transition-all duration-300 shadow-sm">
   Button Text
 </button>
 ```
 
-#### Icon Button
+#### Secondary Button (Warm Orange - CTA)
 ```html
-<button class="hover:text-gray-600 transition-colors">
-  <svg class="w-4 h-4">...</svg>
+<button class="bg-[#ff8928] text-white px-6 py-3 rounded-xl 
+               font-semibold hover:bg-[#ffb786] 
+               transition-all duration-300 shadow-sm">
+  Add to Cart
+</button>
+```
+
+#### Pill Button (Category Chips)
+```html
+<button class="px-4 py-2 rounded-full border-2 border-[#c1cab5]
+               text-[#181c1e] hover:bg-[#6db33f] hover:text-white
+               hover:border-[#6db33f] transition-all duration-300">
+  Category
 </button>
 ```
 
 ### Cards
 
-#### Standard Card
+#### Product Card (High-End Feel)
 ```html
-<div class="bg-white rounded-2xl overflow-hidden 
-            hover:shadow-xl transition-all duration-300">
-  <!-- Content -->
+<div class="bg-white rounded-3xl overflow-hidden 
+            hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] 
+            transition-all duration-500 hover:scale-[1.02]">
+  <!-- Product Image (60% height) -->
+  <div class="relative aspect-square">
+    <img src="..." class="w-full h-full object-cover">
+  </div>
+  
+  <!-- Product Info -->
+  <div class="p-6">
+    <h3 class="text-xl font-semibold text-[#181c1e]">Product Name</h3>
+    <p class="text-lg font-bold text-[#6db33f] mt-2">$19.99</p>
+    
+    <!-- Add to Cart Button -->
+    <button class="absolute bottom-4 right-4 w-10 h-10 
+                   bg-[#6db33f] rounded-full flex items-center 
+                   justify-center text-white hover:bg-[#90d960]">
+      <svg class="w-5 h-5">+</svg>
+    </button>
+  </div>
 </div>
 ```
 
-#### Card with Hover Border
+#### Standard Card
 ```html
-<div class="relative bg-white rounded-2xl overflow-hidden 
-            hover:shadow-xl transition-all duration-300">
+<div class="bg-white rounded-2xl p-8 
+            hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] 
+            transition-all duration-300">
   <!-- Content -->
-  <div class="absolute inset-0 rounded-2xl border-2 
-              border-transparent group-hover:border-blue-200 
-              transition-colors duration-300"></div>
 </div>
 ```
 
 ### Inputs
 
-#### Search Input
+#### Search Input (Minimalist)
 ```html
-<div class="p-[2px] rounded-full bg-gradient-to-r 
-            from-blue-400 via-purple-400 to-pink-400 shadow-lg">
-  <input class="w-full px-6 py-3 text-sm bg-white rounded-full 
-                border-none focus:outline-none focus:ring-0" 
-         placeholder="Search...">
+<input class="w-full px-6 py-3 bg-[#f1f4f6] rounded-xl 
+              border-2 border-transparent text-[#181c1e]
+              focus:border-[#6db33f] focus:outline-none 
+              transition-all duration-300" 
+       placeholder="Search products...">
+```
+
+#### Input with Label
+```html
+<div class="space-y-2">
+  <label class="text-sm font-semibold text-[#41493a] 
+                uppercase tracking-wider">
+    Label
+  </label>
+  <input class="w-full px-4 py-3 bg-[#f1f4f6] rounded-xl 
+                border-2 border-transparent
+                focus:border-[#6db33f] focus:outline-none">
 </div>
 ```
 
-### Dropdowns
+### Category Chips (Horizontal Scroll)
 ```html
-<div class="absolute bg-white rounded-lg shadow-xl py-2 
-            min-w-[160px] z-50 animate-dropdown">
-  <!-- Items -->
+<div class="flex gap-4 overflow-x-auto">
+  <!-- Active Chip -->
+  <button class="flex items-center gap-2 px-4 py-2 
+                 bg-[#6db33f] text-white rounded-full 
+                 whitespace-nowrap">
+    <svg class="w-6 h-6">...</svg>
+    <span class="font-medium">Category</span>
+  </button>
+  
+  <!-- Inactive Chip -->
+  <button class="flex items-center gap-2 px-4 py-2 
+                 border-2 border-[#c1cab5] text-[#181c1e] 
+                 rounded-full whitespace-nowrap
+                 hover:border-[#6db33f] transition-colors">
+    <svg class="w-6 h-6">...</svg>
+    <span class="font-medium">Category</span>
+  </button>
+</div>
+```
+
+### Promotional Banner (with Countdown)
+```html
+<div class="relative rounded-3xl overflow-hidden h-64">
+  <!-- Background Image with Overlay -->
+  <img src="..." class="absolute inset-0 w-full h-full object-cover">
+  <div class="absolute inset-0 bg-black/40"></div>
+  
+  <!-- Content -->
+  <div class="relative z-10 p-8 text-white">
+    <h2 class="text-4xl font-bold mb-4">Flash Sale</h2>
+    
+    <!-- Countdown Timer (Glassmorphic) -->
+    <div class="inline-flex gap-2 px-4 py-2 rounded-xl 
+                bg-white/20 backdrop-blur-md">
+      <span class="text-2xl font-bold text-[#ff8928]">12:34:56</span>
+    </div>
+  </div>
+</div>
+```
+
+### Delivery Address Selector
+```html
+<div class="flex items-center gap-2 px-4 py-2 
+            bg-[#f1f4f6] rounded-full">
+  <svg class="w-5 h-5 text-[#6db33f]">📍</svg>
+  <div>
+    <p class="text-xs font-semibold text-[#41493a] 
+              uppercase tracking-wider">
+      DELIVERING TO
+    </p>
+    <p class="text-sm font-medium text-[#181c1e]">
+      123 Main St, City
+    </p>
+  </div>
 </div>
 ```
 
@@ -377,34 +546,44 @@ xl: 1280px  /* Large desktop */
 
 ## 🎨 Design Principles
 
-### 1. Apple-Inspired Minimalism
-- Clean, spacious layouts
-- Subtle shadows and borders
-- Focus on content, not decoration
-- White space is intentional
+### 1. Organic Precision (Apple-Inspired Minimalism)
+- **Clean, spacious layouts** with generous whitespace
+- **Soft, organic shapes** (24px radius for cards)
+- **Ambient shadows** that mimic natural light
+- **Focus on content**, not decoration
+- **High-quality imagery** as primary visual driver
 
-### 2. Smooth Interactions
-- All transitions use `cubic-bezier(0.4, 0, 0.2, 1)`
-- Hover states are subtle but noticeable
+### 2. Fresh & Healthy Brand Personality
+- **Spring Green (#6db33f)**: Growth, health, freshness
+- **Warm Orange (#ff8928)**: Appetite appeal, urgency
+- **Light backgrounds (#f7fafc)**: Clean, airy, premium
+- **Soft typography**: Plus Jakarta Sans for friendly feel
+
+### 3. Smooth, Intentional Interactions
+- All transitions: `300ms cubic-bezier(0.4, 0, 0.2, 1)`
+- Hover states: Subtle lift (scale 1.02x) + shadow increase
 - Animations are purposeful, not decorative
+- Interactive depth through shadows, not borders
 
-### 3. Consistent Spacing
-- Use Tailwind spacing scale (4px increments)
-- Maintain consistent gaps in grids
-- Section padding: `py-12`
-- Card padding: `p-8` or `p-6`
+### 4. Strict 8px Grid System
+- All spacing in multiples of 8px
+- Maintains mathematical harmony
+- Section gaps: 80px
+- Card padding: 32px (large), 24px (small)
+- Grid gaps: 16px
 
-### 4. Typography Hierarchy
-- Clear distinction between heading levels
-- Consistent use of font weights
-- Tracking-tight for large headings
-- Tracking-wider for small labels
+### 5. Typography Hierarchy
+- **Display (48px, bold)**: Hero titles with tight tracking
+- **Headline (32px, bold)**: Section headings
+- **Body (16px, normal)**: Readable, generous line-height (1.5)
+- **Labels (14px, semibold)**: Uppercase, wide tracking (0.05em)
 
-### 5. Color Usage
-- Primary blue for interactive elements
-- Gradients for emphasis and CTAs
-- Gray-800 for primary text
-- #F5F5F7 for backgrounds
+### 6. Color Usage Strategy
+- **Primary Green**: Interactive elements, success states
+- **Warm Orange**: CTAs, "Add to Cart", time-sensitive
+- **Slate Blue**: Supporting UI, secondary actions
+- **Neutral grays**: Backgrounds and text
+- **Avoid pure black**: Use #181c1e for softer feel
 
 ---
 
@@ -434,29 +613,43 @@ xl: 1280px  /* Large desktop */
 
 ## 🚀 Component Checklist
 
-Khi tạo component mới, đảm bảo:
+Khi tạo component mới từ Stitch design, đảm bảo:
 
-- [ ] Sử dụng đúng color palette
-- [ ] Font size và weight phù hợp với hierarchy
-- [ ] Spacing nhất quán (4px increments)
-- [ ] Border radius: `rounded-2xl` cho cards
-- [ ] Hover states với `transition-all duration-300`
-- [ ] Responsive breakpoints: mobile → tablet → desktop
-- [ ] Z-index phù hợp với layer
-- [ ] Icons size `w-4 h-4` hoặc `w-6 h-6`
-- [ ] Container: `max-w-screen-2xl mx-auto px-4`
-- [ ] Accessibility: proper contrast, focus states
+- [ ] **Colors**: Dùng Spring Green (#6db33f) cho primary, Warm Orange (#ff8928) cho CTAs
+- [ ] **Typography**: Plus Jakarta Sans, đúng font size và weight theo hierarchy
+- [ ] **Spacing**: Tuân thủ 8px grid (16px, 24px, 32px, 48px, 80px)
+- [ ] **Border Radius**: 
+  - Cards: `24px` (large) hoặc `16px` (standard)
+  - Buttons/Inputs: `12px`
+  - Chips: `9999px` (fully rounded)
+- [ ] **Shadows**: Ambient shadows (4px blur, 6% opacity) cho cards
+- [ ] **Hover States**: 
+  - Scale: `1.02x`
+  - Shadow increase
+  - Transition: `300ms ease`
+- [ ] **Responsive**: Mobile-first, breakpoints tại 768px, 1024px
+- [ ] **Z-index**: Phù hợp với layer (dropdown: 40, modal: 100)
+- [ ] **Icons**: 16px (nav/buttons) hoặc 24px (features)
+- [ ] **Container**: Max-width `1280px`, gutter `24px`
+- [ ] **Accessibility**: 
+  - Contrast ratio đạt WCAG AA
+  - Focus states rõ ràng (2px Spring Green border)
+  - Keyboard navigation
+- [ ] **Images**: Inherit parent radius, object-fit: cover
+- [ ] **Background**: `#f7fafc` cho page, `#ffffff` cho cards
 
 ---
 
 ## 📚 References
 
-- **Tailwind CSS**: https://tailwindcss.com/docs
-- **Apple Design**: https://developer.apple.com/design/
-- **Color Palette**: Tailwind default colors
-- **Icons**: Heroicons (outline style)
+- **Stitch Design System**: SpringFood Design System (assets/f01d94a512c0498786d73c6d913ee054)
+- **Font**: Plus Jakarta Sans (Google Fonts)
+- **Color System**: Material Design 3 (Fidelity variant)
+- **Grid**: 8px base unit, strict mathematical spacing
+- **Philosophy**: Organic Precision - Apple-inspired minimalism for food e-commerce
 
 ---
 
-**Last Updated**: 2024
-**Version**: 1.0.0
+**Source**: Google Stitch E-commerce Homepage Project  
+**Last Updated**: 2026-05-01  
+**Version**: 2.0.0 (SpringFood Design System)

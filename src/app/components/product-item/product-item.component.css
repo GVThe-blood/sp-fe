@@ -1,0 +1,21 @@
+.product-card {
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(109, 179, 63, 0.3);
+}
+
+.favorite-icon {
+  border-radius: 50%;
+}
+
+.favorite-icon:hover {
+  background-color: var(--bg-hover);
+}

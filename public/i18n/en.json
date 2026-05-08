@@ -1,0 +1,136 @@
+{
+  "header": {
+    "nav": {
+      "store": "Store",
+      "categories": "Categories",
+      "recipes": "Recipes",
+      "mealPlans": "Meal Plans",
+      "support": "Support"
+    },
+    "menu": {
+      "shop": {
+        "title": "Shop",
+        "shopLatest": "Shop the Latest",
+        "freshProduce": "Fresh Produce",
+        "meatSeafood": "Meat & Seafood",
+        "dairyEggs": "Dairy & Eggs",
+        "bakery": "Bakery"
+      },
+      "quickLinks": {
+        "title": "Quick Links",
+        "findStore": "Find a Store",
+        "orderStatus": "Order Status",
+        "deliveryOptions": "Delivery Options",
+        "giftCards": "Gift Cards"
+      },
+      "specialStores": {
+        "title": "Special Stores",
+        "organic": "Organic Selection",
+        "localFarmers": "Local Farmers",
+        "bulkOrders": "Bulk Orders"
+      },
+      "freshFood": {
+        "title": "Fresh Food",
+        "vegetables": "Vegetables",
+        "fruits": "Fruits",
+        "meat": "Meat",
+        "seafood": "Seafood",
+        "dairy": "Dairy"
+      },
+      "pantry": {
+        "title": "Pantry",
+        "grains": "Grains & Rice",
+        "canned": "Canned Goods",
+        "snacks": "Snacks",
+        "beverages": "Beverages"
+      },
+      "frozen": {
+        "title": "Frozen",
+        "iceCream": "Ice Cream",
+        "frozenMeals": "Frozen Meals",
+        "frozenVegetables": "Frozen Vegetables"
+      },
+      "getHelp": {
+        "title": "Get Help",
+        "orderHelp": "Order Help",
+        "deliveryInfo": "Delivery Info",
+        "returns": "Returns",
+        "contactUs": "Contact Us"
+      },
+      "account": {
+        "title": "Account",
+        "myOrders": "My Orders",
+        "savedItems": "Saved Items",
+        "paymentMethods": "Payment Methods"
+      }
+    },
+    "search": {
+      "placeholder": "Search for products...",
+      "popularSearches": "Popular Searches",
+      "freshVegetables": "Fresh Vegetables",
+      "premiumMeat": "Premium Meat",
+      "organicProducts": "Organic Products",
+      "dailyDeals": "Daily Deals",
+      "results": "Search Results",
+      "noResults": "No products found. Try a different search term."
+    },
+    "user": {
+      "signIn": "Hi there! Sign in",
+      "profile": "Profile",
+      "myStore": "My Store",
+      "signOut": "Sign out"
+    },
+    "notifications": {
+      "title": "Notifications"
+    },
+    "cart": {
+      "title": "Shopping Cart"
+    },
+    "language": {
+      "english": "English",
+      "vietnamese": "Tiếng Việt",
+      "french": "Français",
+      "german": "Deutsch"
+    }
+  },
+  "home": {
+    "welcome": "Welcome to SpringFood",
+    "subtitle": "Fresh food delivered to your door"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "viewAll": "View All",
+    "viewDetails": "View Details",
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "checkout": "Checkout",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "discount": "Discount",
+    "apply": "Apply",
+    "remove": "Remove",
+    "quantity": "Quantity",
+    "price": "Price",
+    "name": "Name",
+    "description": "Description",
+    "category": "Category",
+    "brand": "Brand",
+    "rating": "Rating",
+    "reviews": "Reviews",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "backToHome": "Back to Home"
+  }
+}

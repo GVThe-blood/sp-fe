@@ -1,0 +1,17 @@
+.shop-card {
+  transition: all 0.3s ease;
+}
+
+.shop-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+}
+
+/* Image zoom effect on hover */
+.shop-card img {
+  transition: transform 0.5s ease;
+}
+
+.shop-card:hover img {
+  transform: scale(1.1);
+}
