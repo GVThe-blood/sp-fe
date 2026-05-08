@@ -71,3 +71,6 @@ input[type="checkbox"]:not(.sr-only):not(.toggle-switch):focus {
 input[type="checkbox"]:not(.sr-only):not(.toggle-switch):hover:not(:checked) {
   border-color: #9ca3af;
 }
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

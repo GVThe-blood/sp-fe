@@ -17,16 +17,148 @@ module.exports = {
         'bg': {
           'primary': '#F5F5F7',
         },
-        primary: "#1d72f5",
         "background-light": "#f5f5f7",
         "background-dark": "#1d1d1f",
+
+        "on-secondary": "#ffffff",
+        "surface-container-highest": "#e0e3e5",
+        "on-tertiary-fixed-variant": "#3d4759",
+        "on-tertiary-container": "#2f394a",
+        "on-error": "#ffffff",
+        "on-tertiary-fixed": "#121c2c",
+        "on-primary-container": "#1a4100",
+        "surface-container-lowest": "#ffffff",
+        "secondary-container": "#ff8928",
+        "outline-variant": "#c1cab5",
+        "inverse-surface": "#2d3133",
+        "surface-container-high": "#e5e9eb",
+        "surface-variant": "#e0e3e5",
+        "tertiary-container": "#98a2b7",
+        "tertiary": "#555f71",
+        "primary-fixed-dim": "#90d960",
+        "on-surface-variant": "#41493a",
+        "tertiary-fixed-dim": "#bdc7dc",
+        "outline": "#717a68",
+        "on-tertiary": "#ffffff",
+        "surface-tint": "#306c00",
+        "secondary-fixed-dim": "#ffb786",
+        "on-primary-fixed": "#0a2100",
+        "on-primary": "#ffffff",
+        "primary-container": "#6db33f",
+        "background": "#f7fafc",
+        "inverse-on-surface": "#eef1f3",
+        "on-surface": "#181c1e",
+        "primary": "#306c00",
+        "on-secondary-fixed": "#311300",
+        "surface-dim": "#d7dadc",
+        "on-secondary-fixed-variant": "#723600",
+        "surface-container-low": "#f1f4f6",
+        "surface-container": "#ebeef0",
+        "on-primary-fixed-variant": "#235100",
+        "inverse-primary": "#90d960",
+        "surface": "#f7fafc",
+        "error-container": "#ffdad6",
+        "error": "#ba1a1a",
+        "tertiary-fixed": "#d9e3f9",
+        "on-secondary-container": "#642f00",
+        "primary-fixed": "#abf779",
+        "secondary-fixed": "#ffdcc6",
+        "on-background": "#181c1e",
+        "secondary": "#964900",
+        "on-error-container": "#93000a",
+        "surface-bright": "#f7fafc"
+
       },
       fontFamily: {
         'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
         'display': ['Inter', 'sans-serif'],
+
+        "body-md": [
+                "Plus Jakarta Sans"
+        ],
+        "headline-lg": [
+                "Plus Jakarta Sans"
+        ],
+        "display-lg": [
+                "Plus Jakarta Sans"
+        ],
+        "body-lg": [
+                "Plus Jakarta Sans"
+        ],
+        "label-md": [
+                "Plus Jakarta Sans"
+        ],
+        "headline-md": [
+                "Plus Jakarta Sans"
+        ]
+
+      },
+      fontSize: {
+
+        "body-md": [
+                "16px",
+                {
+                        "lineHeight": "1.5",
+                        "fontWeight": "400"
+                }
+        ],
+        "headline-lg": [
+                "32px",
+                {
+                        "lineHeight": "1.2",
+                        "letterSpacing": "-0.01em",
+                        "fontWeight": "700"
+                }
+        ],
+        "display-lg": [
+                "48px",
+                {
+                        "lineHeight": "1.1",
+                        "letterSpacing": "-0.02em",
+                        "fontWeight": "700"
+                }
+        ],
+        "body-lg": [
+                "18px",
+                {
+                        "lineHeight": "1.6",
+                        "fontWeight": "400"
+                }
+        ],
+        "label-md": [
+                "14px",
+                {
+                        "lineHeight": "1.2",
+                        "letterSpacing": "0.05em",
+                        "fontWeight": "600"
+                }
+        ],
+        "headline-md": [
+                "24px",
+                {
+                        "lineHeight": "1.3",
+                        "fontWeight": "600"
+                }
+        ]
+
       },
       borderRadius: {
-        DEFAULT: "1.125rem",
+
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+
+      },
+      spacing: {
+
+        "margin-mobile": "16px",
+        "unit": "8px",
+        "container-max": "1280px",
+        "section-gap": "80px",
+        "margin-desktop": "48px",
+        "gutter": "24px"
+
       },
       animation: {
         'dropdown': 'dropdownFade 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards',
@@ -47,5 +179,8 @@ module.exports = {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/container-queries')
+  ],
 }
