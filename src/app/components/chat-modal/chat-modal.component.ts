@@ -1,14 +1,7 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, effect } from '@angular/core';
 import { ChatBubbleComponent } from './chat-bubble/chat-bubble.component';
 import { ChatWindowComponent } from './chat-window/chat-window.component';
-
-export interface ChatMessage {
-  id: string;
-  content: string;
-  timestamp: Date;
-  isUser: boolean;
-  status?: 'sent' | 'delivered' | 'read';
-}
+import { WebSocketService, ChatMessage } from '../../services/websocket.service';
 
 @Component({
   selector: 'app-chat-modal',
@@ -16,21 +9,21 @@ export interface ChatMessage {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ChatBubbleComponent, ChatWindowComponent],
   template: `
-    <div class="pointer-events-none fixed inset-0 z-50">
-      <app-chat-bubble 
-        [isOpen]="isOpen()"
-        (toggle)="toggleChat()"
+    <app-chat-bubble 
+      [isOpen]="isOpen()"
+      (toggle)="toggleChat()"
+    />
+    
+    @if (isOpen()) {
+      <app-chat-window 
+        [messages]="messages()"
+        [isTyping]="isTyping()"
+        [connectionState]="connectionState()"
+        [isMini]="true"
+        (close)="closeChat()"
+        (sendMessage)="handleSendMessage($event)"
       />
-      
-      @if (isOpen()) {
-        <app-chat-window 
-          [messages]="messages()"
-          [isTyping]="isTyping()"
-          (close)="closeChat()"
-          (sendMessage)="handleSendMessage($event)"
-        />
-      }
-    </div>
+    }
   `,
   styles: [`
     :host {
@@ -39,37 +32,72 @@ export interface ChatMessage {
   `]
 })
 export class ChatModalComponent {
+  wsService = inject(WebSocketService);
+  
   isOpen = signal(false);
   isTyping = signal(false);
+  connectionState = signal<'disconnected' | 'connecting' | 'connected' | 'error'>('connected');
+  
   messages = signal<ChatMessage[]>([
     {
       id: '1',
-      content: 'Hi there! How can I help you with your order today?',
-      timestamp: new Date(Date.now() - 180000), // 3 minutes ago
+      content: 'Xin chào! Tôi là trợ lý AI của SpringFood. Tôi có thể giúp gì cho bạn? 🍜',
+      timestamp: new Date(),
       isUser: false
-    },
-    {
-      id: '2',
-      content: 'I need to update my delivery address for tomorrow\'s organic box.',
-      timestamp: new Date(Date.now() - 60000), // 1 minute ago
-      isUser: true,
-      status: 'read'
     }
   ]);
 
+  constructor() {
+    // Listen for AI response chunks (WebSocket streaming)
+    effect(() => {
+      const chunk = this.wsService.aiChunk();
+      if (chunk) {
+        console.log('[Chat] Received AI chunk:', chunk);
+        this.appendToLastAIMessage(chunk);
+      }
+    });
+
+    // Listen for AI completion
+    effect(() => {
+      const complete = this.wsService.aiComplete();
+      if (complete) {
+        console.log('[Chat] AI response complete:', complete);
+        this.isTyping.set(false);
+      }
+    });
+
+    // Listen for AI errors
+    effect(() => {
+      const error = this.wsService.aiError();
+      if (error) {
+        console.error('[Chat] AI error:', error);
+        this.isTyping.set(false);
+        this.addAIMessage(error);
+      }
+    });
+  }
+
   toggleChat(): void {
-    this.isOpen.update(open => !open);
+    if (this.isOpen()) {
+      this.closeChat();
+    } else {
+      this.openChat();
+    }
+  }
+
+  openChat(): void {
+    this.isOpen.set(true);
   }
 
   closeChat(): void {
     this.isOpen.set(false);
   }
 
-  handleSendMessage(content: string): void {
+  async handleSendMessage(content: string): Promise<void> {
     if (!content.trim()) return;
 
-    // Add user message
-    const newMessage: ChatMessage = {
+    // Add user message to local state immediately
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content: content.trim(),
       timestamp: new Date(),
@@ -77,23 +105,79 @@ export class ChatModalComponent {
       status: 'sent'
     };
 
-    this.messages.update(msgs => [...msgs, newMessage]);
+    this.messages.update(msgs => [...msgs, userMessage]);
 
-    // Simulate bot typing
+    // Show typing indicator
     this.isTyping.set(true);
-    
-    // TODO: Replace with actual API call
-    setTimeout(() => {
-      this.isTyping.set(false);
+
+    try {
+      // Use REST API (no auth required - goes through Gateway)
+      const response = await this.wsService.sendAIMessageREST(content);
       
-      const botResponse: ChatMessage = {
+      // Add AI response to messages
+      const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: 'Thank you for your message! Our support team will assist you shortly.',
-        timestamp: new Date(),
-        isUser: false
+        content: response.response,
+        timestamp: new Date(response.timestamp),
+        isUser: false,
+        status: 'delivered'
       };
+
+      this.messages.update(msgs => [...msgs, aiMessage]);
       
-      this.messages.update(msgs => [...msgs, botResponse]);
-    }, 2000);
+    } catch (error) {
+      console.error('[Chat] Error sending message:', error);
+      
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau. 😔',
+        timestamp: new Date(),
+        isUser: false,
+        status: 'delivered'
+      };
+
+      this.messages.update(msgs => [...msgs, errorMessage]);
+    } finally {
+      this.isTyping.set(false);
+    }
+  }
+
+  private appendToLastAIMessage(chunk: string): void {
+    this.messages.update(msgs => {
+      const lastMsg = msgs[msgs.length - 1];
+      if (lastMsg && !lastMsg.isUser) {
+        // Append to existing AI message
+        return [
+          ...msgs.slice(0, -1),
+          { ...lastMsg, content: lastMsg.content + chunk }
+        ];
+      } else {
+        // Create new AI message
+        return [
+          ...msgs,
+          {
+            id: Date.now().toString(),
+            content: chunk,
+            timestamp: new Date(),
+            isUser: false,
+            status: 'delivered'
+          }
+        ];
+      }
+    });
+  }
+
+  private addAIMessage(content: string): void {
+    const aiMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content,
+      timestamp: new Date(),
+      isUser: false,
+      status: 'delivered'
+    };
+
+    this.messages.update(msgs => [...msgs, aiMessage]);
   }
 }
+
