@@ -1,0 +1,51 @@
+<div class="rounded-xl overflow-hidden cursor-pointer group shop-card" 
+     style="background-color: var(--bg-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-sm);"
+     (click)="onShopClick()">
+
+  <!-- Shop Image -->
+  <div class="relative w-full h-40 overflow-hidden" style="background-color: var(--bg-hover);">
+    <img [src]="shop().image" 
+         [alt]="shop().name" 
+         class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" 
+         loading="lazy" 
+         (error)="onImageError($event)">
+    
+    <!-- PROMO Badge -->
+    @if (shop().hasPromo) {
+      <div class="absolute top-2 left-2 bg-[#6db33f] text-white text-xs font-bold px-2 py-1 rounded">
+        PROMO
+      </div>
+    }
+  </div>
+
+  <!-- Shop Info -->
+  <div class="p-3">
+    <!-- Shop Name -->
+    <h3 class="font-semibold text-base mb-1 line-clamp-1 group-hover:text-[#6db33f] transition-colors" 
+        style="color: var(--text-primary);">
+      {{ shop().name }}
+    </h3>
+    
+    <!-- Address -->
+    <div class="text-xs mb-2 line-clamp-1" style="color: var(--text-muted);">
+      {{ shop().address }}
+    </div>
+    
+    <!-- Distance and Rating -->
+    <div class="flex items-center justify-between text-xs" style="color: var(--text-muted);">
+      <!-- Distance -->
+      <span>{{ shop().distance }} km</span>
+      
+      <!-- Rating -->
+      @if (shop().rating !== undefined) {
+        <div class="flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px] text-yellow-500" style="font-variation-settings: 'FILL' 1;">star</span>
+          <span class="font-medium">{{ shop().rating }}</span>
+          @if (shop().reviewCount) {
+            <span>({{ shop().reviewCount }})</span>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

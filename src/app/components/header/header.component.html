@@ -62,7 +62,20 @@
         }
       </div>
 
-      <a routerLink="/order" class="nav-link">
+      <!-- Notification Icon - Only show when logged in -->
+      @if (user()) {
+        <button class="nav-link relative" [title]="'header.notifications.title' | translate">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+          @if (hasNewNotifications()) {
+            <span class="notification-badge"></span>
+          }
+        </button>
+      }
+
+      <!-- Cart Icon -->
+      <a routerLink="/order" class="nav-link relative" [title]="'header.cart.title' | translate">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
         </svg>
@@ -85,19 +98,19 @@
                 <li>
                   <a routerLink="/profile" (click)="isUserDropdownOpen.set(false)" class="dropdown-item flex items-center gap-2">
                     <span class="material-symbols-outlined text-lg">person</span>
-                    Profile
+                    {{ 'header.user.profile' | translate }}
                   </a>
                 </li>
                 <li>
                   <a routerLink="/my-store" (click)="isUserDropdownOpen.set(false)" class="dropdown-item flex items-center gap-2">
                     <span class="material-symbols-outlined text-lg">storefront</span>
-                    My Store
+                    {{ 'header.user.myStore' | translate }}
                   </a>
                 </li>
                 <li>
                   <button (click)="logout()" class="dropdown-item flex items-center gap-2 w-full text-left text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                     <span class="material-symbols-outlined text-lg">logout</span>
-                    Sign out
+                    {{ 'header.user.signOut' | translate }}
                   </button>
                 </li>
               </ul>
@@ -105,8 +118,8 @@
           }
         </div>
       } @else {
-        <a href="#" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-sm">
-          Hi there! Sign in
+        <a routerLink="/login" class="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:from-blue-600 hover:to-purple-600 transition-all shadow-sm">
+          {{ 'header.user.signIn' | translate }}
         </a>
       }
     </div>
@@ -152,26 +165,118 @@
           <div class="p-[2px] rounded-full bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 shadow-lg">
             <input 
               type="text" 
-              placeholder="Search for products..." 
+              [placeholder]="'header.search.placeholder' | translate" 
               class="search-input"
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
               autofocus>
           </div>
           
-          <!-- Search Suggestions -->
-          <div class="mt-6">
-            <h3 class="menu-column-title">Popular Searches</h3>
-            <ul class="grid grid-cols-2 gap-2">
-              @for(link of quickLinks(); track link) {
-                <li>
-                  <a href="#" class="menu-link flex items-center gap-2">
-                    <svg class="w-4 h-4 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    {{ link }}
-                  </a>
-                </li>
-              }
-            </ul>
+          <!-- Fixed height container to prevent layout shift -->
+          <div class="mt-6 min-h-[300px]">
+            <!-- Priority 1: Loading Spinner -->
+            @if (isSearching()) {
+              <div class="flex justify-center items-center h-[300px]">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              </div>
+            }
+            
+            <!-- Priority 2: Error Message (only when not loading) -->
+            @else if (hasSearchError()) {
+              <div class="flex flex-col items-center justify-center h-[300px] text-center">
+                <svg class="w-12 h-12 text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ searchErrorMessage() }}</p>
+              </div>
+            }
+            
+            <!-- Priority 3: Search Results (when query >= 2 chars and has results) -->
+            @else if (searchQuery().trim().length >= 2 && hasSearchResults()) {
+              <div>
+                <h3 class="menu-column-title mb-3">
+                  {{ 'header.search.results' | translate }} ({{ searchResultsCount() }})
+                </h3>
+                <div class="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-2">
+                  @for(product of searchResults(); track product.id) {
+                    <button
+                      (click)="selectProduct(product)"
+                      class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-left">
+                      <!-- Product Image -->
+                      <img 
+                        [src]="getFirstImage(product)" 
+                        [alt]="product.name"
+                        class="w-16 h-16 flex-shrink-0 object-cover rounded-lg"
+                        onerror="this.src='/assets/images/placeholder.png'">
+                      
+                      <!-- Product Info -->
+                      <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ product.name }}
+                        </h4>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1">
+                          {{ product.description }}
+                        </p>
+                        <div class="flex items-center gap-3 mt-2 flex-wrap">
+                          <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                            {{ formatPrice(product.price) }}
+                          </span>
+                          @if (product.averageRating > 0) {
+                            <div class="flex items-center gap-1">
+                              <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                              </svg>
+                              <span class="text-xs text-gray-600 dark:text-gray-400">
+                                {{ product.averageRating.toFixed(1) }} ({{ product.totalFeedbacks }})
+                              </span>
+                            </div>
+                          }
+                          <span 
+                            class="text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                            [ngClass]="{
+                              'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': isInStock(product),
+                              'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400': !isInStock(product)
+                            }">
+                            {{ getStockStatus(product) }}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+            
+            <!-- Priority 4: Empty State (when query >= 2 chars but no results) -->
+            @else if (searchQuery().trim().length >= 2 && !hasSearchResults()) {
+              <div class="flex flex-col items-center justify-center h-[300px] text-center">
+                <svg class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  {{ ('header.search.noResults' | translate) || 'Không tìm thấy sản phẩm. Thử từ khóa khác.' }}
+                </p>
+              </div>
+            }
+            
+            <!-- Priority 5: Popular Searches (default - when query < 2 chars) -->
+            @else {
+              <div>
+                <h3 class="menu-column-title mb-3">{{ 'header.search.popularSearches' | translate }}</h3>
+                <ul class="grid grid-cols-2 gap-2">
+                  @for(link of quickLinks(); track link) {
+                    <li>
+                      <a href="#" class="menu-link flex items-center gap-2">
+                        <svg class="w-4 h-4 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        {{ link }}
+                      </a>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           </div>
         </div>
       </div>

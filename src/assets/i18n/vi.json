@@ -1,0 +1,177 @@
+{
+  "header": {
+    "nav": {
+      "store": "Cửa hàng",
+      "categories": "Danh mục",
+      "recipes": "Công thức",
+      "mealPlans": "Kế hoạch bữa ăn",
+      "support": "Hỗ trợ"
+    },
+    "menu": {
+      "shop": {
+        "title": "Mua sắm",
+        "shopLatest": "Sản phẩm mới nhất",
+        "freshProduce": "Nông sản tươi",
+        "meatSeafood": "Thịt & Hải sản",
+        "dairyEggs": "Sữa & Trứng",
+        "bakery": "Bánh mì"
+      },
+      "quickLinks": {
+        "title": "Liên kết nhanh",
+        "findStore": "Tìm cửa hàng",
+        "orderStatus": "Trạng thái đơn hàng",
+        "deliveryOptions": "Tùy chọn giao hàng",
+        "giftCards": "Thẻ quà tặng"
+      },
+      "specialStores": {
+        "title": "Cửa hàng đặc biệt",
+        "organic": "Sản phẩm hữu cơ",
+        "localFarmers": "Nông dân địa phương",
+        "bulkOrders": "Đơn hàng số lượng lớn"
+      },
+      "freshFood": {
+        "title": "Thực phẩm tươi",
+        "vegetables": "Rau củ",
+        "fruits": "Trái cây",
+        "meat": "Thịt",
+        "seafood": "Hải sản",
+        "dairy": "Sữa"
+      },
+      "pantry": {
+        "title": "Tủ đựng thực phẩm",
+        "grains": "Ngũ cốc & Gạo",
+        "canned": "Đồ hộp",
+        "snacks": "Đồ ăn vặt",
+        "beverages": "Đồ uống"
+      },
+      "frozen": {
+        "title": "Thực phẩm đông lạnh",
+        "iceCream": "Kem",
+        "frozenMeals": "Bữa ăn đông lạnh",
+        "frozenVegetables": "Rau đông lạnh"
+      },
+      "getHelp": {
+        "title": "Nhận trợ giúp",
+        "orderHelp": "Hỗ trợ đơn hàng",
+        "deliveryInfo": "Thông tin giao hàng",
+        "returns": "Trả hàng",
+        "contactUs": "Liên hệ chúng tôi"
+      },
+      "account": {
+        "title": "Tài khoản",
+        "myOrders": "Đơn hàng của tôi",
+        "savedItems": "Mục đã lưu",
+        "paymentMethods": "Phương thức thanh toán"
+      }
+    },
+    "search": {
+      "placeholder": "Tìm kiếm sản phẩm...",
+      "popularSearches": "Tìm kiếm phổ biến",
+      "freshVegetables": "Rau tươi",
+      "premiumMeat": "Thịt cao cấp",
+      "organicProducts": "Sản phẩm hữu cơ",
+      "dailyDeals": "Ưu đãi hàng ngày"
+    },
+    "user": {
+      "signIn": "Xin chào! Đăng nhập",
+      "profile": "Hồ sơ",
+      "myStore": "Cửa hàng của tôi",
+      "signOut": "Đăng xuất"
+    },
+    "notifications": {
+      "title": "Thông báo"
+    },
+    "cart": {
+      "title": "Giỏ hàng"
+    },
+    "language": {
+      "english": "English",
+      "vietnamese": "Tiếng Việt",
+      "french": "Français",
+      "german": "Deutsch"
+    }
+  },
+  "home": {
+    "welcome": "Chào mừng đến với SpringFood",
+    "subtitle": "Thực phẩm tươi giao tận nhà"
+  },
+  "homepage": {
+    "hero": {
+      "title": "Thực phẩm tươi ngon, giao tận nhà",
+      "subtitle": "Khám phá hàng ngàn sản phẩm chất lượng cao từ nông trại địa phương. Giao hàng nhanh chóng, an toàn và tiện lợi.",
+      "primaryCta": "Mua sắm ngay",
+      "secondaryCta": "Khám phá danh mục",
+      "imageAlt": "Hình nền trang chủ SpringFood với thực phẩm tươi ngon"
+    },
+    "flashSale": {
+      "badge": "FLASH SALE",
+      "title": "Ưu đãi cực hời - Chỉ hôm nay!",
+      "timeRemaining": "Thời gian còn lại",
+      "hours": "Giờ",
+      "minutes": "Phút",
+      "seconds": "Giây",
+      "cta": "Mua Ngay",
+      "ended": "Đã kết thúc",
+      "noProducts": "Không có sản phẩm flash sale",
+      "stock": "Còn lại",
+      "addToCart": "Thêm vào giỏ"
+    },
+    "featuredProducts": {
+      "title": "Đề xuất cho bạn",
+      "loadMore": "Xem thêm"
+    }
+  },
+  "errors": {
+    "network": "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+    "client": {
+      "default": "Yêu cầu không hợp lệ. Vui lòng thử lại."
+    },
+    "server": {
+      "default": "Lỗi server. Vui lòng thử lại sau."
+    },
+    "unknown": "Đã xảy ra lỗi. Vui lòng thử lại.",
+    "countdown": "Không thể khởi động đồng hồ đếm ngược."
+  },
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "cancel": "Hủy",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "add": "Thêm",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "viewAll": "Xem tất cả",
+    "viewDetails": "Xem chi tiết",
+    "addToCart": "Thêm vào giỏ",
+    "buyNow": "Mua ngay",
+    "checkout": "Thanh toán",
+    "total": "Tổng cộng",
+    "subtotal": "Tạm tính",
+    "shipping": "Phí vận chuyển",
+    "tax": "Thuế",
+    "discount": "Giảm giá",
+    "apply": "Áp dụng",
+    "remove": "Xóa",
+    "quantity": "Số lượng",
+    "price": "Giá",
+    "name": "Tên",
+    "description": "Mô tả",
+    "category": "Danh mục",
+    "brand": "Thương hiệu",
+    "rating": "Đánh giá",
+    "reviews": "Nhận xét",
+    "inStock": "Còn hàng",
+    "outOfStock": "Hết hàng",
+    "backToHome": "Về trang chủ",
+    "close": "Đóng",
+    "undo": "Hoàn tác",
+    "retry": "Thử lại"
+  },
+  "product": {
+    "addToCart": "Thêm vào giỏ"
+  }
+}

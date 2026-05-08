@@ -1,14 +1,59 @@
-<section class="hero-section text-center pt-8 pb-12 px-4 sm:px-6 lg:px-8 relative">
-  <div>
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between max-w-7xl mx-auto">
-        <h1 class="text-5xl md:text-7xl font-bold tracking-tight hero-title">
-          <span class="bg-gradient-to-r from-blue-600 to-orange-500 text-transparent bg-clip-text">Store</span>.
-          <span class="hero-subtitle">The best way to buy the products you love.</span>
-        </h1>
-        <div class="mt-6 md:mt-0 md:ml-8 flex-shrink-0">
-          <p class="text-lg font-semibold hero-text">Give something special this holiday.</p>
-          <a href="#" class="hero-link hover:underline">Find an Apple Store &rarr;</a>
-        </div>
+<div class="relative rounded-3xl overflow-hidden 
+            shadow-[0_4px_20px_rgba(0,0,0,0.06)]
+            mx-4 lg:mx-auto lg:max-w-screen-2xl">
+  
+  <!-- Background Image -->
+  <img 
+    [src]="heroImage()" 
+    [alt]="'homepage.hero.imageAlt' | translate"
+    class="absolute inset-0 w-full h-full object-cover"
+    loading="eager"
+    fetchpriority="high">
+  
+  <!-- Overlay Gradient -->
+  <div class="absolute inset-0 bg-gradient-to-r 
+              from-black/60 to-black/30"></div>
+  
+  <!-- Content -->
+  <div class="relative z-10 px-8 py-16 lg:px-16 lg:py-24 
+              text-white max-w-2xl">
+    
+    <!-- Title -->
+    <h1 class="text-4xl lg:text-5xl font-bold mb-4 
+               leading-tight tracking-tight">
+      {{ 'homepage.hero.title' | translate }}
+    </h1>
+    
+    <!-- Subtitle -->
+    <p class="text-lg lg:text-xl mb-8 text-white/90">
+      {{ 'homepage.hero.subtitle' | translate }}
+    </p>
+    
+    <!-- CTA Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4">
+      <!-- Primary CTA -->
+      <button 
+        class="bg-[#6db33f] text-white px-6 py-3 rounded-xl 
+               font-semibold hover:bg-[#90d960] 
+               transition-all duration-300 
+               hover:scale-[1.02] hover:shadow-lg
+               focus:outline-none focus:ring-2 
+               focus:ring-[#6db33f] focus:ring-offset-2"
+        [attr.aria-label]="'homepage.hero.primaryCta' | translate">
+        {{ 'homepage.hero.primaryCta' | translate }}
+      </button>
+      
+      <!-- Secondary CTA -->
+      <button 
+        class="bg-[#ff8928] text-white px-6 py-3 rounded-xl 
+               font-semibold hover:bg-[#ffb786] 
+               transition-all duration-300 
+               hover:scale-[1.02] hover:shadow-lg
+               focus:outline-none focus:ring-2 
+               focus:ring-[#ff8928] focus:ring-offset-2"
+        [attr.aria-label]="'homepage.hero.secondaryCta' | translate">
+        {{ 'homepage.hero.secondaryCta' | translate }}
+      </button>
     </div>
   </div>
-</section>
+</div>

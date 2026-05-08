@@ -1,0 +1,136 @@
+<!-- Hero Carousel - Auto-rotating banner carousel -->
+<div class="relative w-full rounded-[24px] overflow-hidden">
+  <!-- Slides Container -->
+  <div class="relative w-full min-h-[350px] md:min-h-[400px]">
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <div 
+        class="absolute inset-0 transition-opacity duration-700 ease-in-out"
+        [class.opacity-100]="i === currentSlideIndex()"
+        [class.opacity-0]="i !== currentSlideIndex()"
+        [class.pointer-events-none]="i !== currentSlideIndex()">
+        
+        <!-- Flash Sale Slide -->
+        @if (slide.type === 'flash-sale') {
+          <app-flash-sale></app-flash-sale>
+        }
+        
+        <!-- Promotion Slide -->
+        @if (slide.type === 'promotion') {
+          <section class="w-full h-full relative flex items-center justify-start p-6 md:p-12 soft-shadow group">
+            <!-- Background Image -->
+            <div class="absolute inset-0 z-0">
+              <img 
+                [alt]="slide.title || 'Promotion banner'" 
+                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+                [src]="slide.backgroundImage || ''"
+              />
+              <!-- Gradient Overlay -->
+              <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="relative z-10 max-w-lg" [style.color]="slide.textColor || 'white'">
+              <span class="inline-block px-4 py-2 bg-[#6db33f] text-white font-bold text-sm uppercase tracking-widest rounded-full mb-4">
+                ƯU ĐÃI
+              </span>
+              <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+                {{ slide.title }}
+              </h1>
+              @if (slide.subtitle) {
+                <p class="text-2xl md:text-3xl font-semibold mb-4 opacity-90">
+                  {{ slide.subtitle }}
+                </p>
+              }
+              @if (slide.description) {
+                <p class="text-lg mb-6 opacity-80">
+                  {{ slide.description }}
+                </p>
+              }
+              @if (slide.buttonText) {
+                <div>
+                  <button type="button" class="bg-[#6db33f] hover:bg-[#5a9633] text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 flex items-center gap-2">
+                    {{ slide.buttonText }}
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        
+        <!-- Announcement Slide -->
+        @if (slide.type === 'announcement') {
+          <section class="w-full h-full relative flex items-center justify-start p-6 md:p-12 soft-shadow group">
+            <!-- Background Image -->
+            <div class="absolute inset-0 z-0">
+              <img 
+                [alt]="slide.title || 'Announcement banner'" 
+                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-1000" 
+                [src]="slide.backgroundImage || ''"
+              />
+              <!-- Gradient Overlay -->
+              <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+            </div>
+            
+            <!-- Content -->
+            <div class="relative z-10 max-w-lg" [style.color]="slide.textColor || 'white'">
+              <span class="inline-block px-4 py-2 bg-[#ff8928] text-white font-bold text-sm uppercase tracking-widest rounded-full mb-4">
+                THÔNG BÁO
+              </span>
+              <h1 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
+                {{ slide.title }}
+              </h1>
+              @if (slide.subtitle) {
+                <p class="text-2xl md:text-3xl font-semibold mb-4 opacity-90">
+                  {{ slide.subtitle }}
+                </p>
+              }
+              @if (slide.description) {
+                <p class="text-lg mb-6 opacity-80">
+                  {{ slide.description }}
+                </p>
+              }
+              @if (slide.buttonText) {
+                <div>
+                  <button type="button" class="bg-[#6db33f] hover:bg-[#5a9633] text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-105 flex items-center gap-2">
+                    {{ slide.buttonText }}
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                  </button>
+                </div>
+              }
+            </div>
+          </section>
+        }
+        
+        <!-- Custom Slide (for future extensibility) -->
+        @if (slide.type === 'custom') {
+          <section class="w-full h-full relative flex items-center justify-center p-6 md:p-12 soft-shadow"
+                   [style.background-color]="slide.backgroundColor || '#f5f5f5'">
+            <div class="text-center" [style.color]="slide.textColor || '#333'">
+              <h1 class="text-4xl md:text-5xl font-bold mb-4">
+                {{ slide.title }}
+              </h1>
+              @if (slide.description) {
+                <p class="text-lg mb-6">
+                  {{ slide.description }}
+                </p>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+  </div>
+  
+  <!-- Dot Indicators (Bottom Right) -->
+  <div class="absolute bottom-6 right-6 z-20 flex items-center gap-2">
+    @for (slide of slides(); track slide.id; let i = $index) {
+      <span (click)="goToSlide(i)" [attr.aria-label]="'Go to slide ' + (i + 1)" [ngClass]="{
+        'w-2.5 h-2.5 rounded-full transition-all duration-300 hover:scale-125 cursor-pointer block': true,
+        'bg-white w-8': i === currentSlideIndex(),
+        'bg-white/50': i !== currentSlideIndex()
+      }">
+      </span>
+    }
+  </div>
+</div>
