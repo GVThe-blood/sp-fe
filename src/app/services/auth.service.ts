@@ -40,7 +40,7 @@ export interface RegisterResponse {
 }
 
 export interface ApiResponse<T> {
-  code: number;
+  appStatus: number;
   message: string;
   data: T;
 }
@@ -52,7 +52,7 @@ export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
   
-  private readonly API_URL = `${environment.apiUrl}/api/v1/auth`;
+  private readonly API_URL = `${environment.apiUrl}/auth`;
   private readonly USER_KEY = 'current_user';
 
   isAuthenticated = signal<boolean>(this.hasAuthCookie());
@@ -60,10 +60,10 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<ApiResponse<TokenResponse>> {
     return this.http.post<ApiResponse<TokenResponse>>(`${this.API_URL}/login`, credentials, {
-      withCredentials: true // Important: Send cookies with request
+      withCredentials: true
     }).pipe(
       tap(response => {
-        if (response.code === 200 && response.data) {
+        if (response.appStatus === 200 && response.data) {
           this.handleAuthSuccess(response.data);
         }
       })
@@ -72,10 +72,10 @@ export class AuthService {
 
   register(userData: RegisterRequest): Observable<ApiResponse<RegisterResponse>> {
     return this.http.post<ApiResponse<RegisterResponse>>(`${this.API_URL}/register`, userData, {
-      withCredentials: true // Important: Send cookies with request
+      withCredentials: true
     }).pipe(
       tap(response => {
-        if (response.code === 201 && response.data) {
+        if ((response.appStatus === 201 || response.appStatus === 200) && response.data) {
           this.handleAuthSuccess(response.data);
         }
       })
@@ -107,8 +107,18 @@ export class AuthService {
   }
 
   private handleAuthSuccess(data: TokenResponse | RegisterResponse): void {
-    // Cookies are automatically set by backend via Set-Cookie header
-    // We only need to store user info in localStorage
+    // Lưu token vào localStorage (cookie có thể bị reject nếu token quá dài)
+    localStorage.setItem('ACCESS_TOKEN', data.accessToken);
+    localStorage.setItem('REFRESH_TOKEN', data.refreshToken);
+    
+    // Cũng set cookie để backward compatible
+    try {
+      this.setCookie('ACCESS_TOKEN', data.accessToken, data.expiresIn / 1000);
+      this.setCookie('REFRESH_TOKEN', data.refreshToken, 7 * 24 * 60 * 60);
+    } catch (e) {
+      console.warn('[Auth] Could not set cookie, using localStorage only');
+    }
+    
     const user = {
       userId: data.userId,
       username: data.username,
@@ -118,6 +128,9 @@ export class AuthService {
     this.setUser(user);
     this.isAuthenticated.set(true);
     this.currentUser.set(user);
+    
+    console.log('[Auth] ✅ Auth success, userId:', user.userId);
+    console.log('[Auth] Token stored in localStorage:', !!localStorage.getItem('ACCESS_TOKEN'));
   }
 
   private updateUserInfo(data: TokenResponse): void {
@@ -130,28 +143,50 @@ export class AuthService {
   }
 
   private clearAuthData(): void {
-    // Cookies are cleared by backend via Set-Cookie with maxAge=0
-    // We only need to clear localStorage
+    // Clear localStorage
+    localStorage.removeItem('ACCESS_TOKEN');
+    localStorage.removeItem('REFRESH_TOKEN');
     localStorage.removeItem(this.USER_KEY);
+    
+    // Clear cookies
+    this.deleteCookie('ACCESS_TOKEN');
+    this.deleteCookie('REFRESH_TOKEN');
+    
     this.isAuthenticated.set(false);
     this.currentUser.set(null);
   }
 
-  // Check if auth cookie exists (ACCESS_TOKEN)
+  // Check if auth token exists
   private hasAuthCookie(): boolean {
-    return document.cookie.split(';').some(cookie => 
-      cookie.trim().startsWith('ACCESS_TOKEN=')
-    );
+    return !!(localStorage.getItem('ACCESS_TOKEN') || 
+      document.cookie.split(';').some(c => c.trim().startsWith('ACCESS_TOKEN=')));
   }
 
   // Get cookie value by name
   getCookie(name: string): string | null {
+    // Thử localStorage trước (reliable hơn cookie cho JWT dài)
+    const fromStorage = localStorage.getItem(name);
+    if (fromStorage) return fromStorage;
+    
+    // Fallback: cookie
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) {
       return parts.pop()?.split(';').shift() || null;
     }
     return null;
+  }
+
+  // Set cookie
+  private setCookie(name: string, value: string, maxAgeSeconds: number): void {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + maxAgeSeconds * 1000);
+    document.cookie = `${name}=${value}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+  }
+
+  // Delete cookie
+  private deleteCookie(name: string): void {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
   }
 
   // User management

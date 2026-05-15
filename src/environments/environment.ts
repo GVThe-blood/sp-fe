@@ -1,7 +1,13 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080/api/v1', // Local API Gateway
-  wsUrl: 'ws://localhost:8080/ws', // Chat WebSocket
+  // WebSocket connect TRỰC TIẾP đến chat service (port 9098) cho dev
+  // - Auth handled bởi STOMP CONNECT frame (Authorization: Bearer <token>)
+  // - Nếu muốn qua Gateway: dùng 'ws://localhost:8080/ws' (cần whitelist /ws/** trong RouterValidator)
+  wsUrl: 'ws://localhost:9098/ws',
+  // Chat REST endpoints (đi qua Gateway): /api/v1/chat/* sẽ stripPrefix(2) -> /chat/*
+  // AIAssistantController có @RequestMapping("/api/ai-assistant") nên trực tiếp tới chat service
+  chatServiceUrl: 'http://localhost:9098', // Dùng cho REST gọi trực tiếp khi cần
   
   // Placeholder images - Using inline SVG data URIs
   placeholders: {

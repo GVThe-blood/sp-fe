@@ -173,5 +173,9 @@
   },
   "product": {
     "addToCart": "Thêm vào giỏ"
+  },
+  "cart": {
+    "itemAdded": "Đã thêm {{name}} vào giỏ hàng",
+    "itemUpdated": "Đã cập nhật giỏ hàng"
   }
 }

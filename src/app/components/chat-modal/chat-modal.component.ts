@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, inject, effect } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, effect } from '@angular/core';
 import { ChatBubbleComponent } from './chat-bubble/chat-bubble.component';
 import { ChatWindowComponent } from './chat-window/chat-window.component';
 import { WebSocketService } from '../../services/websocket.service';
+import { AuthService } from '../../services/auth.service';
 import { ChatMessage, MessageBuilder, MessageButton } from '../../models/chat-message.model';
 
 @Component({
@@ -34,12 +35,18 @@ import { ChatMessage, MessageBuilder, MessageButton } from '../../models/chat-me
   `]
 })
 export class ChatModalComponent {
-  wsService = inject(WebSocketService);
+  private wsService = inject(WebSocketService);
+  private authService = inject(AuthService);
   
+  // UI state signals
   isOpen = signal(false);
-  isTyping = signal(false);
-  connectionState = signal<'disconnected' | 'connecting' | 'connected' | 'error'>('connected');
   
+  // Computed signals from WebSocket service
+  isTyping = computed(() => this.wsService.isTyping());
+  connectionState = computed(() => this.wsService.connectionState());
+  isConnected = computed(() => this.wsService.isConnected());
+  
+  // Messages state
   messages = signal<ChatMessage[]>([
     MessageBuilder.text(
       'Xin chào! Tôi là trợ lý AI của SpringFood. Tôi có thể giúp gì cho bạn? 🍜',
@@ -48,39 +55,42 @@ export class ChatModalComponent {
   ]);
 
   constructor() {
-    // Auto-connect WebSocket when component initializes
-    this.wsService.connect();
+    // Effect: Auto-connect WebSocket khi user authenticated
+    effect(() => {
+      const authenticated = this.authService.isAuthenticated();
+      const state = this.wsService.connectionState();
+      
+      if (authenticated && state === 'disconnected') {
+        console.log('[Chat] User authenticated, connecting WebSocket...');
+        this.wsService.connect();
+      } else if (!authenticated && state !== 'disconnected') {
+        console.log('[Chat] User logged out, disconnecting WebSocket...');
+        this.wsService.disconnect();
+      }
+    });
     
-    // Sync connection state
+    // Effect: Listen for AI response chunks (signal có ts để đảm bảo trigger)
     effect(() => {
-      this.connectionState.set(this.wsService.connectionState());
-    });
-
-    // Listen for AI response chunks (WebSocket streaming)
-    effect(() => {
-      const chunk = this.wsService.aiChunk();
-      if (chunk) {
-        console.log('[Chat] Received AI chunk:', chunk);
-        this.appendToLastAIMessage(chunk);
+      const chunkData = this.wsService.aiChunk();
+      if (chunkData.ts > 0 && chunkData.value) {
+        this.appendToLastAIMessage(chunkData.value);
       }
     });
 
-    // Listen for AI completion
+    // Effect: Listen for AI completion
     effect(() => {
-      const complete = this.wsService.aiComplete();
-      if (complete) {
-        console.log('[Chat] AI response complete:', complete);
-        this.isTyping.set(false);
+      const completeData = this.wsService.aiComplete();
+      if (completeData.ts > 0) {
+        console.log('[Chat] AI response complete');
       }
     });
 
-    // Listen for AI errors
+    // Effect: Listen for AI errors
     effect(() => {
-      const error = this.wsService.aiError();
-      if (error) {
-        console.error('[Chat] AI error:', error);
-        this.isTyping.set(false);
-        this.addAIMessage(error);
+      const errorData = this.wsService.aiError();
+      if (errorData.ts > 0 && errorData.value) {
+        console.error('[Chat] ❌ AI error:', errorData.value);
+        this.addAIMessage('Xin lỗi, đã có lỗi xảy ra: ' + errorData.value);
       }
     });
   }
@@ -95,6 +105,10 @@ export class ChatModalComponent {
 
   openChat(): void {
     this.isOpen.set(true);
+    // Reconnect nếu chưa connected và user đã đăng nhập
+    if (!this.isConnected() && this.authService.isAuthenticated()) {
+      this.wsService.connect();
+    }
   }
 
   closeChat(): void {
@@ -102,44 +116,45 @@ export class ChatModalComponent {
   }
 
   async handleSendMessage(content: string): Promise<void> {
-    if (!content.trim()) return;
-
-    // Check if user is authenticated (has token)
-    const hasToken = this.checkAuthentication();
-    if (!hasToken) {
-      // Show login required message with button
-      this.messages.update(msgs => [...msgs, MessageBuilder.loginRequired()]);
-      
-      // Log for debugging
-      console.warn('[Chat] User not authenticated. Please login first.');
+    if (!content.trim()) {
       return;
     }
 
-    // Add user message to local state immediately
+    console.log('[Chat] Send attempt - state:', this.connectionState(), 'authenticated:', this.authService.isAuthenticated());
+
+    // Nếu chưa connected, thử connect ngay
+    if (!this.isConnected() && this.authService.isAuthenticated()) {
+      console.log('[Chat] Not connected, attempting connect first...');
+      this.wsService.connect();
+      // Đợi 1s cho connect
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    // Check WebSocket connection
+    if (!this.isConnected()) {
+      console.error('[Chat] ❌ WebSocket still not connected (state:', this.connectionState(), ')');
+      this.addAIMessage('Kết nối bị gián đoạn. Vui lòng tải lại trang. 🔌');
+      return;
+    }
+
+    // Check authentication
+    if (!this.authService.isAuthenticated()) {
+      console.warn('[Chat] ⚠️ User not authenticated');
+      this.messages.update(msgs => [...msgs, MessageBuilder.loginRequired()]);
+      return;
+    }
+
+    // Add user message to UI immediately
     const userMessage = MessageBuilder.text(content.trim(), true);
     this.messages.update(msgs => [...msgs, userMessage]);
 
-    // Show typing indicator
-    this.isTyping.set(true);
-
     try {
-      // Use WebSocket for real-time streaming
       this.wsService.sendAIMessage(content);
-      
-      // Create placeholder for AI response (will be filled by streaming)
       const aiMessage = MessageBuilder.text('', false);
       this.messages.update(msgs => [...msgs, aiMessage]);
-      
     } catch (error) {
-      console.error('[Chat] Error sending message:', error);
-      
-      // Add error message
-      const errorMessage = MessageBuilder.text(
-        'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau. 😔',
-        false
-      );
-      this.messages.update(msgs => [...msgs, errorMessage]);
-      this.isTyping.set(false);
+      console.error('[Chat] ❌ Error sending message:', error);
+      this.addAIMessage('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau. 😔');
     }
   }
 
@@ -170,23 +185,7 @@ export class ChatModalComponent {
   }
 
   private checkAuthentication(): boolean {
-    // Check cookies for token
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-      const [name] = cookie.trim().split('=');
-      if (name === 'access_token' || name === 'jwt_token' || name === 'token') {
-        return true;
-      }
-    }
-    
-    // Fallback: check localStorage
-    if (localStorage.getItem('access_token') || 
-        localStorage.getItem('jwt_token') ||
-        localStorage.getItem('token')) {
-      return true;
-    }
-    
-    return false;
+    return this.authService.isAuthenticated();
   }
 
   private appendToLastAIMessage(chunk: string): void {

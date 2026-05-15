@@ -1,7 +1,9 @@
-import { Component, Input, Output, EventEmitter, signal, computed, effect, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed, effect, OnDestroy, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StarRatingComponent } from '../star-rating/star-rating.component';
+import { ProductService, Product as ApiProduct } from '../../services/product.service';
+import { HotToastService } from '@ngxpert/hot-toast';
 
 interface CustomizationOption {
   id: string;
@@ -18,18 +20,21 @@ interface CustomizationGroup {
 }
 
 interface Product {
-  id: number;
+  id: number | string;
   name: string;
   price: number;
   originalPrice?: number;
   image: string;
-  sold: number;
-  likes: number;
+  images?: string[];  // Multiple images from API
+  sold?: number;  // Make optional to match cart service
+  likes?: number;  // Make optional
   rating?: number;
-  isSoldOut: boolean;
-  categoryId: number;
+  isSoldOut?: boolean;  // Make optional to match cart service
+  categoryId?: number;
   description?: string;
   customizationGroups?: CustomizationGroup[];
+  shopName?: string;
+  quantity?: number;  // Stock quantity from API
 }
 
 interface CartItem {
@@ -54,6 +59,10 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   @Output() close = new EventEmitter<void>();
   
   @ViewChild('modalContent') modalContent?: ElementRef;
+  
+  // Inject services
+  private productService = inject(ProductService);
+  private toast = inject(HotToastService);
 
   selectedOptions = signal<Map<string, string>>(new Map());
   quantity = signal<number>(1);
@@ -63,6 +72,16 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   validationErrors = signal<Map<string, string>>(new Map());
   isEditMode = signal<boolean>(false);
   editingCartItemIndex = signal<number | null>(null);
+  
+  // Loading state for API calls
+  isLoadingProductDetail = signal<boolean>(false);
+  productDetailError = signal<string | null>(null);
+  
+  // Enhanced product with API data
+  enhancedProduct = signal<Product | null>(null);
+  
+  // Current image index for gallery
+  currentImageIndex = signal<number>(0);
   
   // Product review modal state
   showReviewModal = signal<boolean>(false);
@@ -113,14 +132,15 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   private keydownListener?: (e: KeyboardEvent) => void;
 
   totalPrice = computed(() => {
-    if (!this.product) return 0;
+    const product = this.getDisplayProduct();
+    if (!product) return 0;
     
-    const basePrice = this.product.price;
+    const basePrice = product.price;
     let optionsTotal = 0;
     
-    if (this.product.customizationGroups) {
+    if (product.customizationGroups) {
       this.selectedOptions().forEach((optionId, groupId) => {
-        const group = this.product!.customizationGroups!.find(g => g.id === groupId);
+        const group = product.customizationGroups!.find(g => g.id === groupId);
         if (group) {
           const option = group.options.find(o => o.id === optionId);
           if (option) {
@@ -153,6 +173,8 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
       // Reset if we have a new product (different from previous)
       if (currentProduct && currentProduct !== previousProduct) {
         this.resetModalData();
+        // Fetch full product details from API
+        this.fetchProductDetail(currentProduct.id);
       }
     }
     
@@ -178,6 +200,136 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   }
 
   /**
+   * Fetch full product details from API
+   */
+  private fetchProductDetail(productId: number | string): void {
+    this.isLoadingProductDetail.set(true);
+    this.productDetailError.set(null);
+    
+    this.productService.getProductById(productId.toString()).subscribe({
+      next: (response) => {
+        if (response.code === 200 && response.data) {
+          const apiProduct = response.data;
+          
+          // Parse images from JSON string
+          const images = this.productService.parseImages(apiProduct.images);
+          
+          // Merge API data with existing product
+          const enhanced: Product = {
+            ...this.product!,
+            id: apiProduct.id,
+            name: apiProduct.name,
+            description: apiProduct.description,
+            price: parseFloat(apiProduct.price),
+            images: images,
+            image: images.length > 0 ? images[0] : this.product!.image,
+            rating: apiProduct.averageRating || this.product!.rating,
+            quantity: apiProduct.quantity,
+            isSoldOut: apiProduct.quantity === 0,
+            // TODO: Add customization groups from API when available
+            customizationGroups: this.product!.customizationGroups || this.generateMockCustomizationGroups(apiProduct)
+          };
+          
+          this.enhancedProduct.set(enhanced);
+          this.currentImageIndex.set(0);
+          this.isLoadingProductDetail.set(false);
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching product detail:', error);
+        this.productDetailError.set('Không thể tải chi tiết sản phẩm');
+        this.isLoadingProductDetail.set(false);
+        // Use original product as fallback
+        this.enhancedProduct.set(this.product);
+      }
+    });
+  }
+  
+  /**
+   * Generate mock customization groups
+   * TODO: Replace with API call when backend supports customization groups
+   */
+  private generateMockCustomizationGroups(apiProduct: ApiProduct): CustomizationGroup[] {
+    // Basic customization groups for food/beverage products
+    return [
+      {
+        id: 'size-1',
+        name: 'Kích cỡ',
+        required: true,
+        maxSelection: 1,
+        options: [
+          { id: 'medium', name: 'Vừa', priceModifier: 0 },
+          { id: 'large', name: 'Lớn', priceModifier: 10000 }
+        ]
+      },
+      {
+        id: 'note-1',
+        name: 'Ghi chú đặc biệt',
+        required: false,
+        maxSelection: 1,
+        options: [
+          { id: 'none', name: 'Không', priceModifier: 0 },
+          { id: 'less-spicy', name: 'Ít cay', priceModifier: 0 },
+          { id: 'no-onion', name: 'Không hành', priceModifier: 0 }
+        ]
+      }
+    ];
+  }
+  
+  /**
+   * Get display product (enhanced if available, otherwise original)
+   */
+  getDisplayProduct(): Product | null {
+    return this.enhancedProduct() || this.product;
+  }
+  
+  /**
+   * Navigate to previous image
+   */
+  previousImage(): void {
+    const product = this.getDisplayProduct();
+    if (!product?.images || product.images.length <= 1) return;
+    
+    this.currentImageIndex.update(index => 
+      index === 0 ? product.images!.length - 1 : index - 1
+    );
+  }
+  
+  /**
+   * Navigate to next image
+   */
+  nextImage(): void {
+    const product = this.getDisplayProduct();
+    if (!product?.images || product.images.length <= 1) return;
+    
+    this.currentImageIndex.update(index => 
+      index === product.images!.length - 1 ? 0 : index + 1
+    );
+  }
+  
+  /**
+   * Get current image URL
+   */
+  getCurrentImage(): string {
+    const product = this.getDisplayProduct();
+    if (!product) return this.FALLBACK_PRODUCT_IMAGE;
+    
+    if (product.images && product.images.length > 0) {
+      return product.images[this.currentImageIndex()];
+    }
+    
+    return product.image || this.FALLBACK_PRODUCT_IMAGE;
+  }
+  
+  /**
+   * Check if product has multiple images
+   */
+  hasMultipleImages(): boolean {
+    const product = this.getDisplayProduct();
+    return (product?.images?.length || 0) > 1;
+  }
+  
+  /**
    * Reset all modal data to default values
    * Called when product changes to ensure clean state
    */
@@ -190,6 +342,12 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
     
     // Clear validation errors
     this.validationErrors.set(new Map());
+    
+    // Reset image index
+    this.currentImageIndex.set(0);
+    
+    // Clear enhanced product
+    this.enhancedProduct.set(null);
     
     // Reset selectedOptions to defaults (required groups only)
     const newSelections = new Map<string, string>();
@@ -263,11 +421,12 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   
   // Validate that all required customization options are selected
   private validateSelections(): boolean {
-    if (!this.product || !this.product.customizationGroups) return true;
+    const product = this.getDisplayProduct();
+    if (!product || !product.customizationGroups) return true;
     
     const errors = new Map<string, string>();
     
-    for (const group of this.product.customizationGroups) {
+    for (const group of product.customizationGroups) {
       if (group.required) {
         const selectedOption = this.selectedOptions().get(group.id);
         if (!selectedOption) {
@@ -286,7 +445,14 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   }
 
   onAddToCart() {
-    if (!this.product || this.isAddingToCart()) return;
+    const product = this.getDisplayProduct();
+    if (!product || this.isAddingToCart()) return;
+    
+    // Check if product is sold out
+    if (product.isSoldOut || (product.quantity !== undefined && product.quantity === 0)) {
+      this.toast.error('Sản phẩm đã hết hàng');
+      return;
+    }
     
     // Validate selections before proceeding
     if (!this.validateSelections()) {
@@ -296,7 +462,7 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
     this.isAddingToCart.set(true);
 
     const cartItem: CartItem = {
-      product: this.product,
+      product: product,
       quantity: this.quantity(),
       note: this.customerNote() || undefined,
       selectedOptions: new Map(this.selectedOptions())
@@ -339,12 +505,13 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
 
   // Categorize customization groups into small (2-column) and large (full-width)
   getSmallGroups(): CustomizationGroup[] {
-    if (!this.product?.customizationGroups) return [];
+    const product = this.getDisplayProduct();
+    if (!product?.customizationGroups) return [];
     
     // Small groups: size, temperature, ice level, sugar level (typically 2-4 options)
     const smallGroupNames = ['size', 'kích thước', 'temperature', 'nhiệt độ', 'ice', 'đá', 'sugar', 'đường'];
     
-    return this.product.customizationGroups.filter(group => {
+    return product.customizationGroups.filter(group => {
       const groupNameLower = group.name.toLowerCase();
       const hasSmallName = smallGroupNames.some(name => groupNameLower.includes(name));
       const hasFewerOptions = group.options.length <= 4;
@@ -353,12 +520,13 @@ export class ProductDetailModalComponent implements OnChanges, OnDestroy, AfterV
   }
 
   getLargeGroups(): CustomizationGroup[] {
-    if (!this.product?.customizationGroups) return [];
+    const product = this.getDisplayProduct();
+    if (!product?.customizationGroups) return [];
     
     const smallGroups = this.getSmallGroups();
     const smallGroupIds = new Set(smallGroups.map(g => g.id));
     
-    return this.product.customizationGroups.filter(group => !smallGroupIds.has(group.id));
+    return product.customizationGroups.filter(group => !smallGroupIds.has(group.id));
   }
 
   // TrackBy functions for performance optimization

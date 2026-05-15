@@ -38,56 +38,115 @@
     <!-- Product Image - Smaller height to match compact modal -->
     <div class="relative w-full h-48 md:h-52 overflow-hidden md:rounded-t-xl" 
          style="background-color: var(--color-gray-200);">
-      <img [src]="product.image" 
-           [alt]="product.name"
-           class="w-full h-full object-cover"
-           loading="lazy"
-           (error)="onImageError($event)">
+      
+      <!-- Loading State -->
+      @if (isLoadingProductDetail()) {
+        <div class="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      }
+      
+      <!-- Product Image -->
+      @if (!isLoadingProductDetail()) {
+        <img [src]="getCurrentImage()" 
+             [alt]="getDisplayProduct()?.name || 'Product'"
+             class="w-full h-full object-cover"
+             loading="lazy"
+             (error)="onImageError($event)">
+        
+        <!-- Image Navigation Arrows (only if multiple images) -->
+        @if (hasMultipleImages()) {
+          <!-- Previous Button -->
+          <button 
+            (click)="previousImage(); $event.stopPropagation()"
+            class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all"
+            aria-label="Ảnh trước"
+            type="button">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+          
+          <!-- Next Button -->
+          <button 
+            (click)="nextImage(); $event.stopPropagation()"
+            class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-all"
+            aria-label="Ảnh tiếp theo"
+            type="button">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+          
+          <!-- Image Indicators - Temporarily disabled due to Angular compiler bug -->
+        }
+      }
     </div>
 
     <!-- Product Details -->
     <div class="p-4 md:p-6">
-      <!-- Product Name -->
-      <h2 [id]="'modal-title-' + product.id" class="text-2xl font-bold mb-2" style="color: var(--text-primary);">{{ product.name }}</h2>
+      <!-- Loading State -->
+      @if (isLoadingProductDetail()) {
+        <div class="space-y-4 animate-pulse">
+          <div class="h-8 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-6 bg-gray-200 rounded w-1/4"></div>
+          <div class="h-20 bg-gray-200 rounded"></div>
+        </div>
+      }
+      
+      <!-- Product Content -->
+      @if (!isLoadingProductDetail() && getDisplayProduct(); as displayProduct) {
+        <!-- Product Name -->
+        <h2 [id]="'modal-title-' + displayProduct.id" class="text-2xl font-bold mb-2" style="color: var(--text-primary);">{{ displayProduct.name }}</h2>
 
-      <!-- Rating and Sold Count -->
-      <div class="flex items-center gap-4 mb-4">
-        <app-star-rating 
-          *ngIf="product.rating"
-          [rating]="product.rating" 
-          [size]="'sm'"
-          [showNumber]="true">
-        </app-star-rating>
-        <span class="text-sm" style="color: var(--text-muted);">Đã bán {{ product.sold }}</span>
-      </div>
+        <!-- Rating and Sold Count -->
+        <div class="flex items-center gap-4 mb-4">
+          <app-star-rating 
+            *ngIf="displayProduct.rating"
+            [rating]="displayProduct.rating" 
+            [size]="'sm'"
+            [showNumber]="true">
+          </app-star-rating>
+          <span class="text-sm" style="color: var(--text-muted);">Đã bán {{ displayProduct.sold }}</span>
+          
+          <!-- Stock Status -->
+          @if (displayProduct.quantity !== undefined) {
+            @if (displayProduct.quantity === 0) {
+              <span class="text-sm font-medium text-red-600">Hết hàng</span>
+            } @else if (displayProduct.quantity < 10) {
+              <span class="text-sm font-medium text-orange-600">Chỉ còn {{ displayProduct.quantity }} sản phẩm</span>
+            }
+          }
+        </div>
 
-      <!-- Price -->
-      <div class="flex items-center gap-2 mb-4">
-        <span class="text-2xl font-bold" style="color: var(--color-primary);">{{ formatPrice(product.price) }}đ</span>
-        <span *ngIf="product.originalPrice" 
-              class="text-lg line-through" style="color: var(--text-muted);">{{ formatPrice(product.originalPrice) }}đ</span>
-      </div>
+        <!-- Price -->
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-2xl font-bold" style="color: var(--color-primary);">{{ formatPrice(displayProduct.price) }}đ</span>
+          <span *ngIf="displayProduct.originalPrice" 
+                class="text-lg line-through" style="color: var(--text-muted);">{{ formatPrice(displayProduct.originalPrice) }}đ</span>
+        </div>
 
-      <!-- Description -->
-      <p *ngIf="product.description" [id]="'modal-description-' + product.id" class="mb-4" style="color: var(--text-secondary);">{{ product.description }}</p>
+        <!-- Description -->
+        <p *ngIf="displayProduct.description" [id]="'modal-description-' + displayProduct.id" class="mb-4" style="color: var(--text-secondary);">{{ displayProduct.description }}</p>
 
-      <!-- View Product Details Link -->
-      <button 
-        (click)="openReviewModal()"
-        class="flex items-center gap-1 text-sm font-medium mb-4 hover:underline"
-        style="color: var(--color-primary);"
-        type="button">
-        Xem chi tiết sản phẩm
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </button>
+        <!-- View Product Details Link -->
+        <button 
+          (click)="openReviewModal()"
+          class="flex items-center gap-1 text-sm font-medium mb-4 hover:underline"
+          style="color: var(--color-primary);"
+          type="button">
+          Xem chi tiết sản phẩm
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
 
-      <!-- Divider -->
-      <div class="divider"></div>
+        <!-- Divider -->
+        <div class="divider"></div>
 
-      <!-- Customization Options -->
-      <div *ngIf="product.customizationGroups && product.customizationGroups.length > 0">
+        <!-- Customization Options -->
+        <div *ngIf="displayProduct.customizationGroups && displayProduct.customizationGroups.length > 0">
         <!-- Small groups in two-column grid (size, temperature, etc.) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div *ngFor="let group of getSmallGroups(); trackBy: trackByGroup">
@@ -240,24 +299,25 @@
 
         <!-- Add to Cart Button (flex-1 to take remaining space) - Always enabled -->
         <button (click)="onAddToCart()"
-                [disabled]="product.isSoldOut || isAddingToCart()"
+                [disabled]="getDisplayProduct()?.isSoldOut || isAddingToCart()"
                 class="flex-1 py-4 font-semibold rounded-xl"
                 style="background-color: var(--color-primary); color: var(--text-on-primary); transition: all var(--transition-slow);"
-                [style.background-color]="(product.isSoldOut || isAddingToCart()) ? 'var(--color-gray-300)' : 'var(--color-primary)'"
-                [style.cursor]="(product.isSoldOut || isAddingToCart()) ? 'not-allowed' : 'pointer'"
+                [style.background-color]="(getDisplayProduct()?.isSoldOut || isAddingToCart()) ? 'var(--color-gray-300)' : 'var(--color-primary)'"
+                [style.cursor]="(getDisplayProduct()?.isSoldOut || isAddingToCart()) ? 'not-allowed' : 'pointer'"
                 onmouseover="if (!this.disabled) this.style.backgroundColor='var(--color-primary-hover)'; if (!this.disabled) this.style.boxShadow='var(--shadow-lg)'"
                 onmouseout="if (!this.disabled) this.style.backgroundColor='var(--color-primary)'; if (!this.disabled) this.style.boxShadow='none'"
                 onmousedown="if (!this.disabled) this.style.transform='scale(0.98)'"
                 onmouseup="if (!this.disabled) this.style.transform='scale(1)'"
                 type="button"
-                [attr.aria-label]="product.isSoldOut ? 'Sản phẩm hết hàng' : (isEditMode() ? 'Cập nhật giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng' : 'Thêm vào giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng')">
-          <span *ngIf="!product.isSoldOut && !isAddingToCart()">
+                [attr.aria-label]="getDisplayProduct()?.isSoldOut ? 'Sản phẩm hết hàng' : (isEditMode() ? 'Cập nhật giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng' : 'Thêm vào giỏ hàng với giá ' + formatPrice(totalPrice()) + ' đồng')">
+          <span *ngIf="!getDisplayProduct()?.isSoldOut && !isAddingToCart()">
             {{ isEditMode() ? 'Cập nhật' : 'Thêm vào giỏ' }} - {{ formatPrice(totalPrice()) }}đ
           </span>
           <span *ngIf="isAddingToCart()" aria-live="polite">{{ isEditMode() ? 'Đang cập nhật...' : 'Đang thêm...' }}</span>
-          <span *ngIf="product.isSoldOut">Hết hàng</span>
+          <span *ngIf="getDisplayProduct()?.isSoldOut">Hết hàng</span>
         </button>
       </div>
+      } <!-- End of @if (!isLoadingProductDetail()) -->
     </div>
     </div>
     <!-- End of Scrollable Content Wrapper -->

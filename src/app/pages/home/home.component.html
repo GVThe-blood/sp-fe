@@ -68,7 +68,10 @@
 
   <!-- Featured Products Section -->
   <section class="mb-20">
-    <app-featured-products></app-featured-products>
+    <app-featured-products
+      (productClicked)="onProductClick($event)"
+      (addToCartClicked)="onAddToCartClick($event)">
+    </app-featured-products>
   </section>
 
   <!-- Featured Shops Section -->
@@ -76,3 +79,16 @@
     <app-featured-shops></app-featured-shops>
   </section>
 </main>
+
+<!-- Product Detail Modal -->
+<app-product-detail-modal
+  [product]="selectedProduct()"
+  [isOpen]="isModalOpen()"
+  [editingCartItem]="editingCartItem()"
+  (addToCart)="handleAddToCart($event)"
+  (updateCart)="handleUpdateCartItem($event)"
+  (close)="closeProductModal()">
+</app-product-detail-modal>
+
+<!-- Floating Cart Button -->
+<app-floating-cart-button></app-floating-cart-button>

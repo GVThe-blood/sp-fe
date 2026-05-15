@@ -39,9 +39,9 @@
         @for (product of products(); track product.id) {
           <app-product-item 
             [product]="product"
-            (productClick)="onProductClick($event)"
+            (productClick)="onProductClick(product)"
             (favoriteClick)="onFavoriteClick($event)"
-            (addToCartClick)="onAddToCartClick($event)">
+            (addToCartClick)="onAddToCartClick(product)">
           </app-product-item>
         }
       </div>

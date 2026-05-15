@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit, effect } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit, effect, output } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProductItemComponent, ProductItem } from '../product-item/product-item.component';
 import { ProductService, Product } from '../../services/product.service';
@@ -15,6 +15,10 @@ import { HotToastService } from '@ngxpert/hot-toast';
 export class FeaturedProductsComponent implements OnInit {
   private productService = inject(ProductService);
   private toast = inject(HotToastService);
+  
+  // Output events to parent
+  productClicked = output<ProductItem>();
+  addToCartClicked = output<ProductItem>();
   
   // All products
   private allProducts = signal<ProductItem[]>([]);
@@ -127,8 +131,7 @@ export class FeaturedProductsComponent implements OnInit {
   }
   
   onProductClick(product: ProductItem): void {
-    console.log('Product clicked:', product);
-    // TODO: Open product detail modal
+    this.productClicked.emit(product);
   }
   
   onFavoriteClick(productId: string): void {
@@ -137,8 +140,7 @@ export class FeaturedProductsComponent implements OnInit {
   }
   
   onAddToCartClick(product: ProductItem): void {
-    console.log('Add to cart:', product);
-    // TODO: Add to cart
+    this.addToCartClicked.emit(product);
   }
   
   /**

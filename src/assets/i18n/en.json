@@ -173,5 +173,9 @@
   },
   "product": {
     "addToCart": "Add to Cart"
+  },
+  "cart": {
+    "itemAdded": "{{name}} added to cart",
+    "itemUpdated": "Cart item updated"
   }
 }

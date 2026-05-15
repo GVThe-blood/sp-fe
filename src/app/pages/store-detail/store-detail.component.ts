@@ -26,16 +26,16 @@ interface CustomizationGroup {
 }
 
 interface Product {
-  id: number;
+  id: number | string;  // Support both number and string (UUID from backend)
   name: string;
   price: number;
   originalPrice?: number;
   image: string;
-  sold: number;
-  likes: number;
+  sold?: number;  // Make optional to match cart service
+  likes?: number;  // Make optional
   rating?: number; // Added rating
-  isSoldOut: boolean;
-  categoryId: number;
+  isSoldOut?: boolean;  // Make optional
+  categoryId?: number;  // Make optional
   description?: string;
   customizationGroups?: CustomizationGroup[];
 }
@@ -269,7 +269,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   });
 
   // Favorite Logic
-  favoriteProducts = signal<Set<number>>(new Set());
+  favoriteProducts = signal<Set<number | string>>(new Set());
   isStoreFavorite = signal<boolean>(false);
 
   // Active category tracking
@@ -283,7 +283,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
   cart = signal<CartItem[]>([]);
   
   // Add-to-cart success animation
-  addedToCartProductId = signal<number | null>(null);
+  addedToCartProductId = signal<number | string | null>(null);
   
   // Cart edit mode for bulk delete
   isCartEditMode = signal<boolean>(false);
@@ -441,7 +441,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     this.isModalOpen.set(true);
   }
   
-  showAddSuccess(productId: number) {
+  showAddSuccess(productId: number | string) {
     this.addedToCartProductId.set(productId);
     setTimeout(() => {
       this.addedToCartProductId.set(null);
@@ -454,7 +454,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     this.openProductModal(product);
   }
 
-  removeFromCart(productId: number) {
+  removeFromCart(productId: number | string) {
     this.cart.update(currentCart => {
       const existingItem = currentCart.find(item => item.product.id === productId);
       if (existingItem && existingItem.quantity > 1) {
@@ -483,7 +483,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     this.isStoreFavorite.update(current => !current);
   }
 
-  toggleProductFavorite(productId: number) {
+  toggleProductFavorite(productId: number | string) {
     this.favoriteProducts.update(favorites => {
       const newFavorites = new Set(favorites);
       if (newFavorites.has(productId)) {
@@ -495,7 +495,7 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  isProductFavorite(productId: number): boolean {
+  isProductFavorite(productId: number | string): boolean {
     return this.favoriteProducts().has(productId);
   }
 
@@ -521,11 +521,11 @@ export class StoreDetailComponent implements OnInit, OnDestroy {
     return category.id;
   }
 
-  trackByProduct(index: number, product: Product): number {
+  trackByProduct(index: number, product: Product): number | string {
     return product.id;
   }
 
-  trackByCartItem(index: number, item: CartItem): number {
+  trackByCartItem(index: number, item: CartItem): number | string {
     return item.product.id;
   }
 
