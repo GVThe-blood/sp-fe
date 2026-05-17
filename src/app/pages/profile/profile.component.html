@@ -14,39 +14,138 @@
           <h1 class="content-title">Thông tin cá nhân</h1>
           <p class="content-subtitle">Xem và cập nhật thông tin cá nhân của bạn.</p>
         </div>
-        <button class="btn-edit">
-          <span class="material-symbols-outlined">edit</span>
-          <span>Chỉnh sửa</span>
-        </button>
+
+        @if (!isEditMode()) {
+          <button class="btn-edit" (click)="startEdit()" [disabled]="profileLoading()">
+            <span class="material-symbols-outlined">edit</span>
+            <span>Chỉnh sửa</span>
+          </button>
+        } @else {
+          <div class="flex gap-2">
+            <button
+              class="px-4 py-2 rounded-lg border border-[#c1cab5] text-[#41493a] hover:bg-[#f1f4f6] transition-colors"
+              (click)="cancelEdit()"
+              [disabled]="isSaving()"
+            >
+              Hủy
+            </button>
+            <button
+              class="px-4 py-2 rounded-lg bg-[#6db33f] hover:bg-[#90d960] text-white font-semibold transition-colors disabled:opacity-50"
+              (click)="saveProfile()"
+              [disabled]="isSaving()"
+            >
+              {{ isSaving() ? 'Đang lưu...' : 'Lưu thay đổi' }}
+            </button>
+          </div>
+        }
       </div>
 
-      <!-- Personal Info Grid -->
-      <div class="info-grid">
-        <div class="info-item">
-          <p class="info-label">Họ</p>
-          <p class="info-value">{{ user()?.firstName }}</p>
+      <!-- Loading skeleton -->
+      @if (profileLoading() && !displayProfile()) {
+        <div class="info-grid opacity-60">
+          <div class="info-item"><div class="h-4 bg-[#e0e3e5] rounded w-20 mb-2"></div><div class="h-5 bg-[#e0e3e5] rounded w-32"></div></div>
+          <div class="info-item"><div class="h-4 bg-[#e0e3e5] rounded w-20 mb-2"></div><div class="h-5 bg-[#e0e3e5] rounded w-32"></div></div>
         </div>
-        <div class="info-item">
-          <p class="info-label">Tên</p>
-          <p class="info-value">{{ user()?.lastName }}</p>
+      }
+
+      <!-- View mode -->
+      @else if (!isEditMode() && displayProfile()) {
+        <div class="info-grid">
+          <div class="info-item">
+            <p class="info-label">Họ</p>
+            <p class="info-value">{{ displayProfile()!.firstName || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <p class="info-label">Tên</p>
+            <p class="info-value">{{ displayProfile()!.lastName || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <p class="info-label">Tên đăng nhập</p>
+            <p class="info-value">{{ displayProfile()!.username || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <p class="info-label">Email</p>
+            <p class="info-value">{{ displayProfile()!.email || '—' }}</p>
+          </div>
+          <div class="info-item">
+            <p class="info-label">Giới tính</p>
+            <p class="info-value">{{ genderLabel(displayProfile()!.gender) }}</p>
+          </div>
+          <div class="info-item">
+            <p class="info-label">Số điện thoại</p>
+            <p class="info-value">{{ displayProfile()!.phone || '—' }}</p>
+          </div>
         </div>
-        <div class="info-item">
-          <p class="info-label">Tên đăng nhập</p>
-          <p class="info-value">{{ user()?.username }}</p>
+      }
+
+      <!-- Edit mode -->
+      @else if (isEditMode()) {
+        <div class="info-grid">
+          <div class="info-item">
+            <label class="info-label" for="firstName">Họ</label>
+            <input
+              id="firstName"
+              type="text"
+              [value]="formState().firstName"
+              (input)="updateForm('firstName', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none"
+            />
+          </div>
+          <div class="info-item">
+            <label class="info-label" for="lastName">Tên</label>
+            <input
+              id="lastName"
+              type="text"
+              [value]="formState().lastName"
+              (input)="updateForm('lastName', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none"
+            />
+          </div>
+          <div class="info-item">
+            <label class="info-label" for="username">Tên đăng nhập</label>
+            <input
+              id="username"
+              type="text"
+              [value]="formState().username"
+              (input)="updateForm('username', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none"
+            />
+          </div>
+          <div class="info-item">
+            <label class="info-label" for="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              [value]="formState().email"
+              (input)="updateForm('email', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none"
+            />
+          </div>
+          <div class="info-item">
+            <label class="info-label" for="gender">Giới tính</label>
+            <select
+              id="gender"
+              [value]="formState().gender"
+              (change)="updateForm('gender', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none bg-white"
+            >
+              <option value="MALE">Nam</option>
+              <option value="FEMALE">Nữ</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          <div class="info-item">
+            <label class="info-label" for="phone">Số điện thoại</label>
+            <input
+              id="phone"
+              type="tel"
+              [value]="formState().phone"
+              (input)="updateForm('phone', $any($event.target).value)"
+              class="w-full px-3 py-2 rounded-lg border border-[#c1cab5] focus:border-[#6db33f] focus:outline-none"
+            />
+          </div>
         </div>
-        <div class="info-item">
-          <p class="info-label">Email</p>
-          <p class="info-value">{{ user()?.email }}</p>
-        </div>
-        <div class="info-item">
-          <p class="info-label">Giới tính</p>
-          <p class="info-value">{{ user()?.gender === 'Male' ? 'Nam' : 'Nữ' }}</p>
-        </div>
-        <div class="info-item">
-          <p class="info-label">Số điện thoại</p>
-          <p class="info-value">{{ user()?.phoneNumber }}</p>
-        </div>
-      </div>
+      }
 
       <!-- Address Section -->
       <div class="address-section">
@@ -61,7 +160,6 @@
           </button>
         </div>
 
-        <!-- Address List with AddressCard components -->
         <div class="address-list">
           @if (sortedAddresses.length > 0) {
             @for (address of sortedAddresses; track address.id) {
@@ -83,7 +181,6 @@
           }
         </div>
 
-        <!-- Google Maps Placeholder -->
         <div class="maps-placeholder">
           <span class="material-symbols-outlined">map</span>
           <p>Thêm địa chỉ từ Google Maps</p>
@@ -97,7 +194,6 @@
   </div>
 </main>
 
-<!-- Address Form Modal -->
 <app-address-form-modal
   [isOpen]="isAddressModalOpen"
   [address]="editingAddress"
@@ -105,7 +201,6 @@
   (close)="closeAddressModal()"
 ></app-address-form-modal>
 
-<!-- Avatar Picker Modal -->
 <app-avatar-picker-modal
   [isOpen]="isAvatarModalOpen"
   [currentAvatar]="user()?.avatarUrl || ''"

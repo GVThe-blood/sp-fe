@@ -1,0 +1,308 @@
+<div class="page-header">
+  <div>
+    <h2>Quản lý Sản phẩm</h2>
+    <p>Xem, ẩn/hiện hoặc xoá sản phẩm trên toàn nền tảng. Admin có thể bypass shop ownership.</p>
+  </div>
+</div>
+
+<!-- Stats cards -->
+<div class="stats-grid">
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">inventory_2</span>Tổng SP</span>
+    <span class="value">{{ formatNumber(stats()?.totalProducts ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">check_circle</span>Đang bán</span>
+    <span class="value">{{ formatNumber(stats()?.availableProducts ?? 0) }}</span>
+  </div>
+  <div class="stat-card red">
+    <span class="label"><span class="material-symbols-outlined">cancel</span>Hết hàng</span>
+    <span class="value">{{ formatNumber(stats()?.outOfStockProducts ?? 0) }}</span>
+  </div>
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">visibility_off</span>Đã ẩn</span>
+    <span class="value">{{ formatNumber((stats()?.unlistedProducts ?? 0) + (stats()?.discontinuedProducts ?? 0)) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">storefront</span>Shops bán</span>
+    <span class="value">{{ formatNumber(stats()?.totalShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card purple">
+    <span class="label"><span class="material-symbols-outlined">payments</span>Giá trị tồn</span>
+    <span class="value" style="font-size: 16px;">{{ formatVndShort(stats()?.totalInventoryValue ?? 0) }}</span>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <label class="search-input">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo tên, mô tả, SKU, productId…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">filter_list</span>
+    <select [value]="statusFilter()" (change)="onStatusFilter($any($event.target).value)">
+      <option value="all">Mọi trạng thái</option>
+      <option value="AVAILABLE">Đang bán</option>
+      <option value="OUT_OF_STOCK">Hết hàng</option>
+      <option value="UNLISTED">Đã ẩn</option>
+      <option value="DISCONTINUED">Ngừng kinh doanh</option>
+    </select>
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- Table -->
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="min-width: 280px;">Sản phẩm</th>
+        <th>Shop</th>
+        <th class="num">Giá</th>
+        <th class="num">Tồn kho</th>
+        <th class="num">Đã bán</th>
+        <th>Đánh giá</th>
+        <th>Trạng thái</th>
+        <th style="width: 120px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 30%;"></div></td>
+            <td><div class="skeleton" style="width: 30%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (products().length === 0) {
+        <tr>
+          <td colspan="8">
+            <div class="empty">Không có sản phẩm nào khớp bộ lọc.</div>
+          </td>
+        </tr>
+      } @else {
+        @for (p of products(); track p.productId) {
+          <tr>
+            <td>
+              <div class="cell-product">
+                @if (p.thumbnailUrl) {
+                  <img class="thumb" [src]="p.thumbnailUrl" [alt]="p.name" (error)="onThumbError($event)" />
+                } @else {
+                  <div class="thumb" style="display:grid; place-items:center;">
+                    <span class="material-symbols-outlined" style="color:#717a68;">inventory_2</span>
+                  </div>
+                }
+                <div class="meta">
+                  <div class="name" [title]="p.name">{{ p.name }}</div>
+                  <div class="sku">{{ p.sku || p.productId.slice(0, 12) + '…' }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="shop-link">{{ p.shopName || '(unknown)' }}</span>
+            </td>
+            <td class="num">{{ formatVndShort(p.price) }}</td>
+            <td class="num">{{ formatNumber(p.quantity ?? 0) }}</td>
+            <td class="num">{{ formatNumber(p.totalSold) }}</td>
+            <td>
+              @if (p.averageRating !== null && p.averageRating !== undefined && p.averageRating > 0) {
+                <span class="rating">
+                  <span class="material-symbols-outlined">star</span>
+                  {{ p.averageRating | number: '1.1-1' }}
+                  <span style="color:#717a68; font-weight:500;">({{ p.totalFeedbacks || 0 }})</span>
+                </span>
+              } @else {
+                <span style="color:#717a68;">—</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusClass(p.productStatus)">
+                {{ statusLabel(p.productStatus) }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <button type="button" class="icon-btn" title="Xem chi tiết" (click)="openDetail(p)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                @if (p.productStatus === 'AVAILABLE') {
+                  <button
+                    type="button"
+                    class="icon-btn warn"
+                    title="Ẩn sản phẩm"
+                    (click)="quickHide(p)"
+                    [disabled]="busyId() === p.productId"
+                  >
+                    <span class="material-symbols-outlined">visibility_off</span>
+                  </button>
+                } @else if (p.productStatus === 'UNLISTED') {
+                  <button
+                    type="button"
+                    class="icon-btn success"
+                    title="Hiện lại"
+                    (click)="quickShow(p)"
+                    [disabled]="busyId() === p.productId"
+                  >
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="icon-btn danger"
+                  title="Xoá hẳn"
+                  (click)="confirmDelete(p)"
+                  [disabled]="busyId() === p.productId"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages() > 0 && !isLoading()) {
+    <div class="pagination">
+      <span class="summary">Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}</span>
+      <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+        <span class="material-symbols-outlined">chevron_left</span>Trước
+      </button>
+      <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Sau<span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Detail modal -->
+@if (detailModal(); as p) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ p.name }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-hero">
+          @if (p.thumbnailUrl) {
+            <img [src]="p.thumbnailUrl" [alt]="p.name" (error)="onThumbError($event)" />
+          } @else {
+            <div style="width:100px; height:100px; border-radius:14px; background:#ebeef0; display:grid; place-items:center;">
+              <span class="material-symbols-outlined" style="color:#717a68; font-size:32px;">inventory_2</span>
+            </div>
+          }
+          <div class="info">
+            <h4>{{ p.name }}</h4>
+            <div class="sku">{{ p.sku || p.productId }}</div>
+            <div style="margin-top: 6px;">
+              <span class="badge" [ngClass]="statusClass(p.productStatus)">
+                {{ statusLabel(p.productStatus) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section-title" style="margin-top: 0; padding-top: 0; border-top: 0;">Thông tin</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Shop</span>
+            <span class="value">{{ p.shopName || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Shop ID</span>
+            <span class="value" style="font-family: ui-monospace, Menlo, monospace; font-size: 11px;">{{ p.shopId || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Giá bán lẻ</span>
+            <span class="value">{{ formatVnd(p.price) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Giá bán sỉ</span>
+            <span class="value">{{ p.wholesalePrice ? formatVnd(p.wholesalePrice) : '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tồn kho</span>
+            <span class="value">{{ formatNumber(p.quantity ?? 0) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Đã bán</span>
+            <span class="value">{{ formatNumber(p.totalSold) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Đánh giá</span>
+            <span class="value">
+              {{ p.averageRating ? (p.averageRating | number: '1.1-1') + ' / 5' : '—' }} ·
+              {{ p.totalFeedbacks ?? 0 }} feedback
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tạo lúc</span>
+            <span class="value">{{ formatDate(p.createdAt) }}</span>
+          </div>
+        </div>
+
+        @if (p.description) {
+          <div class="detail-section-title">Mô tả</div>
+          <div style="font-size: 13px; color: #41493a; white-space: pre-wrap; line-height: 1.5;">
+            {{ p.description }}
+          </div>
+        }
+
+        <div class="detail-section-title">Đổi trạng thái</div>
+        <div class="field">
+          <label for="p-status">Đổi sang trạng thái</label>
+          <select id="p-status" [value]="newStatus()" (change)="newStatus.set($any($event.target).value)">
+            <option value="">— Chọn trạng thái —</option>
+            @for (s of allStatuses; track s) {
+              @if (s !== p.productStatus) {
+                <option [value]="s">{{ statusLabel(s) }}</option>
+              }
+            }
+          </select>
+          <span class="field-hint">
+            <strong>UNLISTED</strong> → ẩn khỏi storefront nhưng giữ inventory.
+            <strong>DISCONTINUED</strong> → ngừng vĩnh viễn, không cho bán lại.
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="applyStatusChange()"
+          [disabled]="!newStatus() || newStatus() === p.productStatus || busyId() === p.productId"
+        >
+          <span class="material-symbols-outlined">save</span>
+          {{ busyId() === p.productId ? 'Đang lưu…' : 'Cập nhật' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

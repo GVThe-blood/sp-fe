@@ -1,0 +1,42 @@
+<div class="brand">
+  <div class="brand-mark">SF</div>
+  <div class="brand-text">
+    <strong>SpringFood</strong>
+    <span>Admin Console</span>
+  </div>
+</div>
+
+<nav class="menu">
+  @for (section of menu; track section.title) {
+    <div class="menu-section">
+      <h4>{{ section.title }}</h4>
+      <ul class="menu-list">
+        @for (item of section.items; track item.id) {
+          <li>
+            @if (item.disabled) {
+              <span class="menu-link disabled" [attr.aria-disabled]="true">
+                <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+                <span class="tag">Sắp có</span>
+              </span>
+            } @else {
+              <a
+                class="menu-link"
+                [routerLink]="item.route"
+                routerLinkActive="active"
+                [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
+                (click)="linkClicked.emit()"
+              >
+                <span class="material-symbols-outlined menu-icon">{{ item.icon }}</span>
+                <span>{{ item.label }}</span>
+                @if (item.badge) {
+                  <span class="menu-badge">{{ item.badge }}</span>
+                }
+              </a>
+            }
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</nav>

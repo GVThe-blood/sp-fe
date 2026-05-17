@@ -1,0 +1,425 @@
+<div class="page-header">
+  <div>
+    <h2>Đơn đăng ký Shop</h2>
+    <p>
+      <strong>{{ pendingTotal() }}</strong> đơn đang chờ duyệt ·
+      {{ processedTotal() }} đơn đã xử lý
+    </p>
+  </div>
+</div>
+
+<!-- Search bar (shared cho cả 2 section) -->
+<div class="filters">
+  <label class="search-input" style="max-width: 480px;">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo tên shop, email, số điện thoại, userId…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- ============================================================
+     SECTION 1: Đơn chờ duyệt (PENDING)
+     ============================================================ -->
+<div class="section-block">
+  <div class="section-head">
+    <h3>
+      <span class="material-symbols-outlined">pending_actions</span>
+      Đang chờ duyệt
+    </h3>
+    @if (pendingTotal() > 0) {
+      <span class="section-count">{{ pendingTotal() }}</span>
+    }
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Shop</th>
+          <th>Liên hệ</th>
+          <th>Loại hình</th>
+          <th>Ngày gửi</th>
+          <th style="width: 200px; text-align: right;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isPendingLoading()) {
+          @for (_ of [1,2,3]; track $index) {
+            <tr>
+              <td><div class="skeleton" style="width: 80%;"></div></td>
+              <td><div class="skeleton" style="width: 70%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+            </tr>
+          }
+        } @else if (pendingItems().length === 0) {
+          <tr>
+            <td colspan="5">
+              <div class="empty">
+                @if (pendingTotal() === 0) {
+                  <span>Không có đơn nào đang chờ duyệt. ✨</span>
+                } @else {
+                  <span>Không có đơn khớp tìm kiếm.</span>
+                }
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (req of pendingItems(); track req.requestId) {
+            <tr>
+              <td>
+                <div class="cell-shop">
+                  <strong>{{ req.shopName || '(Chưa đặt tên)' }}</strong>
+                  <small>userId: {{ (req.userId || '').slice(0, 8) }}…</small>
+                </div>
+              </td>
+              <td>
+                <div>{{ req.email || '—' }}</div>
+                <div style="color:#717a68; font-size:11px;">{{ req.phoneNumber || '—' }}</div>
+              </td>
+              <td>{{ req.businessType || req.shopType || '—' }}</td>
+              <td>{{ formatDate(req.createdAt) }}</td>
+              <td style="text-align: right;">
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title="Xem chi tiết"
+                    (click)="openDetail(req)"
+                  >
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn success"
+                    title="Duyệt đơn"
+                    (click)="approve(req)"
+                    [disabled]="busyId() === req.requestId"
+                  >
+                    <span class="material-symbols-outlined">check_circle</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    title="Từ chối"
+                    (click)="openReject(req)"
+                    [disabled]="busyId() === req.requestId"
+                  >
+                    <span class="material-symbols-outlined">cancel</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (pendingTotalPages() > 0 && !isPendingLoading()) {
+      <div class="pagination">
+        <span class="summary">
+          Hiển thị {{ pendingRangeFrom() }}–{{ pendingRangeTo() }} / {{ pendingTotal() }}
+        </span>
+        <button type="button" (click)="pendingPrev()" [disabled]="pendingPage() === 0">
+          <span class="material-symbols-outlined">chevron_left</span>
+          Trước
+        </button>
+        <span class="page-num">{{ pendingPage() + 1 }} / {{ pendingTotalPages() }}</span>
+        <button
+          type="button"
+          (click)="pendingNext()"
+          [disabled]="pendingPage() + 1 >= pendingTotalPages()"
+        >
+          Sau
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ============================================================
+     SECTION 2: Đơn đã xử lý (APPROVED + REJECTED)
+     ============================================================ -->
+<div class="section-block">
+  <div class="section-head">
+    <h3>
+      <span class="material-symbols-outlined">history</span>
+      Đã xử lý
+    </h3>
+    <div style="margin-left: auto;">
+      <label class="select-input" style="height: 36px; min-width: 180px;">
+        <span class="material-symbols-outlined">filter_list</span>
+        <select
+          [value]="processedStatus()"
+          (change)="onProcessedStatusChange($any($event.target).value)"
+        >
+          <option value="all">Tất cả đã xử lý</option>
+          <option value="APPROVED">Đã duyệt</option>
+          <option value="REJECTED">Đã từ chối</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Shop</th>
+          <th>Liên hệ</th>
+          <th>Trạng thái</th>
+          <th>Người duyệt</th>
+          <th>Thời gian xử lý</th>
+          <th style="width: 90px; text-align: right;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isProcessedLoading()) {
+          @for (_ of [1,2,3]; track $index) {
+            <tr>
+              <td><div class="skeleton" style="width: 80%;"></div></td>
+              <td><div class="skeleton" style="width: 70%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 60%;"></div></td>
+              <td><div class="skeleton" style="width: 40%; margin-left: auto;"></div></td>
+            </tr>
+          }
+        } @else if (processedItems().length === 0) {
+          <tr>
+            <td colspan="6">
+              <div class="empty">Chưa có đơn đã xử lý.</div>
+            </td>
+          </tr>
+        } @else {
+          @for (req of processedItems(); track req.requestId) {
+            <tr>
+              <td>
+                <div class="cell-shop">
+                  <strong>{{ req.shopName || '(Chưa đặt tên)' }}</strong>
+                  <small>userId: {{ (req.userId || '').slice(0, 8) }}…</small>
+                </div>
+              </td>
+              <td>
+                <div>{{ req.email || '—' }}</div>
+                <div style="color:#717a68; font-size:11px;">{{ req.phoneNumber || '—' }}</div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="statusClass(req.status)">
+                  {{ statusLabel(req.status) }}
+                </span>
+              </td>
+              <td>{{ req.reviewedBy || '—' }}</td>
+              <td>{{ formatDate(req.reviewedAt || req.updatedAt) }}</td>
+              <td style="text-align: right;">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Xem chi tiết"
+                  (click)="openDetail(req)"
+                >
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (processedTotalPages() > 0 && !isProcessedLoading()) {
+      <div class="pagination">
+        <span class="summary">
+          Hiển thị {{ processedRangeFrom() }}–{{ processedRangeTo() }} / {{ processedTotal() }}
+        </span>
+        <button type="button" (click)="processedPrev()" [disabled]="processedPage() === 0">
+          <span class="material-symbols-outlined">chevron_left</span>
+          Trước
+        </button>
+        <span class="page-num">{{ processedPage() + 1 }} / {{ processedTotalPages() }}</span>
+        <button
+          type="button"
+          (click)="processedNext()"
+          [disabled]="processedPage() + 1 >= processedTotalPages()"
+        >
+          Sau
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Detail modal -->
+@if (detailModal(); as req) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ req.shopName || 'Đơn đăng ký #' + req.requestId.slice(0, 8) }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-section-title" style="margin-top: 0; padding-top: 0; border-top: 0;">Trạng thái</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Trạng thái</span>
+            <span class="value">
+              <span class="badge" [ngClass]="statusClass(req.status)">{{ statusLabel(req.status) }}</span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Ngày gửi</span>
+            <span class="value">{{ formatDate(req.createdAt) }}</span>
+          </div>
+          @if (req.reviewedBy) {
+            <div class="detail-item">
+              <span class="label">Người duyệt</span>
+              <span class="value">{{ req.reviewedBy }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Ngày duyệt</span>
+              <span class="value">{{ formatDate(req.reviewedAt) }}</span>
+            </div>
+          }
+          @if (req.rejectReason) {
+            <div class="detail-item full">
+              <span class="label">Lý do từ chối</span>
+              <span class="value" style="color:#93000a;">{{ req.rejectReason }}</span>
+            </div>
+          }
+          @if (req.shopId) {
+            <div class="detail-item full">
+              <span class="label">Shop ID đã tạo</span>
+              <span class="value" style="font-family: ui-monospace, Menlo, monospace;">{{ req.shopId }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="detail-section-title">Thông tin shop</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Tên shop</span>
+            <span class="value">{{ req.shopName || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Loại shop</span>
+            <span class="value">{{ req.shopType || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Loại hình kinh doanh</span>
+            <span class="value">{{ req.businessType || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tax ID</span>
+            <span class="value">{{ req.taxId || '—' }}</span>
+          </div>
+          <div class="detail-item full">
+            <span class="label">Giới thiệu</span>
+            <span class="value">{{ req.introduction || '—' }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Liên hệ & Địa chỉ</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Email</span>
+            <span class="value">{{ req.email || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Số điện thoại</span>
+            <span class="value">{{ req.phoneNumber || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">CCCD/Nation ID</span>
+            <span class="value">{{ req.nationId || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Giờ hoạt động</span>
+            <span class="value">{{ req.activeHours || '—' }}</span>
+          </div>
+          <div class="detail-item full">
+            <span class="label">Địa chỉ</span>
+            <span class="value">
+              {{ req.shopAddress }}{{ req.city ? ', ' + req.city : '' }}{{ req.province ? ', ' + req.province : '' }}{{ req.postalCode ? ' ' + req.postalCode : '' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        @if (req.status === 'PENDING') {
+          <button type="button" class="btn-primary danger" (click)="openReject(req)">
+            <span class="material-symbols-outlined">cancel</span>
+            Từ chối
+          </button>
+          <button type="button" class="btn-primary" (click)="approve(req)" [disabled]="busyId() === req.requestId">
+            <span class="material-symbols-outlined">check_circle</span>
+            Duyệt
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Reject modal -->
+@if (rejectModal(); as req) {
+  <div class="modal-backdrop" (click)="closeReject()">
+    <div class="modal" style="max-width: 520px;" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Từ chối đơn của "{{ req.shopName }}"</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeReject()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); submitReject()">
+        <div class="modal-body">
+          <div class="field">
+            <label for="reject-reason">Lý do <span style="color:#ba1a1a">*</span></label>
+            <textarea
+              id="reject-reason"
+              [value]="rejectReason()"
+              (input)="onRejectReasonChange($any($event.target).value)"
+              placeholder="Vd: Giấy tờ không rõ ràng, thiếu giấy phép kinh doanh…"
+              rows="5"
+            ></textarea>
+            <span style="font-size:11px; color:#717a68;">
+              Lý do sẽ hiển thị cho người dùng để họ điều chỉnh và nộp lại.
+            </span>
+          </div>
+          @if (rejectError(); as e) {
+            <span class="field-error">{{ e }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeReject()" [disabled]="busyId()">
+            Huỷ
+          </button>
+          <button type="submit" class="btn-primary danger" [disabled]="busyId()">
+            <span class="material-symbols-outlined">cancel</span>
+            {{ busyId() ? 'Đang xử lý…' : 'Xác nhận từ chối' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

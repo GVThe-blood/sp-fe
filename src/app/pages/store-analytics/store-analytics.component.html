@@ -12,72 +12,103 @@
         <span class="text-slate-300">|</span>
         <p class="text-base text-slate-500">Tổng quan hiệu suất thời gian thực</p>
       </div>
-      <div class="flex items-center gap-6">
-        <div class="relative flex items-center hidden md:flex">
-          <span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
-          <input class="pl-10 pr-4 py-2 bg-slate-50 border-none rounded-full text-sm focus:ring-2 focus:ring-green-500 w-64 transition-all" placeholder="Tìm kiếm phân tích..." type="text"/>
+      <div class="flex items-center gap-3 text-slate-500">
+        <!-- Range selector -->
+        <div class="bg-slate-50 rounded-full p-1 flex items-center gap-1">
+          @for (option of rangeOptions; track option.token) {
+            <button
+              type="button"
+              (click)="selectRange(option.token)"
+              [attr.aria-pressed]="range() === option.token"
+              class="px-3 py-1.5 text-xs font-bold rounded-full transition-colors"
+              [class.bg-white]="range() === option.token"
+              [class.text-green-700]="range() === option.token"
+              [class.shadow-sm]="range() === option.token"
+              [class.text-slate-500]="range() !== option.token">
+              {{ option.label }}
+            </button>
+          }
         </div>
-        <div class="flex items-center gap-4 text-slate-500">
-          <button class="hover:bg-slate-50 p-2 rounded-full transition-colors relative">
-            <span class="material-symbols-outlined">notifications</span>
-            <span class="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
-          </button>
-        </div>
+        <button (click)="reload()" class="hover:bg-slate-50 p-2 rounded-full transition-colors" title="Làm mới">
+          <span class="material-symbols-outlined" [class.animate-spin]="isLoading()">refresh</span>
+        </button>
       </div>
     </header>
 
-    <div class="space-y-8">
+    @if (hasError()) {
+      <div class="bg-red-50 border border-red-100 text-red-700 px-6 py-4 rounded-2xl flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined">error</span>
+          <span class="text-sm">{{ errorMessage() }}</span>
+        </div>
+        <button (click)="reload()" class="text-sm font-bold underline">Thử lại</button>
+      </div>
+    }
+
+    <div class="space-y-8" [class.opacity-60]="isLoading()">
       <!-- KPI Summary Grid -->
       <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @for (kpi of kpiData(); track $index) {
-          <app-kpi-card [data]="kpi" />
+        @if (isLoading() && kpiData().length === 0) {
+          @for (_ of [1,2,3,4]; track $index) {
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 animate-pulse h-[140px]"></div>
+          }
+        } @else {
+          @for (kpi of kpiData(); track $index) {
+            <app-kpi-card [data]="kpi" />
+          }
         }
       </section>
 
-      <!-- Main Chart Section -->
+      <!-- Profit & Sales Channel -->
       <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Profit Chart -->
         <div class="lg:col-span-2">
           <app-profit-chart [data]="profitChartData()" />
         </div>
-
-        <!-- Sales Channel Chart -->
-        <app-sales-channel-chart [data]="salesChannelData()" />
+        <div class="relative">
+          <span class="absolute top-4 right-4 z-10 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-amber-50 text-amber-700">Demo</span>
+          <app-sales-channel-chart [data]="salesChannelData()" />
+        </div>
       </section>
 
-      <!-- Bento Grid: Secondary Metrics & Traffic -->
+      <!-- Revenue & Order Status -->
+      <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2">
+          <app-revenue-chart [data]="revenueChartData()" />
+        </div>
+        <app-order-status-chart [data]="orderStatusData()" />
+      </section>
+
+      <!-- Secondary metrics -->
       <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Avg Order Value -->
         <app-metric-card [data]="avgOrderValue()" />
-        
-        <!-- Return Rate -->
         <app-metric-card [data]="returnRate()" />
-        
-        <!-- Traffic Sources -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2">
-          <div class="flex justify-between items-center mb-4">
-            <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Nguồn Lưu Lượng</p>
-            <button class="text-green-700 text-xs font-bold flex items-center">
-              Xem chi tiết 
-              <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-            </button>
-          </div>
-          <div class="grid grid-cols-3 gap-4">
-            @for (source of trafficSources(); track source.name) {
-              <div class="text-center p-3 bg-slate-50 rounded-xl">
-                <span class="text-base font-bold block text-gray-900">{{ source.name }}</span>
-                <span class="text-xs text-slate-400">{{ source.percentage }}%</span>
-              </div>
-            }
-          </div>
+
+        <!-- Rating distribution (replaces 1 of 4 slots) -->
+        <div class="lg:col-span-2">
+          <app-rating-distribution-chart [data]="ratingData()" />
+        </div>
+      </section>
+
+      <!-- Traffic sources (mock) -->
+      <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative">
+        <span class="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-amber-50 text-amber-700">Demo</span>
+        <div class="flex justify-between items-center mb-4">
+          <p class="text-sm font-semibold tracking-wider text-slate-500 uppercase">Nguồn Lưu Lượng</p>
+        </div>
+        <div class="grid grid-cols-3 gap-4">
+          @for (source of trafficSources(); track source.name) {
+            <div class="text-center p-3 bg-slate-50 rounded-xl">
+              <span class="text-base font-bold block text-gray-900">{{ source.name }}</span>
+              <span class="text-xs text-slate-400">{{ source.percentage }}%</span>
+            </div>
+          }
         </div>
       </section>
 
       <!-- Top Selling Products Table -->
-      <app-top-products-table 
-        [products]="topProducts()" 
+      <app-top-products-table
+        [products]="topProducts()"
         (exportData)="handleExportData()" />
-
     </div>
   </div>
 </div>

@@ -1,0 +1,249 @@
+<section class="rev-page">
+  <header class="rev-page__header">
+    <div>
+      <h1 class="rev-page__title">Doanh thu nền tảng</h1>
+      <p class="rev-page__subtitle">
+        Tổng hợp GMV, hoa hồng và doanh thu chi tiết theo shop & phương thức thanh toán.
+      </p>
+    </div>
+    <div class="rev-page__range">
+      @for (r of ranges; track r.value) {
+        <button
+          type="button"
+          class="range-pill"
+          [class.range-pill--active]="range() === r.value"
+          (click)="setRange(r.value)"
+        >
+          {{ r.label }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <div class="rev-kpis">
+    @if (statsLoading()) {
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <article class="kpi-card kpi-card--skeleton"></article>
+      }
+    } @else if (statsError()) {
+      <div class="rev-error">
+        Không tải được KPI doanh thu. Hãy thử lại sau.
+      </div>
+    } @else {
+      @if (stats(); as s) {
+      <article class="kpi-card kpi-card--primary">
+        <div class="kpi-card__icon">payments</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Tổng GMV</div>
+          <div class="kpi-card__value">{{ formatCurrency(s.totalGmv) }}</div>
+          <div class="kpi-card__hint">Toàn bộ đơn đã hoàn tất</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-card__icon">percent</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Hoa hồng nền tảng (10%)</div>
+          <div class="kpi-card__value">{{ formatCurrency(s.totalCommission) }}</div>
+          <div class="kpi-card__hint">Ước tính từ tổng GMV</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-card__icon">trending_up</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">GMV 30 ngày qua</div>
+          <div class="kpi-card__value">{{ formatCurrency(s.gmvLast30) }}</div>
+          @if (gmvTrend(); as t) {
+            <div
+              class="kpi-card__trend"
+              [class.kpi-card__trend--up]="t > 0"
+              [class.kpi-card__trend--down]="t < 0"
+            >
+              {{ formatPercent(t) }} so với 30 ngày trước
+            </div>
+          } @else {
+            <div class="kpi-card__hint">Không có dữ liệu kỳ trước</div>
+          }
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-card__icon">receipt_long</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Đơn hoàn tất 30 ngày</div>
+          <div class="kpi-card__value">{{ formatNumber(s.ordersLast30) }}</div>
+          @if (orderTrend(); as t) {
+            <div
+              class="kpi-card__trend"
+              [class.kpi-card__trend--up]="t > 0"
+              [class.kpi-card__trend--down]="t < 0"
+            >
+              {{ formatPercent(t) }}
+            </div>
+          } @else {
+            <div class="kpi-card__hint">—</div>
+          }
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-card__icon">paid</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Giá trị TB / đơn</div>
+          <div class="kpi-card__value">{{ formatCurrency(s.avgOrderValue) }}</div>
+          <div class="kpi-card__hint">AOV toàn nền tảng</div>
+        </div>
+      </article>
+
+      <article class="kpi-card">
+        <div class="kpi-card__icon">storefront</div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__label">Shop có doanh thu (30d)</div>
+          <div class="kpi-card__value">{{ formatNumber(s.activeShops) }}</div>
+          <div class="kpi-card__hint">
+            Phí ship: {{ formatCurrency(s.totalShippingFee) }} · Giảm giá:
+            {{ formatCurrency(s.totalDiscount) }}
+          </div>
+        </div>
+      </article>
+      }
+    }
+  </div>
+
+  <!-- Charts row: revenue trend (line) + payment breakdown (donut) -->
+  <div class="rev-charts">
+    <article class="rev-chart rev-chart--wide">
+      <header class="rev-chart__header">
+        <h2 class="rev-chart__title">Doanh thu theo ngày</h2>
+        <span class="rev-chart__subtitle">
+          Doanh thu (xanh) và hoa hồng ước tính (cam) theo {{ range() }}
+        </span>
+      </header>
+      <div class="rev-chart__canvas">
+        @if (dailyLoading()) {
+          <div class="rev-chart__loading">Đang tải dữ liệu…</div>
+        }
+        <canvas #dailyCanvas></canvas>
+      </div>
+    </article>
+
+    <article class="rev-chart">
+      <header class="rev-chart__header">
+        <h2 class="rev-chart__title">Cơ cấu thanh toán</h2>
+        <span class="rev-chart__subtitle">Doanh thu theo phương thức</span>
+      </header>
+      <div class="rev-chart__canvas">
+        <canvas #paymentCanvas></canvas>
+      </div>
+
+      <ul class="rev-payment-list">
+        @for (p of paymentBreakdown(); track p.paymentMethod) {
+          <li class="rev-payment-list__item">
+            <span class="rev-payment-list__name">{{ paymentLabel(p.paymentMethod) }}</span>
+            <span class="rev-payment-list__value">{{ formatCurrency(p.revenue) }}</span>
+            <span class="rev-payment-list__pct">{{ p.percentage.toFixed(1) }}%</span>
+          </li>
+        } @empty {
+          <li class="rev-payment-list__empty">Chưa có dữ liệu trong khoảng thời gian này</li>
+        }
+      </ul>
+    </article>
+  </div>
+
+  <!-- Revenue by shop table -->
+  <article class="rev-shop-table">
+    <header class="rev-shop-table__header">
+      <div>
+        <h2 class="rev-shop-table__title">Doanh thu theo shop</h2>
+        <span class="rev-shop-table__subtitle">
+          {{ formatNumber(shopTotal()) }} shop có doanh thu trong khoảng {{ range() }}
+        </span>
+      </div>
+      <div class="rev-shop-table__search">
+        <span class="material-icons-outlined">search</span>
+        <input
+          type="text"
+          placeholder="Tìm theo tên shop hoặc ID…"
+          (input)="onShopSearchInput(($any($event.target)).value)"
+        />
+      </div>
+    </header>
+
+    <div class="rev-shop-table__scroll">
+      <table class="rev-shop-table__grid">
+        <thead>
+          <tr>
+            <th>Shop</th>
+            <th class="num">Doanh thu</th>
+            <th class="num">Hoa hồng (10%)</th>
+            <th class="num">Đơn</th>
+            <th class="num">AOV</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (shopLoading()) {
+            <tr>
+              <td colspan="5" class="rev-shop-table__loading">Đang tải…</td>
+            </tr>
+          } @else if (shopRows().length === 0) {
+            <tr>
+              <td colspan="5" class="rev-shop-table__empty">
+                Không có shop nào có doanh thu trong khoảng thời gian này.
+              </td>
+            </tr>
+          } @else {
+            @for (s of shopRows(); track s.shopId) {
+              <tr>
+                <td>
+                  <div class="shop-cell">
+                    @if (s.logoUrl) {
+                      <img class="shop-cell__logo" [src]="s.logoUrl" [alt]="s.shopName" />
+                    } @else {
+                      <div class="shop-cell__logo shop-cell__logo--placeholder">
+                        {{ s.shopName.charAt(0).toUpperCase() }}
+                      </div>
+                    }
+                    <div class="shop-cell__meta">
+                      <span class="shop-cell__name">{{ s.shopName }}</span>
+                      <span class="shop-cell__id">{{ s.shopId }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="num strong">{{ formatCurrency(s.totalRevenue) }}</td>
+                <td class="num">{{ formatCurrency(s.totalCommission) }}</td>
+                <td class="num">{{ formatNumber(s.totalOrders) }}</td>
+                <td class="num">{{ formatCurrency(s.avgOrderValue) }}</td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (shopTotalPages() > 1) {
+      <footer class="rev-shop-table__pager">
+        <button
+          type="button"
+          class="rev-page-btn"
+          [disabled]="shopPage() === 0"
+          (click)="goPage(shopPage() - 1)"
+        >
+          Trang trước
+        </button>
+        <span class="rev-page-indicator">
+          Trang {{ shopPage() + 1 }} / {{ shopTotalPages() }}
+        </span>
+        <button
+          type="button"
+          class="rev-page-btn"
+          [disabled]="shopPage() >= shopTotalPages() - 1"
+          (click)="goPage(shopPage() + 1)"
+        >
+          Trang sau
+        </button>
+      </footer>
+    }
+  </article>
+</section>

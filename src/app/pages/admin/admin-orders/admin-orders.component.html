@@ -1,0 +1,342 @@
+<div class="page-header">
+  <div>
+    <h2>Quản lý Đơn hàng</h2>
+    <p>Xem & can thiệp đơn hàng toàn nền tảng. Lưu ý: force update status có thể bypass state machine.</p>
+  </div>
+</div>
+
+<!-- Stats cards -->
+<div class="stats-grid">
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">receipt_long</span>Tổng đơn</span>
+    <span class="value">{{ formatNumber(stats()?.totalOrders ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">check_circle</span>Hoàn tất</span>
+    <span class="value">{{ formatNumber(stats()?.completedOrders ?? 0) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">schedule</span>Đang chờ</span>
+    <span class="value">{{ formatNumber(stats()?.pendingOrders ?? 0) }}</span>
+  </div>
+  <div class="stat-card purple">
+    <span class="label"><span class="material-symbols-outlined">local_shipping</span>Đang giao</span>
+    <span class="value">{{ formatNumber(stats()?.shippingOrders ?? 0) }}</span>
+  </div>
+  <div class="stat-card red">
+    <span class="label"><span class="material-symbols-outlined">cancel</span>Huỷ/Lỗi</span>
+    <span class="value">{{ formatNumber((stats()?.cancelledOrders ?? 0) + (stats()?.failedOrders ?? 0)) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">payments</span>GMV</span>
+    <span class="value" style="font-size: 16px;">{{ formatVndShort(stats()?.totalGmv ?? 0) }}</span>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <label class="search-input" style="max-width: 360px;">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo orderId, tên shop, username, email…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+
+  <label class="select-input" style="max-width: 200px;">
+    <span class="material-symbols-outlined">filter_list</span>
+    <select [value]="statusFilter()" (change)="onStatusChange($any($event.target).value)">
+      <option value="all">Mọi trạng thái</option>
+      @for (s of allStatuses; track s) {
+        <option [value]="s">{{ statusLabel(s) }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="date-input" style="max-width: 200px;">
+    <span class="material-symbols-outlined">event</span>
+    <input
+      type="date"
+      [value]="fromDate()"
+      (change)="fromDate.set($any($event.target).value); page.set(0)"
+      title="Từ ngày"
+    />
+  </label>
+  <label class="date-input" style="max-width: 200px;">
+    <span class="material-symbols-outlined">event</span>
+    <input
+      type="date"
+      [value]="toDate()"
+      (change)="toDate.set($any($event.target).value); page.set(0)"
+      title="Đến ngày"
+    />
+  </label>
+
+  @if (hasActiveFilters()) {
+    <button type="button" class="btn-link" (click)="clearFilters()">Xoá bộ lọc</button>
+  }
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- Table -->
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="min-width: 180px;">Đơn hàng</th>
+        <th>Shop</th>
+        <th>Khách hàng</th>
+        <th class="num">Items</th>
+        <th class="num">Tổng tiền</th>
+        <th>Thanh toán</th>
+        <th>Trạng thái</th>
+        <th style="width: 80px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 30%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 40%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (orderRows().length === 0) {
+        <tr>
+          <td colspan="8">
+            <div class="empty">Không có đơn hàng nào khớp bộ lọc.</div>
+          </td>
+        </tr>
+      } @else {
+        @for (order of orderRows(); track order.orderId) {
+          <tr>
+            <td>
+              <div class="cell-order">
+                <span class="order-id">#{{ order.orderId.slice(0, 8) }}</span>
+                <span class="when">{{ formatDate(order.createdAt) }}</span>
+              </div>
+            </td>
+            <td>
+              <div class="cell-shop">
+                <img
+                  class="logo"
+                  [src]="order.shopLogoUrl || placeholderShop"
+                  [alt]="order.shopName ?? ''"
+                  (error)="onLogoError($event)"
+                />
+                <div class="shop-name">{{ order.shopName || '(unknown)' }}</div>
+              </div>
+            </td>
+            <td>
+              <div class="cell-buyer">
+                <div class="buyer-username">{{ order.buyerUsername || '—' }}</div>
+                @if (order.buyerName && order.buyerName !== order.buyerUsername) {
+                  <div class="buyer-name">{{ order.buyerName }}</div>
+                }
+              </div>
+            </td>
+            <td class="num">{{ order.itemCount || 0 }}</td>
+            <td class="num">{{ formatVndShort(order.finalPrice) }}</td>
+            <td>
+              <div style="font-size: 12px;">{{ order.paymentMethod || '—' }}</div>
+              @if (order.paidAt) {
+                <div style="font-size: 10px; color: #306c00; font-weight: 700;">Đã thanh toán</div>
+              }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusClass(order.orderStatus)">
+                {{ statusLabel(order.orderStatus) }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <button type="button" class="icon-btn" title="Xem chi tiết" (click)="openDetail(order)">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages() > 0 && !isLoading()) {
+    <div class="pagination">
+      <span class="summary">Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}</span>
+      <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+        <span class="material-symbols-outlined">chevron_left</span>Trước
+      </button>
+      <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Sau<span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Detail modal -->
+@if (detailModal(); as order) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>Đơn hàng</h3>
+          <span class="order-id-mono">{{ order.orderId }}</span>
+        </div>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Status section -->
+        <div class="detail-section-title first">Trạng thái</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Trạng thái</span>
+            <span class="value">
+              <span class="badge" [ngClass]="statusClass(order.orderStatus)">
+                {{ statusLabel(order.orderStatus) }}
+              </span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Ngày đặt</span>
+            <span class="value">{{ formatDate(order.createdAt) }}</span>
+          </div>
+          @if (order.paidAt) {
+            <div class="detail-item">
+              <span class="label">Đã thanh toán</span>
+              <span class="value">{{ formatDate(order.paidAt) }}</span>
+            </div>
+          }
+          @if (order.deliveredAt) {
+            <div class="detail-item">
+              <span class="label">Đã giao</span>
+              <span class="value">{{ formatDate(order.deliveredAt) }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Force update status -->
+        <div class="detail-section-title">Force update (admin only)</div>
+        <div class="field">
+          <label for="o-status">Đổi sang trạng thái</label>
+          <select id="o-status" [value]="newStatus()" (change)="newStatus.set($any($event.target).value)">
+            <option value="">— Chọn trạng thái —</option>
+            @for (s of allStatuses; track s) {
+              @if (s !== order.orderStatus) {
+                <option [value]="s">{{ statusLabel(s) }}</option>
+              }
+            }
+          </select>
+          <span class="field-hint">
+            Bỏ qua state machine — chỉ dùng khi cần sửa lỗi data sau dispute.
+          </span>
+        </div>
+        <div class="warning-note">
+          ⚠️ Force update không bị ràng buộc transition rule. Nếu chuyển sang COMPLETED, hệ thống auto set deliveredAt nếu thiếu.
+        </div>
+
+        <!-- Shop & buyer -->
+        <div class="detail-section-title">Shop & Khách hàng</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Shop</span>
+            <span class="value">{{ order.shopName || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Shop ID</span>
+            <span class="value" style="font-family: ui-monospace, Menlo, monospace; font-size: 11px;">{{ order.shopId || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Khách</span>
+            <span class="value">{{ order.buyerUsername || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tên đầy đủ</span>
+            <span class="value">{{ order.buyerName || '—' }}</span>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="detail-section-title">Sản phẩm ({{ orderItems().length }})</div>
+        @if (loadingItems()) {
+          <div class="empty">Đang tải…</div>
+        } @else if (orderItems().length === 0) {
+          <div class="empty">Không có item nào.</div>
+        } @else {
+          <div class="items-list">
+            @for (it of orderItems(); track it.productId) {
+              <div class="item-row">
+                @if (it.image) {
+                  <img class="product-thumb" [src]="it.image" alt="" (error)="onLogoError($event)" />
+                } @else {
+                  <div class="product-thumb" style="display: grid; place-items: center;">
+                    <span class="material-symbols-outlined" style="color: #717a68; font-size: 18px;">inventory_2</span>
+                  </div>
+                }
+                <div class="meta">
+                  <strong>{{ it.productName || '(no name)' }}</strong>
+                  <small>{{ it.productId.slice(0, 16) }}…</small>
+                </div>
+                <div class="qty">×{{ it.quantity }}</div>
+                <div class="price">{{ formatVnd(it.priceAtBooking * it.quantity) }}</div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Totals -->
+        <div class="detail-section-title">Tổng tiền</div>
+        <div class="totals-grid">
+          <span class="label">Subtotal</span>
+          <span class="value">{{ formatVnd(order.subtotalAmount) }}</span>
+          <span class="label">Phí ship</span>
+          <span class="value">{{ formatVnd(order.shippingFee) }}</span>
+          <span class="label">Giảm giá</span>
+          <span class="value">- {{ formatVnd(order.discount) }}</span>
+          <span class="label total-line">Tổng cộng</span>
+          <span class="value total-line">{{ formatVnd(order.finalPrice) }}</span>
+        </div>
+
+        <!-- Address -->
+        <div class="detail-section-title">Địa chỉ giao</div>
+        <div class="detail-grid">
+          <div class="detail-item full">
+            <span class="label">Địa chỉ</span>
+            <span class="value">
+              {{ order.shippingDetails || '—' }}{{ order.shippingCity ? ', ' + order.shippingCity : '' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="applyForceStatus()"
+          [disabled]="!newStatus() || newStatus() === order.orderStatus || busyId() === order.orderId"
+        >
+          <span class="material-symbols-outlined">save</span>
+          {{ busyId() === order.orderId ? 'Đang lưu…' : 'Force update' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

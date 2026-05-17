@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CartService } from '../../services/cart.service';
 import { AuthService } from '../../services/auth.service';
@@ -46,6 +46,7 @@ export const MERGE_NOTIFICATION_MESSAGES = {
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private cartService = inject(CartService);
   private authService = inject(AuthService);
 
@@ -157,21 +158,22 @@ export class LoginComponent {
   // }
 
   /**
-   * Complete the login flow by redirecting to home
+   * Complete the login flow by redirecting to home (or returnUrl if any).
+   *
+   * Khi login thành công với role ADMIN và không có returnUrl chỉ định, ta đẩy
+   * về `/role-select` để admin chủ động chọn vào trang quản trị hay duyệt như
+   * khách hàng. Nếu user có returnUrl (vì bị guard chặn trước đó) thì tôn
+   * trọng returnUrl. Customer/Shop owner vẫn về home như cũ.
    */
   private completeLoginFlow(): void {
     this.isLoading = false;
-    
-    // TODO: Implement cart merge notification
-    // If notification is shown, delay redirect to allow user to see it
-    // if (this.showMergeNotification) {
-    //   setTimeout(() => {
-    //     this.router.navigate(['/']);
-    //   }, 3000); // 3 second delay to show notification
-    // } else {
-    //   this.router.navigate(['/']);
-    // }
-    this.router.navigate(['/']);
+
+    const queryReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    let returnUrl = queryReturnUrl;
+    if (!returnUrl) {
+      returnUrl = this.authService.isAdmin() ? '/role-select' : '/';
+    }
+    this.router.navigateByUrl(returnUrl);
   }
 
   /**

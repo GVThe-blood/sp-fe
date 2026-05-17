@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,27 +8,44 @@ import { CommonModule } from '@angular/common';
   templateUrl: './avatar-picker-modal.component.html',
   styleUrl: './avatar-picker-modal.component.css'
 })
-export class AvatarPickerModalComponent {
+export class AvatarPickerModalComponent implements OnInit {
   @Input() isOpen: boolean = false;
   @Input() currentAvatar: string = '';
   @Output() select = new EventEmitter<string>();
   @Output() upload = new EventEmitter<File>();
   @Output() close = new EventEmitter<void>();
 
-  // Preset avatar URLs
+  // Default preset avatars served from our Cloudflare R2 bucket
+  // (springfood-media/avatars/preset/...). To regenerate, run
+  // `node scripts/seed-user-avatars.js` in the backend repo and copy
+  // the URLs from scripts/seed-avatar-urls.json.
   presetAvatars: string[] = [
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Max',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucy',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Milo',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Daisy',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo',
-    'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie'
+    // avataaars (cartoon character)
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/felix.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/aneka.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/luna.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/max.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/bella.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/charlie.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/lucy.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/oliver.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/milo.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/daisy.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/leo.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/avataaars/sophie.svg',
+    // lorelei (illustrated portrait)
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/mira.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/kai.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/rose.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/linh.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/tuan.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/mai.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/an.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/hoa.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/nam.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/hieu.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/trang.svg',
+    'https://pub-db7036086154479380d282adb29af0a4.r2.dev/avatars/preset/lorelei/phuc.svg',
   ];
 
   selectedAvatar: string = '';

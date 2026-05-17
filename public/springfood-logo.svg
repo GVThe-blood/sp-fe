@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 56" role="img" aria-label="SpringFood">
+  <!-- Mark: leaf + spoon stylised in brand green -->
+  <g transform="translate(4 6)">
+    <circle cx="22" cy="22" r="22" fill="#6db33f"/>
+    <!-- Stylised leaf -->
+    <path d="M14 30c0-9 7-16 16-16 1 0 2 .1 3 .3-1 9-8 16-17 16-.7 0-1.4-.1-2-.3-.1-.5-.1-1-.1-1.5z"
+          fill="#fff" opacity="0.92"/>
+    <!-- Vein -->
+    <path d="M14 30C19 25 24 22 31 17"
+          stroke="#306c00" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="58" y="36"
+        font-family="Inter, 'Segoe UI', Roboto, system-ui, sans-serif"
+        font-size="22" font-weight="700"
+        fill="#181c1e" letter-spacing="-0.5">
+    Spring<tspan fill="#6db33f">Food</tspan>
+  </text>
+</svg>

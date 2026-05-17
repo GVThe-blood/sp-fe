@@ -1,0 +1,330 @@
+<main class="mystore-page">
+  <!-- Sidebar -->
+  @if (!hasShop()) {
+    <app-profile-sidebar [activeRoute]="'/my-store/products'"></app-profile-sidebar>
+  } @else {
+    <app-store-sidebar [activeRoute]="'/my-store/products'"></app-store-sidebar>
+  }
+
+  <!-- Content -->
+  <div class="mystore-content">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Quản lý sản phẩm</h1>
+        <p class="page-subtitle">Tổng cộng {{ totalElements() }} sản phẩm</p>
+      </div>
+      <button class="btn-primary" (click)="openCreate()" [disabled]="!hasShop()" type="button">
+        <span class="material-symbols-outlined">add</span>
+        Thêm sản phẩm
+      </button>
+    </div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Tìm theo tên, mô tả, SKU…"
+        [value]="searchKeyword()"
+        (input)="onSearchInput($event)"
+        aria-label="Tìm sản phẩm trong shop của bạn"
+      />
+      @if (searchKeyword()) {
+        <button class="search-clear" type="button" (click)="clearSearch()" aria-label="Xoá từ khoá">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="loading-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang tải sản phẩm…</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (!loading() && error()) {
+      <div class="error-banner">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ error() }}</p>
+        <button class="btn-link" (click)="loadProducts()" type="button">Thử lại</button>
+      </div>
+    }
+
+    <!-- Empty state -->
+    @if (!loading() && !error() && products().length === 0) {
+      <div class="empty-state">
+        <span class="material-symbols-outlined empty-icon">inventory_2</span>
+        <h3>Chưa có sản phẩm nào</h3>
+        <p>Bắt đầu bằng cách thêm sản phẩm đầu tiên cho cửa hàng của bạn.</p>
+        <button class="btn-primary" (click)="openCreate()" type="button">
+          <span class="material-symbols-outlined">add</span>
+          Thêm sản phẩm
+        </button>
+      </div>
+    }
+
+    <!-- Product table -->
+    @if (!loading() && products().length > 0) {
+      <div class="table-card">
+        <div class="table-wrapper">
+          <table class="product-table">
+            <thead>
+              <tr>
+                <th class="col-image">Ảnh</th>
+                <th class="col-name">Tên sản phẩm</th>
+                <th class="col-price">Giá bán</th>
+                <th class="col-stock">Tồn kho</th>
+                <th class="col-rating">Đánh giá</th>
+                <th class="col-actions">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of products(); track product.id) {
+                <tr>
+                  <td>
+                    <img
+                      class="product-thumb"
+                      [src]="getProductImage(product)"
+                      [alt]="product.name"
+                      (error)="onImageError($event)"
+                    />
+                  </td>
+                  <td>
+                    <div class="product-name">{{ product.name }}</div>
+                    @if (product.description) {
+                      <div class="product-desc">{{ product.description }}</div>
+                    }
+                  </td>
+                  <td class="cell-price">{{ formatPrice(product.price) }}đ</td>
+                  <td>
+                    @let st = stockStatus(product);
+                    <span class="stock-pill" [attr.data-tone]="st.tone">{{ st.label }}</span>
+                  </td>
+                  <td class="cell-rating">
+                    @if (product.averageRating) {
+                      <span>★ {{ product.averageRating.toFixed(1) }}</span>
+                      <span class="rating-count">({{ product.totalFeedbacks }})</span>
+                    } @else {
+                      <span class="rating-empty">Chưa có</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="action-row">
+                      <button
+                        class="btn-icon"
+                        type="button"
+                        title="Sửa"
+                        (click)="openEdit(product)"
+                      >
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button
+                        class="btn-icon btn-icon-danger"
+                        type="button"
+                        title="Xoá"
+                        (click)="deleteProduct(product)"
+                      >
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button
+              class="btn-pager"
+              type="button"
+              [disabled]="page() <= 0"
+              (click)="previousPage()"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <span class="page-indicator">{{ page() + 1 }} / {{ totalPages() }}</span>
+            <button
+              class="btn-pager"
+              type="button"
+              [disabled]="page() >= totalPages() - 1"
+              (click)="nextPage()"
+            >
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Editor modal -->
+  @if (showEditor()) {
+    <div class="editor-overlay" (click)="closeEditor()">
+      <div class="editor-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <div class="editor-header">
+          <h2>{{ isEditing() ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới' }}</h2>
+          <button class="btn-icon" type="button" (click)="closeEditor()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="editor-body">
+          <!-- Name -->
+          <label class="field">
+            <span class="field-label">Tên sản phẩm <span class="required">*</span></span>
+            <input
+              type="text"
+              [ngModel]="form().name"
+              (ngModelChange)="updateField('name', $event)"
+              placeholder="VD: Cơm gà xối mỡ"
+              maxlength="100"
+            />
+          </label>
+
+          <!-- Description -->
+          <label class="field">
+            <span class="field-label">Mô tả</span>
+            <textarea
+              rows="3"
+              [ngModel]="form().description"
+              (ngModelChange)="updateField('description', $event)"
+              placeholder="Mô tả ngắn về sản phẩm"
+            ></textarea>
+          </label>
+
+          <!-- Pricing row -->
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">Giá bán (VND) <span class="required">*</span></span>
+              <input
+                type="number"
+                [ngModel]="form().price"
+                (ngModelChange)="updateField('price', $event)"
+                placeholder="VD: 39000"
+                min="0"
+              />
+            </label>
+            <label class="field">
+              <span class="field-label">Giá vốn (VND) <span class="required">*</span></span>
+              <input
+                type="number"
+                [ngModel]="form().wholesalePrice"
+                (ngModelChange)="updateField('wholesalePrice', $event)"
+                placeholder="VD: 25000"
+                min="0"
+              />
+            </label>
+          </div>
+
+          <!-- Stock + SKU -->
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">Số lượng tồn kho</span>
+              <input
+                type="number"
+                [ngModel]="form().quantity"
+                (ngModelChange)="updateField('quantity', $event)"
+                min="0"
+              />
+            </label>
+            <label class="field">
+              <span class="field-label">SKU @if (!isEditing()) { <span class="required">*</span> }</span>
+              <input
+                type="text"
+                [ngModel]="form().sku"
+                (ngModelChange)="updateField('sku', $event)"
+                placeholder="VD: COMGA-001"
+                [readonly]="isEditing()"
+              />
+            </label>
+          </div>
+
+          <!-- Status -->
+          <label class="field">
+            <span class="field-label">Trạng thái</span>
+            <select
+              [ngModel]="form().status"
+              (ngModelChange)="updateField('status', $event)"
+            >
+              <option value="AVAILABLE">Đang bán</option>
+              <option value="OUT_OF_STOCK">Hết hàng</option>
+              <option value="DISABLED">Tạm ẩn</option>
+            </select>
+          </label>
+
+          <!-- Categories -->
+          <div class="field">
+            <span class="field-label">Danh mục <span class="required">*</span></span>
+            <div class="category-grid">
+              @for (cat of categories(); track cat.name) {
+                <button
+                  type="button"
+                  class="category-chip"
+                  [class.selected]="isCategorySelected(cat.name)"
+                  (click)="toggleCategory(cat.name)"
+                >
+                  {{ cat.name }}
+                </button>
+              } @empty {
+                <p class="hint">Chưa có danh mục — vui lòng liên hệ admin để thêm.</p>
+              }
+            </div>
+          </div>
+
+          <!-- Images -->
+          <label class="field">
+            <span class="field-label">URL ảnh (cách nhau bằng dấu phẩy)</span>
+            <textarea
+              rows="2"
+              [ngModel]="form().imagesText"
+              (ngModelChange)="updateField('imagesText', $event)"
+              placeholder="https://.../a.jpg, https://.../b.jpg"
+            ></textarea>
+            <p class="hint">Tip: dùng tab Quản lý ảnh sản phẩm trong phiên bản kế tiếp để upload trực tiếp.</p>
+          </label>
+
+          <!-- Dates -->
+          <div class="field-row">
+            <label class="field">
+              <span class="field-label">NSX (MSG)</span>
+              <input
+                type="date"
+                [ngModel]="form().msg"
+                (ngModelChange)="updateField('msg', $event)"
+              />
+            </label>
+            <label class="field">
+              <span class="field-label">HSD (EXP)</span>
+              <input
+                type="date"
+                [ngModel]="form().exp"
+                (ngModelChange)="updateField('exp', $event)"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="editor-footer">
+          <button class="btn-link" type="button" (click)="closeEditor()">Huỷ</button>
+          <button class="btn-primary" type="button" (click)="save()" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <span class="material-symbols-outlined spin">progress_activity</span>
+              Đang lưu…
+            } @else {
+              <span class="material-symbols-outlined">save</span>
+              {{ isEditing() ? 'Cập nhật' : 'Tạo mới' }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</main>

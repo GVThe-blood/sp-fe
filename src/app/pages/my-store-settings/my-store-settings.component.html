@@ -1,0 +1,205 @@
+<main class="settings-page">
+  <app-store-sidebar [activeRoute]="'/my-store/settings'"></app-store-sidebar>
+
+  <div class="settings-content">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">QUẢN TRỊ</p>
+        <h1 class="page-title">Cài đặt Cửa hàng</h1>
+        <p class="page-desc">
+          Cập nhật thông tin hiển thị, liên hệ và địa chỉ kho/lấy hàng. Các thay đổi sẽ được áp
+          dụng ngay sau khi lưu.
+        </p>
+      </div>
+    </header>
+
+    @if (loadingShop()) {
+      <div class="state-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang tải thông tin cửa hàng…</p>
+      </div>
+    } @else if (error()) {
+      <div class="state-card error">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn-link" (click)="refresh()">Thử lại</button>
+      </div>
+    } @else if (!shop()) {
+      <div class="state-card">
+        <span class="material-symbols-outlined">storefront</span>
+        <p>Bạn chưa có cửa hàng. Vui lòng tạo cửa hàng trước khi vào cài đặt.</p>
+      </div>
+    } @else {
+      <form class="settings-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <!-- Section: Brand -->
+        <section class="form-section">
+          <h2 class="section-title">Thương hiệu</h2>
+          <div class="grid grid-2">
+            <label class="field">
+              <span class="field-label">Tên cửa hàng <em>*</em></span>
+              <input
+                type="text"
+                formControlName="shopName"
+                placeholder="VD: SpringFood Mart"
+                maxlength="255"
+              />
+              @if (form.get('shopName')?.hasError('required') && form.get('shopName')?.touched) {
+                <small class="field-error">Tên cửa hàng là bắt buộc</small>
+              }
+            </label>
+            <label class="field">
+              <span class="field-label">Logo (URL)</span>
+              <input
+                type="text"
+                formControlName="logo"
+                placeholder="https://..."
+                maxlength="255"
+              />
+              <small class="field-hint">Để trống để xoá logo hiện tại</small>
+            </label>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Giới thiệu cửa hàng</span>
+            <textarea
+              formControlName="introduction"
+              rows="3"
+              placeholder="Giới thiệu ngắn về cửa hàng..."
+              maxlength="2000"
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Ngành hàng <em>*</em></span>
+            <input
+              type="text"
+              formControlName="businessType"
+              placeholder="VD: Đồ ăn, Cafe, Trà sữa..."
+              maxlength="50"
+            />
+            @if (form.get('businessType')?.hasError('required') && form.get('businessType')?.touched) {
+              <small class="field-error">Vui lòng nhập ngành hàng</small>
+            }
+          </label>
+        </section>
+
+        <!-- Section: Contact -->
+        <section class="form-section">
+          <h2 class="section-title">Liên hệ</h2>
+          <div class="grid grid-2">
+            <label class="field">
+              <span class="field-label">Email <em>*</em></span>
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="shop@example.com"
+                maxlength="100"
+              />
+              @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+                <small class="field-error">Email là bắt buộc</small>
+              } @else if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+                <small class="field-error">Email không hợp lệ</small>
+              }
+            </label>
+            <label class="field">
+              <span class="field-label">Số điện thoại <em>*</em></span>
+              <input
+                type="tel"
+                formControlName="phoneNumber"
+                placeholder="0901234567"
+                maxlength="50"
+              />
+              @if (form.get('phoneNumber')?.hasError('required') && form.get('phoneNumber')?.touched) {
+                <small class="field-error">Số điện thoại là bắt buộc</small>
+              }
+            </label>
+          </div>
+        </section>
+
+        <!-- Section: Address -->
+        <section class="form-section">
+          <h2 class="section-title">Địa chỉ kho / lấy hàng</h2>
+          <label class="field">
+            <span class="field-label">Địa chỉ chi tiết <em>*</em></span>
+            <input
+              type="text"
+              formControlName="shopAddress"
+              placeholder="Số nhà, đường, phường..."
+              maxlength="255"
+            />
+            @if (form.get('shopAddress')?.hasError('required') && form.get('shopAddress')?.touched) {
+              <small class="field-error">Vui lòng nhập địa chỉ</small>
+            }
+          </label>
+          <div class="grid grid-3">
+            <label class="field">
+              <span class="field-label">Quận / Huyện <em>*</em></span>
+              <input type="text" formControlName="city" maxlength="50" />
+              @if (form.get('city')?.hasError('required') && form.get('city')?.touched) {
+                <small class="field-error">Bắt buộc</small>
+              }
+            </label>
+            <label class="field">
+              <span class="field-label">Tỉnh / Thành <em>*</em></span>
+              <input type="text" formControlName="province" maxlength="50" />
+              @if (form.get('province')?.hasError('required') && form.get('province')?.touched) {
+                <small class="field-error">Bắt buộc</small>
+              }
+            </label>
+            <label class="field">
+              <span class="field-label">Mã bưu điện</span>
+              <input type="text" formControlName="postalCode" maxlength="50" />
+            </label>
+          </div>
+          <label class="field">
+            <span class="field-label">Mã quốc gia</span>
+            <input
+              type="text"
+              formControlName="nationId"
+              placeholder="VN"
+              maxlength="50"
+            />
+          </label>
+        </section>
+
+        <!-- Section: Operations -->
+        <section class="form-section">
+          <h2 class="section-title">Vận hành</h2>
+          <label class="field">
+            <span class="field-label">Giờ hoạt động</span>
+            <input
+              type="text"
+              formControlName="activeHours"
+              placeholder="VD: 07:00 - 22:00"
+              maxlength="1000"
+            />
+            <small class="field-hint">
+              Có thể nhập chuỗi tự do hoặc JSON (BE chấp nhận cả hai).
+            </small>
+          </label>
+        </section>
+
+        <!-- Actions -->
+        <footer class="form-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="resetForm()"
+            [disabled]="submitting()"
+          >
+            Hoàn tác
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="material-symbols-outlined spin">progress_activity</span>
+              Đang lưu…
+            } @else {
+              <span class="material-symbols-outlined">save</span>
+              Lưu thay đổi
+            }
+          </button>
+        </footer>
+      </form>
+    }
+  </div>
+</main>

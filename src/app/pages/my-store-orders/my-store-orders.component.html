@@ -1,0 +1,198 @@
+<main class="mystore-page">
+  <app-store-sidebar [activeRoute]="'/my-store/orders'"></app-store-sidebar>
+
+  <div class="mystore-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Đơn hàng</h1>
+        <p class="page-subtitle">Theo dõi và xử lý đơn hàng của cửa hàng theo thời gian thực.</p>
+      </div>
+      <button class="btn-secondary" type="button" (click)="reload()" [disabled]="orders.isLoading()">
+        <span class="material-symbols-outlined" [class.spin-mini]="orders.isLoading()">refresh</span>
+        Làm mới
+      </button>
+    </div>
+
+    <!-- Status filter -->
+    <div class="filter-row">
+      @for (opt of statusFilterOptions; track opt.value) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === opt.value"
+          (click)="setStatusFilter(opt.value)">
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+
+    @if (orders.isLoading() && items().length === 0) {
+      <div class="state-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang tải đơn hàng…</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-card error">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ errorMessage() }}</p>
+        <button class="btn-link" (click)="reload()">Thử lại</button>
+      </div>
+    } @else {
+      <section class="section-card">
+        <header class="section-header">
+          <h2>Danh sách đơn hàng</h2>
+          <span class="badge badge-primary">{{ totalElements() }} đơn</span>
+        </header>
+
+        @if (filteredItems().length === 0) {
+          <div class="empty">
+            <p>Không có đơn hàng phù hợp với bộ lọc.</p>
+          </div>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Mã đơn</th>
+                <th>Ngày đặt</th>
+                <th>Tổng</th>
+                <th>Thanh toán</th>
+                <th>Trạng thái</th>
+                <th class="th-actions">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (o of filteredItems(); track o.orderId) {
+                <tr (click)="openDetail(o)" class="row-clickable">
+                  <td class="strong">#{{ shortId(o.orderId) }}</td>
+                  <td class="muted">{{ formatDate(o.orderDate) }}</td>
+                  <td class="strong">{{ formatPrice(o.finalPrice) }}</td>
+                  <td class="muted">{{ o.paymentMethod || '—' }}</td>
+                  <td>
+                    <span class="status-pill" [attr.data-tone]="statusTone(o.orderStatus)">
+                      {{ statusLabel(o.orderStatus) }}
+                    </span>
+                  </td>
+                  <td class="td-actions">
+                    <button class="btn-icon" type="button" (click)="$event.stopPropagation(); openDetail(o)" title="Xem chi tiết">
+                      <span class="material-symbols-outlined">arrow_forward</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          @if (totalPages() > 1) {
+            <div class="pagination">
+              <button class="btn-icon" (click)="prevPage()" [disabled]="page() === 0">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+              <span class="pagination-info">Trang {{ page() + 1 }} / {{ totalPages() }}</span>
+              <button class="btn-icon" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+
+  <!-- Detail modal -->
+  @if (showDetail() && detail(); as order) {
+    <div class="modal-backdrop" (click)="closeDetail()">
+      <div class="modal modal--lg" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <div>
+            <p class="modal-eyebrow">Đơn #{{ shortId(order.orderId) }}</p>
+            <h2>Chi tiết đơn hàng</h2>
+          </div>
+          <button class="btn-icon" type="button" (click)="closeDetail()" aria-label="Đóng">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="detail-summary">
+            <div class="summary-block">
+              <p class="summary-label">Trạng thái</p>
+              <span class="status-pill status-pill--lg" [attr.data-tone]="statusTone(order.orderStatus)">
+                {{ statusLabel(order.orderStatus) }}
+              </span>
+            </div>
+            <div class="summary-block">
+              <p class="summary-label">Ngày đặt</p>
+              <p class="summary-value">{{ formatDate(order.orderDate) }}</p>
+            </div>
+            <div class="summary-block">
+              <p class="summary-label">Tổng</p>
+              <p class="summary-value strong">{{ formatPrice(order.finalPrice) }}</p>
+            </div>
+            <div class="summary-block">
+              <p class="summary-label">Thanh toán</p>
+              <p class="summary-value">{{ order.paymentMethod || '—' }} <span class="muted">({{ order.paymentStatus || '—' }})</span></p>
+            </div>
+          </div>
+
+          @if (order.shippingAddress) {
+            <div class="detail-block">
+              <p class="summary-label">Địa chỉ giao</p>
+              <p>{{ order.shippingAddress }}</p>
+              @if (order.shippingFee != null) {
+                <p class="muted">Phí ship: {{ formatPrice(order.shippingFee) }}</p>
+              }
+            </div>
+          }
+
+          <div class="detail-block">
+            <p class="summary-label">Sản phẩm ({{ order.items.length }})</p>
+            <ul class="item-list">
+              @for (item of order.items; track item.productId) {
+                <li>
+                  @if (item.image) {
+                    <img class="product-thumb" [src]="item.image" alt="" />
+                  } @else {
+                    <div class="product-thumb"></div>
+                  }
+                  <div>
+                    <div class="product-name">{{ item.productName }}</div>
+                    <div class="muted">SL: {{ item.quantity }} × {{ formatPrice(item.priceAtBooking) }}</div>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- Status transition actions -->
+          @if (nextActions(order).length > 0) {
+            <div class="detail-block">
+              <p class="summary-label">Hành động</p>
+              <div class="action-row">
+                @for (target of nextActions(order); track target) {
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    [disabled]="updating()"
+                    (click)="transitionTo(target)">
+                    @if (updating()) {
+                      <span class="material-symbols-outlined spin-mini">progress_activity</span>
+                    }
+                    Chuyển sang "{{ statusLabel(target) }}"
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <div class="detail-block">
+              <p class="muted">Không còn hành động nào cho trạng thái này.</p>
+            </div>
+          }
+        </div>
+
+        <footer class="modal-footer">
+          <button class="btn-text" type="button" (click)="closeDetail()">Đóng</button>
+        </footer>
+      </div>
+    </div>
+  }
+</main>

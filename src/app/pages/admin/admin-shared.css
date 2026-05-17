@@ -1,0 +1,19 @@
+/*
+ * Shared styles cho các admin page (list / detail).
+ * Import bằng `styles: [require('../admin-shared.css')]` không hoạt động trong
+ * Angular CLI — thay vào đó copy block tương ứng vào component CSS, hoặc dùng
+ * preprocessing (postcss / scss). Để giữ workflow đơn giản, mỗi component sẽ
+ * tự khai báo CSS class mình cần. File này là nguồn tham chiếu chuẩn.
+ *
+ * Tokens (ngắn gọn, scope `:host`):
+ *   --bg            : #f1f4f6 (admin shell bg)
+ *   --card          : #ffffff
+ *   --border        : #ebeef0
+ *   --border-strong : #c1cab5
+ *   --text          : #181c1e
+ *   --text-muted    : #717a68
+ *   --primary       : #6db33f
+ *   --accent        : #ff8928
+ *   --danger        : #ba1a1a
+ *   --warn          : #fbbf24
+ */

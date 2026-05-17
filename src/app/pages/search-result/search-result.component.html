@@ -1,0 +1,175 @@
+<main class="pt-[90px] md:pt-[100px] pb-section-gap min-h-screen max-w-[1280px] mx-auto px-margin-mobile md:px-margin-desktop">
+  <!-- Page header -->
+  <header class="mb-8">
+    <div class="flex items-center gap-2 text-sm text-gray-500 mb-3">
+      <a routerLink="/" class="hover:text-[#6db33f] transition-colors">Trang chủ</a>
+      <span class="material-symbols-outlined text-base">chevron_right</span>
+      <span class="text-gray-700 font-medium">{{ headerTitle() }}</span>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-900">{{ headerTitle() }}</h1>
+        <p class="mt-1 text-sm text-gray-500">
+          @if (mode() === 'category') {
+            Tất cả sản phẩm thuộc danh mục, không phân biệt cửa hàng.
+          } @else if (mode() === 'keyword') {
+            Tìm thấy <strong>{{ totalItems() }}</strong> sản phẩm phù hợp.
+          } @else {
+            Nhập từ khoá hoặc chọn một danh mục để bắt đầu tìm kiếm.
+          }
+        </p>
+      </div>
+
+      <!-- Inline search box: re-submits keyword without leaving the page -->
+      <form
+        (submit)="$event.preventDefault(); submitSearch()"
+        class="flex items-center gap-2 bg-white border border-gray-200 rounded-full pl-4 pr-1 py-1 shadow-sm w-full sm:w-96 focus-within:border-[#6db33f]">
+        <span class="material-symbols-outlined text-gray-400 text-[20px]">search</span>
+        <input
+          type="text"
+          class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400"
+          placeholder="Tìm tên món, mô tả, từ khoá..."
+          [value]="draftKeyword()"
+          (input)="onDraftInput($event)" />
+        @if (draftKeyword()) {
+          <button
+            type="button"
+            (click)="clearKeyword()"
+            class="w-7 h-7 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        }
+        <button
+          type="submit"
+          class="px-4 py-1.5 text-sm font-semibold rounded-full bg-[#6db33f] text-white hover:bg-[#5a9633] transition-colors">
+          Tìm
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-8">
+    <!-- Sidebar: jump to other categories -->
+    <aside class="hidden lg:block">
+      <div class="sticky top-[110px] bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
+          Danh mục
+        </h3>
+        <ul class="space-y-1">
+          @for (cat of displayedCategories(); track cat.slug || cat.name) {
+            <li>
+              <button
+                (click)="jumpToCategory(cat)"
+                [class]="
+                  cat.slug === categorySlug()
+                    ? 'w-full text-left px-3 py-2 rounded-lg bg-[#6db33f]/10 text-[#5a9633] font-semibold text-sm'
+                    : 'w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-700 text-sm transition-colors'
+                ">
+                {{ cat.name }}
+              </button>
+            </li>
+          } @empty {
+            <li class="text-sm text-gray-400 px-3 py-2">Không có danh mục.</li>
+          }
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Result panel -->
+    <section>
+      @if (isLoading()) {
+        <!-- Skeleton grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          @for (s of [1,2,3,4,5,6]; track s) {
+            <div class="rounded-lg p-3 flex gap-4 h-[140px] bg-gray-50 border border-gray-100 animate-pulse">
+              <div class="w-28 h-28 bg-gray-200 rounded-md"></div>
+              <div class="flex-1 flex flex-col justify-between">
+                <div>
+                  <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div class="h-3 bg-gray-100 rounded w-full mb-2"></div>
+                  <div class="h-3 bg-gray-100 rounded w-2/3"></div>
+                </div>
+                <div class="h-5 bg-gray-200 rounded w-1/3"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (errorMessage()) {
+        <div class="rounded-xl border border-red-100 bg-red-50 text-red-700 p-6 text-center">
+          <span class="material-symbols-outlined text-3xl mb-2 block">error</span>
+          {{ errorMessage() }}
+        </div>
+      } @else if (mode() === 'none') {
+        <div class="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
+          <span class="material-symbols-outlined text-4xl text-gray-300 mb-3 block">search</span>
+          <p class="text-gray-500 mb-4">Nhập từ khoá phía trên hoặc chọn danh mục bên trái để xem kết quả.</p>
+          <a routerLink="/" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#6db33f] text-white text-sm font-semibold hover:bg-[#5a9633] transition-colors">
+            <span class="material-symbols-outlined text-[18px]">home</span>
+            Về trang chủ
+          </a>
+        </div>
+      } @else if (!hasResults()) {
+        <div class="rounded-xl border border-dashed border-gray-300 bg-white p-10 text-center">
+          <span class="material-symbols-outlined text-4xl text-gray-300 mb-3 block">search_off</span>
+          <p class="text-gray-700 font-medium mb-1">Không tìm thấy sản phẩm phù hợp.</p>
+          <p class="text-sm text-gray-500">Thử dùng từ khoá khác hoặc chọn danh mục khác.</p>
+        </div>
+      } @else {
+        <!-- Result grid -->
+        <div class="flex items-center justify-between mb-4 text-sm text-gray-500">
+          <span>
+            Hiển thị
+            <strong>{{ items().length }}</strong>
+            / <strong>{{ totalItems() }}</strong> sản phẩm
+          </span>
+          <span>Trang {{ page() + 1 }} / {{ totalPages() || 1 }}</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          @for (p of items(); track p.id) {
+            <app-product-item
+              [product]="toProductItem(p)"
+              (productClick)="onProductClick($event)"
+              (addToCartClick)="onAddToCartClick($event)">
+            </app-product-item>
+          }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <div class="flex items-center justify-center gap-3 mt-8">
+            <button
+              type="button"
+              [disabled]="page() === 0"
+              (click)="prevPage()"
+              class="w-10 h-10 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+            </button>
+            <span class="text-sm text-gray-600 font-medium">
+              Trang {{ page() + 1 }} / {{ totalPages() }}
+            </span>
+            <button
+              type="button"
+              [disabled]="page() + 1 >= totalPages()"
+              (click)="nextPage()"
+              class="w-10 h-10 rounded-full border border-gray-300 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center">
+              <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+            </button>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</main>
+
+<!-- Product detail modal -->
+<app-product-detail-modal
+  [product]="selectedProduct()"
+  [isOpen]="isModalOpen()"
+  (addToCart)="handleAddToCart($event)"
+  (updateCart)="handleUpdateCartItem($event)"
+  (close)="closeProductModal()">
+</app-product-detail-modal>
+
+<!-- Floating cart -->
+<app-floating-cart-button></app-floating-cart-button>

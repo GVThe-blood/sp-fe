@@ -1,0 +1,66 @@
+<section class="role-select">
+  <div class="bg-deco" aria-hidden="true">
+    <span class="blob blob-1"></span>
+    <span class="blob blob-2"></span>
+  </div>
+
+  <div class="card">
+    <div class="brand">
+      <div class="brand-mark">SF</div>
+      <div>
+        <strong>SpringFood</strong>
+        <span>Welcome back</span>
+      </div>
+    </div>
+
+    <h1>Xin chào{{ greetingName() }}!</h1>
+    <p class="subtitle">
+      Bạn đang đăng nhập với quyền <strong class="role-pill">Admin</strong>.
+      Hãy chọn nơi bạn muốn tiếp tục.
+    </p>
+
+    <div class="options">
+      <button
+        type="button"
+        class="option option-admin"
+        (click)="goAdmin()"
+        [disabled]="navigating()"
+      >
+        <div class="option-icon">
+          <span class="material-symbols-outlined">shield_person</span>
+        </div>
+        <div class="option-body">
+          <strong>Trang quản trị</strong>
+          <span>Dashboard, quản lý shop, người dùng, đơn hàng, khuyến mãi…</span>
+        </div>
+        <span class="material-symbols-outlined chev">arrow_forward</span>
+      </button>
+
+      <button
+        type="button"
+        class="option option-site"
+        (click)="goSite()"
+        [disabled]="navigating()"
+      >
+        <div class="option-icon">
+          <span class="material-symbols-outlined">storefront</span>
+        </div>
+        <div class="option-body">
+          <strong>Tiếp tục đến website</strong>
+          <span>Trải nghiệm SpringFood như một khách hàng bình thường.</span>
+        </div>
+        <span class="material-symbols-outlined chev">arrow_forward</span>
+      </button>
+    </div>
+
+    <div class="footer">
+      <button type="button" class="link-btn" (click)="logout()" [disabled]="navigating()">
+        <span class="material-symbols-outlined">logout</span>
+        Đăng xuất
+      </button>
+      <p class="hint">
+        Bạn có thể chuyển đổi giữa hai chế độ bất cứ lúc nào từ menu cá nhân.
+      </p>
+    </div>
+  </div>
+</section>

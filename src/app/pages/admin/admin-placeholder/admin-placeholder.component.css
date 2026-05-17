@@ -1,0 +1,50 @@
+.placeholder {
+  background: #ffffff;
+  border: 1px dashed #c1cab5;
+  border-radius: 16px;
+  padding: 56px 32px;
+  text-align: center;
+  max-width: 720px;
+  margin: 32px auto;
+}
+
+.icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #6db33f 0%, #abf779 100%);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+}
+
+.icon .material-symbols-outlined {
+  font-size: 32px;
+}
+
+.placeholder h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #181c1e;
+}
+
+.placeholder p {
+  margin: 0 0 16px;
+  font-size: 14px;
+  color: #717a68;
+  line-height: 1.6;
+}
+
+.tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 137, 40, 0.1);
+  color: #964900;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

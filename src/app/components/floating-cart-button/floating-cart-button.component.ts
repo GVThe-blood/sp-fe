@@ -48,9 +48,9 @@ export class FloatingCartButtonComponent {
   readonly cartCount = this.cartService.cartCount;
   
   /**
-   * Navigate to cart/order page
+   * Navigate to cart page
    */
   navigateToCart(): void {
-    this.router.navigate(['/order']);
+    this.router.navigate(['/cart']);
   }
 }

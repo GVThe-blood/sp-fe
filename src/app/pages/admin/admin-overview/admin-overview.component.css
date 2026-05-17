@@ -1,0 +1,336 @@
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.page-header h2 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #181c1e;
+}
+
+.page-header p {
+  margin: 0;
+  color: #717a68;
+  font-size: 14px;
+}
+
+.range-tabs {
+  display: inline-flex;
+  background: #ebeef0;
+  padding: 4px;
+  border-radius: 12px;
+  gap: 2px;
+}
+
+.range-tabs button {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #41493a;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.range-tabs button.active {
+  background: #ffffff;
+  color: #181c1e;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* ----- KPI cards ------------------------------------------------------ */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid #ebeef0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 250ms ease, transform 250ms ease;
+}
+
+.kpi-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.kpi-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  color: #fff;
+}
+
+.kpi-icon.green {
+  background: linear-gradient(135deg, #6db33f 0%, #abf779 100%);
+}
+.kpi-icon.orange {
+  background: linear-gradient(135deg, #ff8928 0%, #ffb786 100%);
+}
+.kpi-icon.blue {
+  background: linear-gradient(135deg, #555f71 0%, #98a2b7 100%);
+}
+.kpi-icon.purple {
+  background: linear-gradient(135deg, #6366f1 0%, #a78bfa 100%);
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #717a68;
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #181c1e;
+  letter-spacing: -0.02em;
+}
+
+.kpi-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #717a68;
+}
+
+.kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.kpi-trend.up {
+  background: rgba(109, 179, 63, 0.12);
+  color: #306c00;
+}
+
+.kpi-trend.down {
+  background: rgba(186, 26, 26, 0.1);
+  color: #ba1a1a;
+}
+
+.kpi-trend.flat {
+  background: rgba(113, 122, 104, 0.1);
+  color: #41493a;
+}
+
+/* ----- Cards grid ----------------------------------------------------- */
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1023px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cards-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 1023px) {
+  .cards-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #ebeef0;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #181c1e;
+}
+
+.card-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #717a68;
+}
+
+.chart-wrap {
+  position: relative;
+  height: 280px;
+}
+
+.chart-wrap canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ----- Top shops table ------------------------------------------------ */
+
+.top-shops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.top-shops-table thead {
+  background: #f7fafc;
+}
+
+.top-shops-table th,
+.top-shops-table td {
+  text-align: left;
+  padding: 12px 14px;
+  border-bottom: 1px solid #ebeef0;
+}
+
+.top-shops-table th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #717a68;
+}
+
+.top-shops-table td {
+  vertical-align: middle;
+}
+
+.top-shops-table .shop-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-shops-table .shop-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #ebeef0;
+  flex-shrink: 0;
+}
+
+.top-shops-table .shop-name {
+  font-weight: 600;
+  color: #181c1e;
+}
+
+.top-shops-table .shop-id {
+  font-size: 11px;
+  color: #717a68;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.top-shops-table td.num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+}
+
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 137, 40, 0.1);
+  color: #964900;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rating .material-symbols-outlined {
+  font-size: 14px;
+}
+
+/* ----- Loading / error states ---------------------------------------- */
+
+.skeleton {
+  background: linear-gradient(90deg, #ebeef0 25%, #f1f4f6 50%, #ebeef0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.error-banner {
+  background: #ffdad6;
+  color: #93000a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.error-banner button {
+  margin-left: auto;
+  border: 0;
+  background: #ba1a1a;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.empty {
+  text-align: center;
+  padding: 24px;
+  color: #717a68;
+  font-size: 13px;
+}

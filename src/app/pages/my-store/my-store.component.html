@@ -1,6 +1,6 @@
 <main class="mystore-page">
   <!-- Conditional Sidebar: ProfileSidebar for no store, StoreSidebar for store owners -->
-  @if (!user()?.hasStore) {
+  @if (!hasShop()) {
     <app-profile-sidebar [activeRoute]="'/my-store'"></app-profile-sidebar>
   } @else {
     <app-store-sidebar [activeRoute]="'/my-store'"></app-store-sidebar>
@@ -8,30 +8,45 @@
 
   <!-- Main Content -->
   <div class="mystore-content">
-    <!-- CASE 1: User has NO store -->
-    @if (!user()?.hasStore) {
+    <!-- Loading skeleton ----------------------------------------------- -->
+    @if (loading()) {
+      <div class="loading-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang kiểm tra cửa hàng…</p>
+      </div>
+    }
+
+    <!-- Error banner --------------------------------------------------- -->
+    @if (!loading() && error()) {
+      <div class="error-banner">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ error() }}</p>
+        <button class="btn-link" (click)="refresh()">Thử lại</button>
+      </div>
+    }
+
+    <!-- CASE 1: User has NO shop ---------------------------------------- -->
+    @if (!loading() && !hasShop()) {
       <div class="create-store-section">
         <div class="create-store-card">
-          <!-- Illustration -->
           <div class="illustration-wrapper">
             <div class="illustration">
               <span class="material-symbols-outlined">storefront</span>
             </div>
           </div>
 
-          <!-- Content -->
           <div class="create-store-content">
             <h1 class="create-store-title">Mở cửa hàng, mở tương lai</h1>
             <p class="create-store-desc">
-              Bắt đầu hành trình kinh doanh thực phẩm sạch của bạn trên SpringFood ngay hôm nay và tiếp cận hàng ngàn khách hàng tiềm năng.
+              Bắt đầu hành trình kinh doanh thực phẩm sạch của bạn trên SpringFood ngay hôm nay và
+              tiếp cận hàng ngàn khách hàng tiềm năng.
             </p>
-            <button (click)="createStore()" class="btn-create-store">
+            <button (click)="openWizard()" class="btn-create-store" type="button">
               Tạo cửa hàng của bạn
             </button>
           </div>
         </div>
 
-        <!-- Features Grid -->
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">
@@ -58,39 +73,63 @@
       </div>
     }
 
-    <!-- CASE 2: User HAS store - Store Dashboard -->
-    @else {
+    <!-- CASE 2: User HAS shop ------------------------------------------ -->
+    @if (!loading() && hasShop()) {
       <div class="content-card">
-        <!-- Header -->
-        <div class="content-header">
-          <div class="header-text">
-            <h1 class="content-title">Dashboard Cửa hàng</h1>
-            <p class="content-subtitle">Quản lý cửa hàng của bạn một cách hiệu quả với các công cụ mạnh mẽ</p>
+        <!-- Hero -->
+        <div class="shop-hero">
+          <div class="shop-hero-info">
+            @if (shop()?.logo; as logo) {
+              <img class="shop-logo" [src]="logo" [alt]="shop()?.shopName" />
+            } @else {
+              <div class="shop-logo shop-logo--placeholder">
+                <span class="material-symbols-outlined">storefront</span>
+              </div>
+            }
+            <div>
+              <p class="shop-eyebrow">Cửa hàng của bạn</p>
+              <h1 class="shop-title">{{ shop()?.shopName }}</h1>
+              <div class="shop-meta">
+                <span class="status-pill" [attr.data-tone]="statusTone()">
+                  <span class="material-symbols-outlined">circle</span>
+                  {{ statusLabel() }}
+                </span>
+                @if (shop()?.shopType) {
+                  <span class="meta-chip">{{ shop()?.shopType }}</span>
+                }
+                @if (shop()?.businessType) {
+                  <span class="meta-chip">{{ shop()?.businessType }}</span>
+                }
+              </div>
+            </div>
           </div>
-          <button class="btn-export">
-            <span class="material-symbols-outlined">download</span>
-            <span>Xuất báo cáo</span>
-          </button>
+
+          <div class="shop-hero-actions">
+            <button class="btn-primary" type="button" (click)="goToDashboard()">
+              <span class="material-symbols-outlined">bar_chart</span>
+              Đi đến Dashboard
+            </button>
+          </div>
         </div>
 
-        <!-- Quick Stats Cards -->
+        <!-- Quick stats from /shop/me -->
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">
               <span class="material-symbols-outlined">receipt_long</span>
             </div>
             <div class="stat-content">
-              <p class="stat-label">Đơn hàng mới</p>
-              <h3 class="stat-value">12</h3>
+              <p class="stat-label">Tổng đơn</p>
+              <h3 class="stat-value">{{ shop()?.totalOrders ?? 0 }}</h3>
             </div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">
-              <span class="material-symbols-outlined">payments</span>
+              <span class="material-symbols-outlined">shopping_bag</span>
             </div>
             <div class="stat-content">
-              <p class="stat-label">Doanh thu hôm nay</p>
-              <h3 class="stat-value">2.5M đ</h3>
+              <p class="stat-label">Đã bán</p>
+              <h3 class="stat-value">{{ shop()?.totalSold ?? 0 }}</h3>
             </div>
           </div>
           <div class="stat-card">
@@ -99,7 +138,7 @@
             </div>
             <div class="stat-content">
               <p class="stat-label">Sản phẩm</p>
-              <h3 class="stat-value">48</h3>
+              <h3 class="stat-value">{{ shop()?.totalProducts ?? 0 }}</h3>
             </div>
           </div>
           <div class="stat-card">
@@ -107,19 +146,52 @@
               <span class="material-symbols-outlined">star</span>
             </div>
             <div class="stat-content">
-              <p class="stat-label">Đánh giá trung bình</p>
-              <h3 class="stat-value">4.8</h3>
+              <p class="stat-label">Đánh giá</p>
+              <h3 class="stat-value">{{ shop()?.avgStar ?? '—' }}</h3>
             </div>
           </div>
         </div>
 
-        <!-- Coming Soon Notice -->
-        <div class="coming-soon-card">
-          <span class="material-symbols-outlined">construction</span>
-          <h3>Các tính năng đang được phát triển</h3>
-          <p>Sử dụng menu bên trái để điều hướng đến các phần khác nhau của dashboard. Các tính năng chi tiết sẽ sớm được bổ sung.</p>
+        <!-- Contact / address summary -->
+        <div class="shop-summary-grid">
+          <div class="summary-card">
+            <p class="summary-label">Liên hệ</p>
+            <p class="summary-line">
+              <span class="material-symbols-outlined">mail</span>
+              {{ shop()?.email ?? '—' }}
+            </p>
+            <p class="summary-line">
+              <span class="material-symbols-outlined">call</span>
+              {{ shop()?.phoneNumber ?? '—' }}
+            </p>
+          </div>
+          <div class="summary-card">
+            <p class="summary-label">Địa chỉ</p>
+            <p class="summary-line">
+              <span class="material-symbols-outlined">location_on</span>
+              {{ shop()?.shopAddress ?? '—' }}, {{ shop()?.city ?? '' }}, {{ shop()?.province ?? '' }}
+            </p>
+            @if (shop()?.activeHours; as hours) {
+              <p class="summary-line">
+                <span class="material-symbols-outlined">schedule</span>
+                {{ hours }}
+              </p>
+            }
+          </div>
         </div>
+
+        @if (shop()?.introduction; as intro) {
+          <div class="intro-card">
+            <p class="summary-label">Giới thiệu</p>
+            <p>{{ intro }}</p>
+          </div>
+        }
       </div>
     }
   </div>
+
+  <!-- Modal wizard -->
+  @if (showWizard()) {
+    <app-shop-registration-wizard (closed)="onWizardClosed($event)" />
+  }
 </main>

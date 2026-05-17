@@ -1,0 +1,145 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #6db33f 0%, #abf779 100%);
+  display: grid;
+  place-items: center;
+  color: #1d2328;
+  font-weight: 700;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-text strong {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.brand-text span {
+  color: #6db33f;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.menu {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 12px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.menu-section h4 {
+  margin: 0 0 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(205, 209, 212, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #cdd1d4;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 200ms ease, color 200ms ease;
+  position: relative;
+}
+
+.menu-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+
+.menu-link.active {
+  background: rgba(109, 179, 63, 0.18);
+  color: #abf779;
+}
+
+.menu-link.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 2px;
+  background: #6db33f;
+}
+
+.menu-icon {
+  font-size: 20px;
+}
+
+.menu-badge {
+  margin-left: auto;
+  background: #ff8928;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.disabled:hover {
+  background: transparent;
+  color: #cdd1d4;
+}
+
+.tag {
+  margin-left: auto;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(205, 209, 212, 0.65);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}

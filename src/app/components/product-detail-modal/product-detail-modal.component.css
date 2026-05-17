@@ -6,6 +6,75 @@
   display: contents;
 }
 
+/* ============================================
+   PRODUCT MODAL — fixed dimensions to stop the size jitter when product
+   images of different aspect ratios load. Two changes work together:
+     1. Modal container has a fixed (clamped) height instead of just
+        `max-height: 92vh`. With `max-height` + `flex column`, the modal
+        was free to shrink-wrap to the content, which jumped whenever the
+        image dimensions changed or new sections loaded in.
+     2. The image frame has a fixed 4:3 aspect ratio so portrait /
+        landscape product photos all `object-cover` into the same slot.
+   The image frame is decoupled from the modal width via the wrapper, so
+   the modal width can stay responsive while the image height is stable.
+   ============================================ */
+.modal-container.product-modal {
+  /* width: respect parent breakpoint via max-width below */
+  width: 100%;
+  max-width: 56rem; /* 896px on desktop */
+  /* Lock total height. min(92vh, 800px) keeps the modal under fold on small
+   * laptops while never growing absurdly tall on a 4K display. */
+  height: min(92vh, 800px);
+  /* Reaffirm flex from theme.css; without this any cascade reset can break
+   * the inner scroll area. */
+  display: flex;
+  flex-direction: column;
+}
+
+/* The scroll wrapper inside .modal-container needs `min-height: 0` for
+ * flexbox to actually allow it to shrink and scroll. Without this, the
+ * inner content forces the parent to grow past its declared height. */
+.modal-container.product-modal > .modal-scroll-content {
+  min-height: 0;
+}
+
+/* Fixed-aspect image frame — see comment block above. */
+.product-modal-image-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  /* Cap so very wide modals don't make the photo dominate the viewport. */
+  max-height: 320px;
+  overflow: hidden;
+  background-color: var(--color-gray-200);
+  flex-shrink: 0; /* Don't shrink when content below grows (reviews, etc.) */
+}
+
+/* Tablet & below: shrink modal back to a comfortable single-column width.
+ * Image frame keeps its aspect ratio automatically. */
+@media (max-width: 1024px) {
+  .modal-container.product-modal {
+    max-width: 42rem;
+    height: min(90vh, 720px);
+  }
+  .product-modal-image-frame {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 767px) {
+  .modal-container.product-modal {
+    max-width: 100%;
+    /* On mobile the bottom-sheet override in theme.css uses fixed positioning
+     * + max-height: 95vh; respect that and don't pin a numeric height. */
+    height: auto;
+    max-height: 95vh;
+  }
+  .product-modal-image-frame {
+    max-height: 240px;
+  }
+}
+
 /* Product-specific transitions */
 .modal-container button {
   transition: all 0.2s ease-out;
@@ -117,6 +186,13 @@
   overflow: visible;
   flex-shrink: 0;
   transition: var(--theme-transition);
+}
+
+/* Slightly bump review modal width when paired with the wider product modal */
+@media (min-width: 1280px) {
+  .review-modal-container {
+    width: 38rem;
+  }
 }
 
 /* Fixed header - doesn't scroll */
@@ -268,4 +344,221 @@
 
 .review-modal-container button[aria-label="Gửi đánh giá"]:not(:disabled):active {
   transform: scale(0.95);
+}
+
+
+/* ============================================
+   RELATED PRODUCTS — horizontal carousel strip
+   Sits between customer-note and the bottom action bar inside the
+   modal scroll area. Designed to be touch-friendly (large hit target,
+   horizontal scroll-snap) and keyboard-accessible (each card is a
+   <button>).
+   ============================================ */
+
+.related-section {
+  /* Ngầm có 1 divider dưới phần customization, nên không cần extra top
+     spacing. Bottom margin tách khỏi action bar để khỏi đè vào. */
+}
+
+.related-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.625rem;
+}
+
+.related-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.related-title .material-symbols-outlined {
+  font-size: 18px !important;
+  color: var(--color-primary);
+}
+
+.related-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--bg-hover, rgba(0, 0, 0, 0.03));
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full, 9999px);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.related-back-btn:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.related-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.5rem;
+  /* Hide scrollbar but allow native scroll. */
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+  scroll-padding: 0 0.5rem;
+}
+
+.related-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.related-strip::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 9999px;
+}
+
+.related-card {
+  flex: 0 0 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 0.75rem);
+  padding: 0.5rem;
+  cursor: pointer;
+  text-align: left;
+  scroll-snap-align: start;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  /* Reset native button styles. */
+  font: inherit;
+  color: inherit;
+}
+
+.related-card:hover:not(.is-soldout) {
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.related-card.is-soldout {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.related-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-hover, var(--color-gray-200));
+  border-radius: var(--radius-md, 0.5rem);
+  overflow: hidden;
+}
+
+.related-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.related-soldout-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-full, 9999px);
+  letter-spacing: 0.04em;
+}
+
+.related-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.2em;
+  line-height: 1.1;
+}
+
+.related-price {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ----------- Skeleton shimmer for the loading state ----------- */
+.related-card-skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.related-card-skeleton .related-line {
+  height: 10px;
+  border-radius: 4px;
+  background: var(--color-gray-200);
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1.4s ease-in-out infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes shimmer-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ----------- Swap animation (related → current) -----------
+   Triggered by the `is-swapping` class on the scroll container while
+   {@code swapToProduct()} is running. Subtle so it never feels janky. */
+.modal-scroll-content {
+  transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+}
+
+.modal-scroll-content.is-swapping {
+  opacity: 0.35;
+  transform: translateY(4px);
+  pointer-events: none;
+}
+
+/* Mobile: smaller thumbs to fit more in view. */
+@media (max-width: 480px) {
+  .related-card {
+    flex: 0 0 116px;
+  }
+
+  .related-name {
+    font-size: 0.78rem;
+  }
 }

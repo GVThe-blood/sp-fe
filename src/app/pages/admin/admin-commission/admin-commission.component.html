@@ -1,0 +1,298 @@
+<section class="comm-page">
+  <header class="comm-page__header">
+    <div>
+      <h1 class="comm-page__title">Cấu hình hoa hồng</h1>
+      <p class="comm-page__subtitle">
+        Định nghĩa cách hệ thống tính commission trên mỗi đơn hàng. Active config duy nhất tại mỗi thời điểm.
+      </p>
+    </div>
+    @if (activeConfig(); as a) {
+      <article class="comm-active-banner">
+        <div class="comm-active-banner__icon material-icons-outlined">verified</div>
+        <div class="comm-active-banner__body">
+          <span class="comm-active-banner__label">Đang áp dụng</span>
+          <strong class="comm-active-banner__name">{{ a.name }}</strong>
+          <span class="comm-active-banner__detail">
+            {{ typeLabel(a.commissionType) }}
+            @if (a.percentRate) {
+              · {{ formatPercent(a.percentRate) }}
+            }
+            @if (a.flatAmount) {
+              · {{ formatCurrency(a.flatAmount) }}/đơn
+            }
+          </span>
+        </div>
+      </article>
+    } @else {
+      <article class="comm-active-banner comm-active-banner--warning">
+        <div class="comm-active-banner__icon material-icons-outlined">warning</div>
+        <div class="comm-active-banner__body">
+          <span class="comm-active-banner__label">Chưa có cấu hình active</span>
+          <strong class="comm-active-banner__name">Hệ thống fallback 5%</strong>
+          <span class="comm-active-banner__detail">Hãy tạo và kích hoạt 1 cấu hình để áp dụng</span>
+        </div>
+      </article>
+    }
+  </header>
+
+  <div class="comm-grid">
+    <!-- ============ List ============ -->
+    <article class="comm-card comm-card--list">
+      <header class="comm-card__header">
+        <h2 class="comm-card__title">Danh sách cấu hình</h2>
+        <button type="button" class="btn btn--ghost" (click)="resetForm()">
+          <span class="material-icons-outlined">add</span> Tạo mới
+        </button>
+      </header>
+
+      @if (listLoading()) {
+        <div class="comm-loading">Đang tải…</div>
+      } @else if (configs().length === 0) {
+        <div class="comm-empty">
+          Chưa có cấu hình nào. Tạo cấu hình đầu tiên ở khung bên phải để áp dụng cho toàn nền tảng.
+        </div>
+      } @else {
+        <div class="comm-list">
+          @for (c of configs(); track c.configId) {
+            <div
+              class="comm-row"
+              [class.comm-row--active]="c.currentlyEffective"
+              [class.comm-row--inactive]="!c.isActive"
+            >
+              <div class="comm-row__main">
+                <div class="comm-row__title">
+                  <strong>{{ c.name }}</strong>
+                  @if (c.currentlyEffective) {
+                    <span class="comm-badge comm-badge--green">Đang áp dụng</span>
+                  } @else if (c.isActive) {
+                    <span class="comm-badge comm-badge--blue">Active</span>
+                  } @else {
+                    <span class="comm-badge comm-badge--gray">Tắt</span>
+                  }
+                </div>
+                <div class="comm-row__meta">
+                  {{ typeLabel(c.commissionType) }}
+                  @if (c.percentRate != null) {
+                    · {{ formatPercent(c.percentRate) }}
+                  }
+                  @if (c.flatAmount != null) {
+                    · {{ formatCurrency(c.flatAmount) }}
+                  }
+                  @if (c.minCommission != null || c.maxCommission != null) {
+                    · {{ formatCurrency(c.minCommission) }}–{{ formatCurrency(c.maxCommission) }}
+                  }
+                </div>
+                <div class="comm-row__dates">
+                  Hiệu lực: {{ formatDateTime(c.effectiveFrom) }} → {{ formatDateTime(c.effectiveTo) }}
+                </div>
+              </div>
+
+              <div class="comm-row__actions">
+                <button
+                  type="button"
+                  class="btn-icon"
+                  title="Sửa"
+                  (click)="loadForEdit(c)"
+                >
+                  <span class="material-icons-outlined">edit</span>
+                </button>
+                @if (!c.isActive) {
+                  <button
+                    type="button"
+                    class="btn-icon btn-icon--green"
+                    title="Kích hoạt"
+                    (click)="activate(c)"
+                  >
+                    <span class="material-icons-outlined">play_arrow</span>
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="btn-icon btn-icon--orange"
+                    title="Tắt"
+                    (click)="deactivate(c)"
+                  >
+                    <span class="material-icons-outlined">pause</span>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="btn-icon btn-icon--red"
+                  title="Xoá"
+                  (click)="delete(c)"
+                >
+                  <span class="material-icons-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </article>
+
+    <!-- ============ Form ============ -->
+    <article class="comm-card comm-card--form">
+      <header class="comm-card__header">
+        <h2 class="comm-card__title">
+          {{ form().editingId ? 'Sửa cấu hình' : 'Tạo cấu hình mới' }}
+        </h2>
+        @if (form().editingId) {
+          <button type="button" class="btn btn--ghost" (click)="resetForm()">
+            <span class="material-icons-outlined">close</span> Huỷ sửa
+          </button>
+        }
+      </header>
+
+      <form class="comm-form" (submit)="save(); $event.preventDefault()">
+        <label class="form-field">
+          <span class="form-field__label">Tên cấu hình *</span>
+          <input
+            type="text"
+            placeholder="VD: Cấu hình mặc định 5%"
+            [ngModel]="form().name"
+            (ngModelChange)="updateField('name', $event)"
+            name="name"
+            required
+          />
+        </label>
+
+        <label class="form-field">
+          <span class="form-field__label">Mô tả</span>
+          <textarea
+            rows="2"
+            placeholder="Giải thích ngắn gọn cho team vận hành"
+            [ngModel]="form().description"
+            (ngModelChange)="updateField('description', $event)"
+            name="description"
+          ></textarea>
+        </label>
+
+        <div class="form-field">
+          <span class="form-field__label">Loại hoa hồng *</span>
+          <div class="type-picker">
+            @for (t of types; track t.value) {
+              <button
+                type="button"
+                class="type-pill"
+                [class.type-pill--active]="form().commissionType === t.value"
+                (click)="setType(t.value)"
+              >
+                <strong>{{ t.label }}</strong>
+                <span>{{ t.hint }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-row">
+          @if (form().commissionType !== 'FLAT') {
+            <label class="form-field">
+              <span class="form-field__label">
+                Tỉ lệ % {{ form().commissionType === 'HYBRID' ? '*' : '*' }}
+              </span>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="VD: 5.00"
+                [ngModel]="form().percentRate"
+                (ngModelChange)="updateField('percentRate', $event)"
+                name="percentRate"
+              />
+            </label>
+          }
+
+          @if (form().commissionType !== 'PERCENTAGE') {
+            <label class="form-field">
+              <span class="form-field__label">
+                Số tiền cố định (VND) {{ form().commissionType === 'HYBRID' ? '*' : '*' }}
+              </span>
+              <input
+                type="number"
+                step="1000"
+                min="0"
+                placeholder="VD: 3000"
+                [ngModel]="form().flatAmount"
+                (ngModelChange)="updateField('flatAmount', $event)"
+                name="flatAmount"
+              />
+            </label>
+          }
+        </div>
+
+        <div class="form-row">
+          <label class="form-field">
+            <span class="form-field__label">Sàn commission (VND)</span>
+            <input
+              type="number"
+              step="1000"
+              min="0"
+              placeholder="Tuỳ chọn — không bắt buộc"
+              [ngModel]="form().minCommission"
+              (ngModelChange)="updateField('minCommission', $event)"
+              name="minCommission"
+            />
+          </label>
+
+          <label class="form-field">
+            <span class="form-field__label">Trần commission (VND)</span>
+            <input
+              type="number"
+              step="1000"
+              min="0"
+              placeholder="Tuỳ chọn — không bắt buộc"
+              [ngModel]="form().maxCommission"
+              (ngModelChange)="updateField('maxCommission', $event)"
+              name="maxCommission"
+            />
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label class="form-field">
+            <span class="form-field__label">Có hiệu lực từ</span>
+            <input
+              type="datetime-local"
+              [ngModel]="form().effectiveFrom"
+              (ngModelChange)="updateField('effectiveFrom', $event)"
+              name="effectiveFrom"
+            />
+          </label>
+
+          <label class="form-field">
+            <span class="form-field__label">Đến (để trống = vô thời hạn)</span>
+            <input
+              type="datetime-local"
+              [ngModel]="form().effectiveTo"
+              (ngModelChange)="updateField('effectiveTo', $event)"
+              name="effectiveTo"
+            />
+          </label>
+        </div>
+
+        <label class="form-checkbox">
+          <input
+            type="checkbox"
+            [checked]="form().isActive"
+            (change)="updateField('isActive', $any($event.target).checked)"
+            name="isActive"
+          />
+          <span>Kích hoạt ngay (sẽ tự tắt config đang active khác)</span>
+        </label>
+
+        <footer class="comm-form__actions">
+          @if (form().editingId) {
+            <button type="button" class="btn btn--secondary" (click)="resetForm()">
+              Huỷ
+            </button>
+          }
+          <button type="submit" class="btn btn--primary" [disabled]="saving()">
+            <span class="material-icons-outlined">save</span>
+            {{ saving() ? 'Đang lưu…' : (form().editingId ? 'Cập nhật' : 'Tạo cấu hình') }}
+          </button>
+        </footer>
+      </form>
+    </article>
+  </div>
+</section>

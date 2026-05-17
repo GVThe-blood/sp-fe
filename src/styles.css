@@ -1,5 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import './styles/theme.css';
+/* @ngxpert/hot-toast core styles. Without this import the toast container
+ * renders with no positioning rules and stretches full-width on top of the page. */
+@import '@ngxpert/hot-toast/styles.css';
 
 @tailwind base;
 @tailwind components;

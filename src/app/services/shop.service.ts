@@ -12,6 +12,39 @@ export interface Shop {
   totalSold: number;
 }
 
+/**
+ * Mirrors {@code com.theblood.shopservice.dto.response.ShopDetailResponse}.
+ *
+ * <p>Returned by {@code GET /shop/{shopId}} (public) and {@code GET /shop/me}
+ * (authenticated). The same DTO is reused so a shop owner sees their own
+ * profile while customers see the public-facing version.</p>
+ */
+export interface ShopDetail {
+  shopId: string;
+  shopName: string;
+  logo: string | null;
+  introduction: string | null;
+  shopAddress: string | null;
+  city: string | null;
+  province: string | null;
+  /** Numeric on the wire (BigDecimal serialised as JSON number). */
+  avgStar: number | null;
+  totalFeedback: number | null;
+  /** Free-form active hours string, e.g. "07:00 - 22:00". */
+  activeHours: string | null;
+  /** Distance in kilometres — server may not always populate this yet. */
+  distance: number | null;
+  totalProducts: number | null;
+  totalSold: number | null;
+  totalOrders: number | null;
+  phoneNumber: string | null;
+  email: string | null;
+  shopStatus: string | null;
+  isActive: number | null;
+  shopType: string | null;
+  businessType: string | null;
+}
+
 export interface ShopPage {
   content: Shop[];
   pageable: {
@@ -67,6 +100,19 @@ export class ShopService {
    */
   getShopInfo(): Observable<ApiResponse<Shop>> {
     return this.http.get<ApiResponse<Shop>>(`${this.apiUrl}`);
+  }
+
+  /**
+   * Public shop detail endpoint — used by the storefront's shop detail page
+   * when a customer taps a shop card on the homepage.
+   *
+   * <p>Hits {@code GET /shop/{shopId}} which returns the
+   * {@code ShopDetailResponse} payload shape (see {@link ShopDetail}).</p>
+   *
+   * @param shopId - Shop UUID from {@link Shop#shopId}
+   */
+  getShopDetail(shopId: string): Observable<ApiResponse<ShopDetail>> {
+    return this.http.get<ApiResponse<ShopDetail>>(`${this.apiUrl}/${shopId}`);
   }
 
   /**

@@ -1,6 +1,20 @@
-import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  computed,
+  effect,
+  inject,
+  signal
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import {
+  AddressDetailResponse,
+  ProfileApiService
+} from '../../services/profile-api.service';
 
 export interface Address {
   id: string;
@@ -18,6 +32,8 @@ export interface Address {
   styleUrl: './address-modal.component.css'
 })
 export class AddressModalComponent {
+  private profileApi = inject(ProfileApiService);
+
   @Input() isOpen = false;
   @Input() currentAddressId: string | null = null;
   @Output() closeModal = new EventEmitter<void>();
@@ -27,37 +43,37 @@ export class AddressModalComponent {
   selectedAddressId = signal<string | null>(null);
   isClosing = signal(false);
 
-  // Mock addresses data
-  addresses: Address[] = [
-    {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      phone: '0912345678',
-      address: 'Trung Tâm Pha Sơn Vi Tinh Quang Chinh, Quốc Lộ 32, P.Minh Khai, Q.Bắc Từ Liêm, Hà Nội',
-      isDefault: true
-    },
-    {
-      id: '2',
-      name: 'Nguyễn Văn A',
-      phone: '0912345678',
-      address: '123 Đường Láng, Phường Láng Thượng, Quận Đống Đa, Hà Nội',
-      isDefault: false
-    },
-    {
-      id: '3',
-      name: 'Nguyễn Văn A',
-      phone: '0912345678',
-      address: '456 Phố Huế, Phường Bùi Thị Xuân, Quận Hai Bà Trưng, Hà Nội',
-      isDefault: false
-    }
-  ];
+  /**
+   * Source of truth: ProfileApiService.addresses (signal). Convert sang
+   * UI-shape `Address` mỗi khi dữ liệu BE thay đổi.
+   */
+  readonly addressesSignal = computed<Address[]>(() =>
+    this.profileApi.sortedAddresses().map(a => this.toUiAddress(a))
+  );
+
+  /** Backward-compat: getter cho template hiện tại đang `*ngFor="let a of addresses"`. */
+  get addresses(): Address[] {
+    return this.addressesSignal();
+  }
+
+  constructor() {
+    // Mỗi khi modal mở mà chưa có data → load từ BE.
+    effect(() => {
+      if (this.isOpen && this.profileApi.addresses().length === 0) {
+        this.profileApi.loadAddresses().subscribe({ error: () => {} });
+      }
+    });
+  }
 
   ngOnChanges(): void {
     if (this.currentAddressId) {
       this.selectedAddressId.set(this.currentAddressId);
-    } else if (this.addresses.length > 0) {
-      const defaultAddr = this.addresses.find(a => a.isDefault);
-      this.selectedAddressId.set(defaultAddr?.id || this.addresses[0].id);
+    } else {
+      const list = this.addressesSignal();
+      if (list.length > 0) {
+        const def = list.find(a => a.isDefault);
+        this.selectedAddressId.set(def?.id ?? list[0].id);
+      }
     }
   }
 
@@ -70,7 +86,8 @@ export class AddressModalComponent {
   }
 
   onConfirm(): void {
-    const selected = this.addresses.find(a => a.id === this.selectedAddressId());
+    const list = this.addressesSignal();
+    const selected = list.find(a => a.id === this.selectedAddressId());
     if (selected) {
       this.selectAddress.emit(selected);
     }
@@ -94,5 +111,23 @@ export class AddressModalComponent {
     if (event.target === event.currentTarget) {
       this.close();
     }
+  }
+
+  // ============= helpers =============
+
+  private toUiAddress(a: AddressDetailResponse): Address {
+    return {
+      id: a.id,
+      name: a.recipientName,
+      phone: a.phoneNumber,
+      address: this.formatAddress(a),
+      isDefault: a.isDefault
+    };
+  }
+
+  private formatAddress(a: AddressDetailResponse): string {
+    return [a.details, a.streetAddress, a.ward, a.district, a.city]
+      .filter(s => !!s && s!.trim().length > 0)
+      .join(', ');
   }
 }

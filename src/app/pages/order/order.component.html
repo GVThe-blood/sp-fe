@@ -109,12 +109,27 @@
               <div class="flex-1 min-w-0">
                 <p class="font-semibold order-text">{{ item.name }}</p>
                 <p class="text-sm order-text-muted truncate">{{ item.options }}</p>
-                <button 
-                  (click)="editItem(item, i)"
-                  class="text-primary text-sm font-semibold hover:text-primary-hover transition-colors mt-1"
-                >
-                  Chỉnh sửa món
-                </button>
+                <div class="flex items-center gap-2 mt-1 flex-wrap">
+                  <button 
+                    (click)="editItem(item, i)"
+                    class="text-primary text-sm font-semibold hover:text-primary-hover transition-colors"
+                  >
+                    Chỉnh sửa món
+                  </button>
+                  <span
+                    *ngIf="item.discountPercent && item.discountPercent > 0"
+                    class="text-[11px] px-1.5 py-0.5 rounded bg-orange-500 text-white font-semibold"
+                  >
+                    -{{ item.discountPercent }}%
+                  </span>
+                  <span
+                    *ngIf="item.promotionName"
+                    class="text-[11px] text-orange-600 italic truncate max-w-[140px]"
+                    [title]="item.promotionName"
+                  >
+                    {{ item.promotionName }}
+                  </span>
+                </div>
               </div>
               
               <!-- Quantity - vertically centered -->
@@ -312,8 +327,23 @@
           <div class="space-y-3 text-sm">
             <div class="flex justify-between">
               <span class="summary-text-secondary">Tạm tính ({{ itemCount() }} phần)</span>
-              <span class="summary-text">{{ formatPrice(subtotal()) }}</span>
+              <span class="summary-text">
+                <span *ngIf="productSaleDiscount() > 0" class="summary-text-muted line-through text-xs mr-2">
+                  {{ formatPrice(originalSubtotal()) }}
+                </span>
+                {{ formatPrice(subtotal()) }}
+              </span>
             </div>
+
+            <!-- Sale (giảm giá tự động trên sản phẩm) -->
+            <div *ngIf="productSaleDiscount() > 0" class="flex justify-between text-orange-600">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">local_offer</span>
+                Khuyến mãi sản phẩm
+              </span>
+              <span>-{{ formatPrice(productSaleDiscount()) }}</span>
+            </div>
+
             <div class="flex justify-between">
               <div class="flex items-center gap-1">
                 <span class="summary-text-secondary">Phí áp dụng</span>
@@ -322,7 +352,7 @@
               <span class="summary-text">{{ formatPrice(deliveryFee()) }}</span>
             </div>
             
-            <!-- Applied Promos -->
+            <!-- Applied Promos (mã KM do user nhập) -->
             <div *ngFor="let promo of appliedPromoCodes()" class="flex justify-between text-green-600">
               <span class="truncate max-w-[180px]">{{ promo.title }}</span>
               <span>-{{ formatPrice(calculatePromoDiscount(promo)) }}</span>
@@ -334,7 +364,7 @@
             <div class="flex justify-between items-center">
               <span class="font-bold summary-title">Tổng số tiền</span>
               <div class="text-right">
-                <span *ngIf="totalDiscount() > 0" class="summary-text-muted line-through text-sm mr-2">
+                <span *ngIf="hasAnySavings()" class="summary-text-muted line-through text-sm mr-2">
                   {{ formatPrice(originalTotal()) }}
                 </span>
                 <span class="font-bold text-lg summary-title">{{ formatPrice(total()) }}</span>

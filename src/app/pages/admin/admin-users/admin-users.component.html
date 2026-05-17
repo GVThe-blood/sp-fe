@@ -1,0 +1,430 @@
+<div class="page-header">
+  <div>
+    <h2>Quản lý Người dùng</h2>
+    <p>Tổng quan, ban/unban, quản lý vai trò của người dùng</p>
+  </div>
+</div>
+
+<!-- ===== Stats cards ===== -->
+<div class="stats-grid">
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">group</span>Tổng users</span>
+    <span class="value">{{ formatNumber(stats()?.totalUsers ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">check_circle</span>Active</span>
+    <span class="value">{{ formatNumber(stats()?.activeUsers ?? 0) }}</span>
+  </div>
+  <div class="stat-card red">
+    <span class="label"><span class="material-symbols-outlined">block</span>Đã ban</span>
+    <span class="value">{{ formatNumber(stats()?.bannedUsers ?? 0) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">storefront</span>Shop owners</span>
+    <span class="value">{{ formatNumber(stats()?.shopOwners ?? 0) }}</span>
+  </div>
+  <div class="stat-card purple">
+    <span class="label"><span class="material-symbols-outlined">shield_person</span>Admins</span>
+    <span class="value">{{ formatNumber(stats()?.admins ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">verified</span>Mới 30 ngày</span>
+    <span class="value">{{ formatNumber(stats()?.newUsersLast30 ?? 0) }}</span>
+  </div>
+</div>
+
+<!-- ===== Filters ===== -->
+<div class="filters">
+  <label class="search-input" style="max-width: 480px;">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo username, email, họ tên, số điện thoại, userId…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">filter_list</span>
+    <select [value]="statusFilter()" (change)="onStatusFilter($any($event.target).value)">
+      <option value="all">Mọi trạng thái</option>
+      <option value="ACTIVE">Active</option>
+      <option value="INACTIVE">Inactive</option>
+      <option value="BANNED">Banned</option>
+    </select>
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">badge</span>
+    <select [value]="roleFilter()" (change)="onRoleFilter($any($event.target).value)">
+      <option value="all">Mọi vai trò</option>
+      <option value="ADMIN">Admin</option>
+      <option value="SHOP_OWNER">Shop owner</option>
+      <option value="STAFF">Staff</option>
+      <option value="CUSTOMER">Customer</option>
+    </select>
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- ===== Table ===== -->
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="min-width: 220px;">Người dùng</th>
+        <th>Email / SĐT</th>
+        <th>Vai trò</th>
+        <th class="num">Đơn</th>
+        <th class="num">Chi tiêu</th>
+        <th>Shop</th>
+        <th>Trạng thái</th>
+        <th style="width: 160px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 30%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (items().length === 0) {
+        <tr>
+          <td colspan="8">
+            <div class="empty">Không có người dùng nào khớp bộ lọc.</div>
+          </td>
+        </tr>
+      } @else {
+        @for (user of items(); track user.userId) {
+          <tr>
+            <td>
+              <div class="cell-user">
+                <div class="avatar">{{ initials(user) }}</div>
+                <div>
+                  <div class="username">
+                    {{ user.username || '(no-username)' }}
+                    @if (user.emailVerified || user.phoneVerified) {
+                      <span class="verified-badge" title="Đã xác thực">
+                        <span class="material-symbols-outlined">verified</span>
+                      </span>
+                    }
+                  </div>
+                  <div class="name">{{ fullName(user) || '—' }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>{{ user.email || '—' }}</div>
+              <div style="color:#717a68; font-size:11px;">{{ user.phone || '—' }}</div>
+            </td>
+            <td>
+              <div class="role-chips">
+                @for (role of user.roles; track role) {
+                  <span class="role-chip" [ngClass]="roleClass(role)">{{ role }}</span>
+                }
+              </div>
+            </td>
+            <td class="num">{{ formatNumber(user.totalOrders) }}</td>
+            <td class="num">{{ formatVndShort(user.totalSpent) }}</td>
+            <td>
+              @if (user.hasShop) {
+                <span class="role-chip shop">Có shop</span>
+              } @else {
+                <span style="color:#717a68;">—</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusClass(user.status)">
+                {{ statusLabel(user.status) }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Xem chi tiết"
+                  (click)="openDetail(user)"
+                >
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                @if (user.status === 'BANNED') {
+                  <button
+                    type="button"
+                    class="icon-btn success"
+                    title="Bỏ ban"
+                    (click)="unban(user)"
+                    [disabled]="busyId() === user.userId"
+                  >
+                    <span class="material-symbols-outlined">check_circle</span>
+                  </button>
+                } @else {
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    title="Ban user"
+                    (click)="openBan(user)"
+                    [disabled]="busyId() === user.userId || isAdmin(user)"
+                  >
+                    <span class="material-symbols-outlined">block</span>
+                  </button>
+                }
+                <button
+                  type="button"
+                  class="icon-btn warn"
+                  title="Xoá user"
+                  (click)="confirmDelete(user)"
+                  [disabled]="busyId() === user.userId || isAdmin(user)"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages() > 0 && !isLoading()) {
+    <div class="pagination">
+      <span class="summary">
+        Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}
+      </span>
+      <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+        <span class="material-symbols-outlined">chevron_left</span>
+        Trước
+      </button>
+      <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Sau
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- ===== Detail modal ===== -->
+@if (detailModal(); as user) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ user.username || 'User #' + user.userId.slice(0, 8) }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (user.status === 'BANNED' && user.bannedReason) {
+          <div class="ban-warning">
+            <strong>Đã bị ban</strong> bởi <em>{{ user.bannedBy }}</em> lúc
+            {{ formatDate(user.bannedAt) }}.
+            <div style="margin-top: 6px;">Lý do: {{ user.bannedReason }}</div>
+          </div>
+        }
+
+        <div class="detail-section-title first">Định danh</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">User ID</span>
+            <span class="value" style="font-family: ui-monospace, Menlo, monospace;">{{ user.userId }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Username</span>
+            <span class="value">{{ user.username || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Họ tên</span>
+            <span class="value">{{ fullName(user) || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Trạng thái</span>
+            <span class="value">
+              <span class="badge" [ngClass]="statusClass(user.status)">{{ statusLabel(user.status) }}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Vai trò</div>
+        <div class="roles-section">
+          <div class="roles-list">
+            @if (user.roles.length === 0) {
+              <span style="color:#717a68; font-size:12px;">Chưa có vai trò nào.</span>
+            }
+            @for (role of user.roles; track role) {
+              <span class="role-chip" [ngClass]="roleClass(role)">
+                {{ role }}
+                @if (user.roles.length > 1 && !isAdminRole(role)) {
+                  <button
+                    type="button"
+                    title="Thu hồi vai trò"
+                    (click)="confirmRevokeRole(user, role)"
+                    [disabled]="busyId() === user.userId"
+                  >
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                }
+              </span>
+            }
+          </div>
+          <div class="add-role-bar">
+            <select [value]="newRole()" (change)="newRole.set($any($event.target).value)">
+              <option value="">+ Gán thêm vai trò</option>
+              @for (r of assignableRoles(user); track r) {
+                <option [value]="r">{{ r }}</option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="assignRole(user)"
+              [disabled]="!newRole() || busyId() === user.userId"
+            >
+              <span class="material-symbols-outlined">add</span>
+              Gán
+            </button>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Liên hệ & Xác thực</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Email</span>
+            <span class="value">
+              {{ user.email || '—' }}
+              @if (user.emailVerified) {
+                <span class="verified-badge" style="margin-left: 6px;">
+                  <span class="material-symbols-outlined">verified</span>verified
+                </span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Số điện thoại</span>
+            <span class="value">
+              {{ user.phone || '—' }}
+              @if (user.phoneVerified) {
+                <span class="verified-badge" style="margin-left: 6px;">
+                  <span class="material-symbols-outlined">verified</span>verified
+                </span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Giới tính</span>
+            <span class="value">{{ user.gender || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Login lần cuối</span>
+            <span class="value">{{ formatDate(user.lastLoginAt) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Hoạt động</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Đơn hoàn tất</span>
+            <span class="value">{{ formatNumber(user.totalOrders) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tổng chi tiêu</span>
+            <span class="value">{{ formatVnd(user.totalSpent) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Sở hữu shop?</span>
+            <span class="value">
+              @if (user.hasShop) {
+                <span style="font-family: ui-monospace, Menlo, monospace; font-size: 12px;">
+                  {{ user.ownedShopId }}
+                </span>
+              } @else {
+                <span style="color:#717a68;">Không</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Ngày đăng ký</span>
+            <span class="value">{{ formatDate(user.createdAt) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        @if (user.status !== 'BANNED' && !isAdmin(user)) {
+          <button type="button" class="btn-primary danger" (click)="openBan(user)">
+            <span class="material-symbols-outlined">block</span>
+            Ban user
+          </button>
+        } @else if (user.status === 'BANNED') {
+          <button type="button" class="btn-primary" (click)="unban(user)" [disabled]="busyId() === user.userId">
+            <span class="material-symbols-outlined">check_circle</span>
+            Bỏ ban
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Ban modal ===== -->
+@if (banModal(); as user) {
+  <div class="modal-backdrop" (click)="closeBan()">
+    <div class="modal" style="max-width: 520px;" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Ban user "{{ user.username }}"</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeBan()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); submitBan()">
+        <div class="modal-body">
+          <div class="ban-warning">
+            <strong>Cảnh báo:</strong> User bị ban sẽ không đăng nhập được. Lý do sẽ
+            được lưu vào audit log và có thể hiển thị cho user.
+          </div>
+
+          <div class="field danger">
+            <label for="ban-reason">Lý do <span style="color:#ba1a1a">*</span></label>
+            <textarea
+              id="ban-reason"
+              rows="5"
+              [value]="banReason()"
+              (input)="onBanReasonChange($any($event.target).value)"
+              placeholder="Vd: Vi phạm chính sách cộng đồng, gian lận giao dịch…"
+            ></textarea>
+            <span class="field-hint">Tối thiểu 8 ký tự.</span>
+          </div>
+          @if (banError(); as e) {
+            <span class="field-error">{{ e }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeBan()" [disabled]="busyId()">Huỷ</button>
+          <button type="submit" class="btn-primary danger" [disabled]="busyId()">
+            <span class="material-symbols-outlined">block</span>
+            {{ busyId() ? 'Đang xử lý…' : 'Xác nhận ban' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

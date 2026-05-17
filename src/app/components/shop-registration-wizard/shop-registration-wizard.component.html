@@ -1,0 +1,280 @@
+<div class="wizard-backdrop" (click)="close()">
+  <div class="wizard-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+    <!-- Header -->
+    <header class="wizard-header">
+      <div>
+        <p class="wizard-eyebrow">Đăng ký cửa hàng</p>
+        <h2 class="wizard-title">Bước {{ step() }}/4 — {{ stepLabel() }}</h2>
+      </div>
+      <button type="button" class="wizard-close" (click)="close()" aria-label="Đóng">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <!-- Progress -->
+    <div class="wizard-progress">
+      <div class="wizard-progress-bar" [style.width.%]="progress()"></div>
+    </div>
+
+    <!-- Body -->
+    <div class="wizard-body">
+      <!-- ============== STEP 1 — Basic info ============== -->
+      @if (step() === 1) {
+        <form [formGroup]="step1Form" (ngSubmit)="submitStep1()" class="wizard-form">
+          <label class="form-field">
+            <span class="form-label">Tên cửa hàng <span class="required">*</span></span>
+            <input type="text" formControlName="shopName" maxlength="255" placeholder="VD: SpringFarm Mart" />
+            @if (step1Form.get('shopName')?.touched && step1Form.get('shopName')?.invalid) {
+              <span class="form-error">Tên cửa hàng là bắt buộc</span>
+            }
+          </label>
+
+          <fieldset class="form-field">
+            <legend class="form-label">Loại hình <span class="required">*</span></legend>
+            <div class="option-grid">
+              @for (opt of shopTypes; track opt.value) {
+                <label class="option-card" [class.selected]="step1Form.get('shopType')?.value === opt.value">
+                  <input type="radio" formControlName="shopType" [value]="opt.value" />
+                  <span class="material-symbols-outlined option-icon">{{ opt.icon }}</span>
+                  <span class="option-label">{{ opt.label }}</span>
+                  <span class="option-desc">{{ opt.description }}</span>
+                </label>
+              }
+            </div>
+          </fieldset>
+
+          <fieldset class="form-field">
+            <legend class="form-label">Ngành hàng chính <span class="required">*</span></legend>
+            <div class="chip-grid">
+              @for (cat of businessCategories; track cat.value) {
+                <label class="chip" [class.selected]="step1Form.get('businessType')?.value === cat.value">
+                  <input type="radio" formControlName="businessType" [value]="cat.value" />
+                  <span class="material-symbols-outlined">{{ cat.icon }}</span>
+                  {{ cat.label }}
+                </label>
+              }
+            </div>
+            @if (step1Form.get('businessType')?.touched && step1Form.get('businessType')?.invalid) {
+              <span class="form-error">Vui lòng chọn ngành hàng</span>
+            }
+          </fieldset>
+
+          <label class="form-field">
+            <span class="form-label">Giới thiệu ngắn</span>
+            <textarea formControlName="introduction" rows="3" maxlength="2000"
+              placeholder="Một vài dòng để khách biết về cửa hàng của bạn"></textarea>
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Logo (URL ảnh) <span class="form-hint">— có thể bổ sung sau</span></span>
+            <input type="url" formControlName="logoMediaId" placeholder="https://… hoặc media-id" />
+          </label>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-text" (click)="close()">Để sau</button>
+            <button type="submit" class="btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="material-symbols-outlined spin">progress_activity</span>
+              }
+              Tiếp tục
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- ============== STEP 2 — KYC ============== -->
+      @if (step() === 2) {
+        <form [formGroup]="step2Form" (ngSubmit)="submitStep2()" class="wizard-form">
+          <div class="info-banner">
+            <span class="material-symbols-outlined">info</span>
+            <p>Tải ảnh CCCD/giấy tờ chưa khả dụng — tạm thời điền ID hoặc URL nếu có, hoặc bỏ qua bước này.</p>
+          </div>
+
+          <h3 class="section-title">Thông tin cá nhân</h3>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">Số CCCD <span class="required">*</span></span>
+              <input type="text" formControlName="idNumber" maxlength="12" placeholder="12 chữ số" />
+              @if (step2Form.get('idNumber')?.touched && step2Form.get('idNumber')?.errors?.['pattern']) {
+                <span class="form-error">CCCD phải đúng 12 chữ số</span>
+              }
+            </label>
+            <label class="form-field">
+              <span class="form-label">Họ và tên <span class="required">*</span></span>
+              <input type="text" formControlName="fullName" maxlength="100" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Ngày sinh <span class="required">*</span></span>
+              <input type="date" formControlName="dateOfBirth" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Giới tính</span>
+              <select formControlName="gender">
+                <option value="MALE">Nam</option>
+                <option value="FEMALE">Nữ</option>
+                <option value="OTHER">Khác</option>
+              </select>
+            </label>
+            <label class="form-field form-field--full">
+              <span class="form-label">Nơi thường trú</span>
+              <input type="text" formControlName="permanentAddress" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Ngày cấp</span>
+              <input type="date" formControlName="issuedDate" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Nơi cấp</span>
+              <input type="text" formControlName="issuedPlace" />
+            </label>
+          </div>
+
+          <h3 class="section-title">Ảnh giấy tờ <span class="form-hint">(URL/Media ID — tải ảnh sẽ thêm sau)</span></h3>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">CCCD mặt trước</span>
+              <input type="text" formControlName="frontImageMediaId" placeholder="URL hoặc media-id" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">CCCD mặt sau</span>
+              <input type="text" formControlName="backImageMediaId" placeholder="URL hoặc media-id" />
+            </label>
+            <label class="form-field form-field--full">
+              <span class="form-label">Ảnh selfie</span>
+              <input type="text" formControlName="selfieMediaId" placeholder="URL hoặc media-id" />
+            </label>
+          </div>
+
+          @if (requiresBusinessDoc()) {
+            <h3 class="section-title">Giấy tờ doanh nghiệp <span class="required">*</span></h3>
+            <div class="form-grid">
+              <label class="form-field">
+                <span class="form-label">Tên hộ KD / Công ty</span>
+                <input type="text" formControlName="companyName" maxlength="255" />
+              </label>
+              <label class="form-field">
+                <span class="form-label">Số đăng ký KD / MST</span>
+                <input type="text" formControlName="businessRegNumber" maxlength="100" />
+              </label>
+              <label class="form-field form-field--full">
+                <span class="form-label">Ảnh giấy phép KD</span>
+                <input type="text" formControlName="licenseMediaId" placeholder="URL hoặc media-id" />
+              </label>
+              <label class="form-field form-field--full">
+                <span class="form-label">Địa chỉ đăng ký</span>
+                <input type="text" formControlName="companyAddress" />
+              </label>
+            </div>
+          }
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-text" (click)="goBack()">Quay lại</button>
+            <button type="button" class="btn-secondary" (click)="skipStep2()">Bỏ qua</button>
+            <button type="submit" class="btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="material-symbols-outlined spin">progress_activity</span>
+              }
+              Tiếp tục
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- ============== STEP 3 — Contact + Address ============== -->
+      @if (step() === 3) {
+        <form [formGroup]="step3Form" (ngSubmit)="submitStep3()" class="wizard-form">
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">Email liên hệ <span class="required">*</span></span>
+              <input type="email" formControlName="email" maxlength="100" placeholder="shop@example.com" />
+              @if (step3Form.get('email')?.touched && step3Form.get('email')?.invalid) {
+                <span class="form-error">Email không hợp lệ</span>
+              }
+            </label>
+            <label class="form-field">
+              <span class="form-label">Số điện thoại <span class="required">*</span></span>
+              <input type="tel" formControlName="phoneNumber" maxlength="50" placeholder="0901234567" />
+            </label>
+            <label class="form-field form-field--full">
+              <span class="form-label">Địa chỉ kho/lấy hàng <span class="required">*</span></span>
+              <input type="text" formControlName="shopAddress" maxlength="255" placeholder="Số nhà, đường…" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Quận/Huyện <span class="required">*</span></span>
+              <input type="text" formControlName="city" maxlength="50" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Tỉnh/Thành <span class="required">*</span></span>
+              <input type="text" formControlName="province" maxlength="50" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Mã bưu điện</span>
+              <input type="text" formControlName="postalCode" maxlength="50" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Quốc gia</span>
+              <input type="text" formControlName="nationId" maxlength="50" />
+            </label>
+            <label class="form-field form-field--full">
+              <span class="form-label">Giờ hoạt động</span>
+              <input type="text" formControlName="activeHours" placeholder="VD: 7:00 — 21:00 hàng ngày" />
+            </label>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-text" (click)="goBack()">Quay lại</button>
+            <button type="submit" class="btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="material-symbols-outlined spin">progress_activity</span>
+              }
+              Tiếp tục
+            </button>
+          </div>
+        </form>
+      }
+
+      <!-- ============== STEP 4 — Tax + Bank ============== -->
+      @if (step() === 4) {
+        <form [formGroup]="step4Form" (ngSubmit)="submitStep4(false)" class="wizard-form">
+          <div class="info-banner">
+            <span class="material-symbols-outlined">info</span>
+            <p>Bạn có thể bổ sung thuế và tài khoản nhận tiền sau khi cửa hàng được duyệt.</p>
+          </div>
+
+          <label class="form-field">
+            <span class="form-label">Mã số thuế</span>
+            <input type="text" formControlName="taxId" maxlength="50" placeholder="10–13 chữ số" />
+          </label>
+
+          <h3 class="section-title">Tài khoản ngân hàng <span class="form-hint">— tùy chọn</span></h3>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">Tên ngân hàng</span>
+              <input type="text" formControlName="bankName" maxlength="100" placeholder="VD: Vietcombank" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Số tài khoản</span>
+              <input type="text" formControlName="accountNumber" maxlength="50" />
+            </label>
+            <label class="form-field form-field--full">
+              <span class="form-label">Chủ tài khoản</span>
+              <input type="text" formControlName="accountHolderName" maxlength="255"
+                placeholder="Phải khớp với CCCD" />
+            </label>
+          </div>
+
+          <div class="wizard-actions">
+            <button type="button" class="btn-text" (click)="goBack()">Quay lại</button>
+            <button type="button" class="btn-secondary" (click)="skipStep4()" [disabled]="submitting()">Hoàn tất sau</button>
+            <button type="submit" class="btn-primary" [disabled]="submitting()">
+              @if (submitting()) {
+                <span class="material-symbols-outlined spin">progress_activity</span>
+              }
+              Gửi yêu cầu
+            </button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+</div>

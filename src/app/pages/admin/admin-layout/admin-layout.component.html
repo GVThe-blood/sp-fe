@@ -1,0 +1,33 @@
+<div class="admin-shell">
+  <!-- Sidebar (desktop fixed; mobile slides in) -->
+  <aside
+    class="admin-sidebar"
+    [class.open]="sidebarOpen()"
+  >
+    <app-admin-sidebar (linkClicked)="closeSidebar()" />
+  </aside>
+
+  <!-- Mobile backdrop -->
+  @if (sidebarOpen()) {
+    <button
+      type="button"
+      class="admin-backdrop"
+      aria-label="Đóng menu"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  <!-- Main column -->
+  <div class="admin-main">
+    <app-admin-topbar
+      [user]="currentUser()"
+      (toggleSidebar)="toggleSidebar()"
+      (logout)="logout()"
+      (switchMode)="switchMode()"
+    />
+
+    <main class="admin-content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

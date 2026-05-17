@@ -1,0 +1,270 @@
+<div class="page-header">
+  <div>
+    <h2>Quản lý Danh mục</h2>
+    <p>Quản lý danh mục hệ thống và danh mục riêng của từng shop</p>
+  </div>
+
+  <button type="button" class="btn-primary" (click)="openCreateModal()">
+    <span class="material-symbols-outlined">add</span>
+    Thêm danh mục
+  </button>
+</div>
+
+<!-- Filters -->
+<div class="filters">
+  <label class="search-input">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo tên hoặc slug…"
+      [value]="search()"
+      (input)="onSearch($any($event.target).value)"
+    />
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">filter_list</span>
+    <select [value]="ownerFilter()" (change)="onOwnerFilter($any($event.target).value)">
+      <option value="all">Tất cả</option>
+      <option value="system">Hệ thống</option>
+      <option value="shop">Của shop</option>
+    </select>
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">visibility</span>
+    <select [value]="statusFilter()" (change)="onStatusFilter($any($event.target).value)">
+      <option value="all">Mọi trạng thái</option>
+      <option value="active">Đang hoạt động</option>
+      <option value="inactive">Đã tắt</option>
+    </select>
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- Table -->
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 28%;">Tên</th>
+        <th>Mô tả</th>
+        <th style="width: 110px;">Loại</th>
+        <th style="width: 130px;">Trạng thái</th>
+        <th style="width: 130px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 80%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (filtered().length === 0) {
+        <tr>
+          <td colspan="5">
+            <div class="empty">
+              @if (categories().length === 0) {
+                <span>Chưa có danh mục nào. Hãy thêm danh mục đầu tiên.</span>
+              } @else {
+                <span>Không có danh mục khớp bộ lọc.</span>
+              }
+            </div>
+          </td>
+        </tr>
+      } @else {
+        @for (cat of filtered(); track cat.name) {
+          <tr>
+            <td>
+              <div class="cell-name">
+                <strong>{{ cat.name }}</strong>
+                <code>{{ cat.slug }}</code>
+              </div>
+            </td>
+            <td>
+              <div class="cell-desc">{{ cat.description || '—' }}</div>
+            </td>
+            <td>
+              @if (cat.shopId) {
+                <span class="badge shop">Shop</span>
+              } @else {
+                <span class="badge system">Hệ thống</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [class.active]="cat.isActive" [class.inactive]="!cat.isActive">
+                {{ cat.isActive ? 'Đang bật' : 'Đã tắt' }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Chỉnh sửa"
+                  (click)="openEditModal(cat)"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  [title]="cat.isActive ? 'Tắt' : 'Bật'"
+                  (click)="toggleActive(cat)"
+                >
+                  <span class="material-symbols-outlined">
+                    {{ cat.isActive ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn danger"
+                  title="Xoá"
+                  (click)="confirmDelete(cat)"
+                >
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+@if (modalOpen()) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingName() ? 'Chỉnh sửa danh mục' : 'Tạo danh mục mới' }}</h3>
+        <button type="button" class="modal-close" (click)="closeModal()" aria-label="Đóng">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); save()">
+        <div class="modal-body">
+          <div class="field">
+            <label for="cat-name">Tên danh mục <span style="color:#ba1a1a">*</span></label>
+            <input
+              id="cat-name"
+              type="text"
+              required
+              [value]="form.name"
+              (input)="onFormField('name', $any($event.target).value)"
+              [disabled]="!!editingName()"
+              placeholder="vd: Đồ uống"
+            />
+            @if (editingName()) {
+              <span class="field-hint">Không thể đổi tên (là khoá chính). Tạo danh mục mới nếu cần đổi tên.</span>
+            }
+          </div>
+
+          <div class="field">
+            <label for="cat-slug">Slug <span style="color:#ba1a1a">*</span></label>
+            <input
+              id="cat-slug"
+              type="text"
+              required
+              [value]="form.slug"
+              (input)="onFormField('slug', $any($event.target).value)"
+              placeholder="vd: do-uong"
+            />
+            <span class="field-hint">Phải duy nhất. Auto-generate khi để trống lúc tạo.</span>
+          </div>
+
+          <div class="field">
+            <label for="cat-desc">Mô tả</label>
+            <textarea
+              id="cat-desc"
+              rows="3"
+              [value]="form.description"
+              (input)="onFormField('description', $any($event.target).value)"
+              placeholder="Mô tả ngắn gọn về danh mục"
+            ></textarea>
+          </div>
+
+          <div class="field">
+            <label for="cat-parent">Danh mục cha</label>
+            <select
+              id="cat-parent"
+              [value]="form.parentName"
+              (change)="onFormField('parentName', $any($event.target).value)"
+            >
+              <option value="">(Không có)</option>
+              @for (other of selectableParents(); track other.name) {
+                <option [value]="other.name">{{ other.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="cat-group">Mã nhóm (group code)</label>
+            <input
+              id="cat-group"
+              type="text"
+              [value]="form.categoryGroupCode"
+              (input)="onFormField('categoryGroupCode', $any($event.target).value)"
+              placeholder="Tuỳ chọn — vd: FOOD, DRINK"
+            />
+          </div>
+
+          <div class="field">
+            <label for="cat-owner">Loại sở hữu</label>
+            <select
+              id="cat-owner"
+              [value]="form.ownerType"
+              (change)="onFormField('ownerType', $any($event.target).value)"
+            >
+              <option value="system">Hệ thống (dùng chung mọi shop)</option>
+              <option value="shop">Của một shop cụ thể</option>
+            </select>
+            <span class="field-hint">Admin có thể tạo danh mục hệ thống hoặc gán cho 1 shop.</span>
+          </div>
+
+          @if (form.ownerType === 'shop') {
+            <div class="field">
+              <label for="cat-shop-id">Shop ID (UUID)</label>
+              <input
+                id="cat-shop-id"
+                type="text"
+                [value]="form.shopId"
+                (input)="onFormField('shopId', $any($event.target).value)"
+                placeholder="vd: 7e2bfb01-..."
+              />
+              <span class="field-hint">Phải là UUID hợp lệ của shop. Để trống → biến thành danh mục hệ thống.</span>
+            </div>
+          }
+
+          @if (formError(); as fe) {
+            <span class="field-error">{{ fe }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="saving()">
+            Huỷ
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            <span class="material-symbols-outlined">save</span>
+            {{ saving() ? 'Đang lưu…' : 'Lưu' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

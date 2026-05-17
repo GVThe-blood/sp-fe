@@ -92,7 +92,8 @@ export class ProfitChartComponent {
             padding: 12,
             displayColors: false,
             callbacks: {
-              label: (context: any) => `$${context.raw}`
+              label: (context: any) =>
+                `${new Intl.NumberFormat('vi-VN').format(context.raw ?? 0)} ₫`
             }
           }
         },

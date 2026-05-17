@@ -1,0 +1,413 @@
+<div class="page-header">
+  <div>
+    <h2>Tài nguyên AI · Knowledge Base</h2>
+    <p>Quản lý kho tri thức RAG dùng cho chatbot. Upload tài liệu, sync dữ liệu, test query semantic.</p>
+  </div>
+</div>
+
+<!-- Stats cards -->
+<div class="stats-grid">
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">menu_book</span>Documents</span>
+    <span class="value">{{ formatNumber(stats()?.totalDocuments ?? 0) }}</span>
+  </div>
+  <div class="stat-card purple">
+    <span class="label"><span class="material-symbols-outlined">data_object</span>Total chunks</span>
+    <span class="value">{{ formatNumber(stats()?.totalChunks ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">check_circle</span>Active</span>
+    <span class="value">{{ formatNumber(stats()?.activeDocuments ?? 0) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">update</span>Cập nhật cuối</span>
+    <span class="value" style="font-size: 14px;">{{ formatLatest(stats()?.latestUpdatedAt) }}</span>
+  </div>
+</div>
+
+<!-- Quick sync row -->
+<div class="quick-sync">
+  <h3><span class="material-symbols-outlined">sync</span>Đồng bộ nhanh</h3>
+  <span style="font-size:13px; color:#717a68;">
+    Re-import dữ liệu từ product/shop service vào vector store.
+  </span>
+  <span class="spacer"></span>
+  <button type="button" class="btn-secondary" (click)="runSync('products')" [disabled]="syncing()">
+    <span class="material-symbols-outlined">inventory_2</span>
+    Sync Products
+  </button>
+  <button type="button" class="btn-secondary" (click)="runSync('shops')" [disabled]="syncing()">
+    <span class="material-symbols-outlined">storefront</span>
+    Sync Shops
+  </button>
+  <button type="button" class="btn-primary warm" (click)="runSync('all')" [disabled]="syncing()">
+    <span class="material-symbols-outlined">sync</span>
+    {{ syncing() ? 'Đang đồng bộ…' : 'Sync Tất cả' }}
+  </button>
+</div>
+
+<!-- Tabs -->
+<div class="tabs" role="tablist">
+  <button type="button" role="tab" [class.active]="tab() === 'documents'" (click)="tab.set('documents')">
+    <span class="material-symbols-outlined">description</span>Documents
+  </button>
+  <button type="button" role="tab" [class.active]="tab() === 'upload'" (click)="tab.set('upload')">
+    <span class="material-symbols-outlined">upload_file</span>Upload
+  </button>
+  <button type="button" role="tab" [class.active]="tab() === 'search'" (click)="tab.set('search')">
+    <span class="material-symbols-outlined">manage_search</span>Test query
+  </button>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- ========================= TAB: DOCUMENTS ============================ -->
+@if (tab() === 'documents') {
+  <div class="filters">
+    <label class="search-input" style="max-width: 480px;">
+      <span class="material-symbols-outlined">search</span>
+      <input
+        type="text"
+        placeholder="Tìm theo tiêu đề, sourceId hoặc nội dung…"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+    </label>
+
+    <label class="select-input">
+      <span class="material-symbols-outlined">filter_list</span>
+      <select [value]="sourceTypeFilter()" (change)="onSourceTypeFilter($any($event.target).value)">
+        <option value="all">Tất cả loại</option>
+        @for (t of allSourceTypes; track t) {
+          <option [value]="t">{{ t }}</option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="min-width: 220px;">Tiêu đề</th>
+          <th>Nội dung (preview)</th>
+          <th>Loại</th>
+          <th class="num">Chunks</th>
+          <th>Cập nhật</th>
+          <th style="width: 110px; text-align: right;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <tr>
+              <td><div class="skeleton" style="width: 70%;"></div></td>
+              <td><div class="skeleton" style="width: 80%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 30%;"></div></td>
+              <td><div class="skeleton" style="width: 50%;"></div></td>
+              <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+            </tr>
+          }
+        } @else if (items().length === 0) {
+          <tr>
+            <td colspan="6">
+              <div class="empty">
+                Chưa có document nào. Hãy upload hoặc dùng "Sync" ở trên.
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (doc of items(); track doc.id) {
+            <tr>
+              <td>
+                <div class="cell-title">
+                  <strong>{{ doc.title }}</strong>
+                  @if (doc.sourceId) {
+                    <small>{{ doc.sourceId.slice(0, 16) }}{{ doc.sourceId.length > 16 ? '…' : '' }}</small>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="preview">{{ doc.contentPreview || '—' }}</div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="badgeClass(doc.sourceType)">{{ doc.sourceType }}</span>
+              </td>
+              <td class="num">{{ formatNumber(doc.chunkCount ?? 0) }}</td>
+              <td>{{ formatDate(doc.updatedAt) }}</td>
+              <td style="text-align: right;">
+                <div class="row-actions">
+                  <button type="button" class="icon-btn" title="Xem chi tiết" (click)="openDetail(doc)">
+                    <span class="material-symbols-outlined">visibility</span>
+                  </button>
+                  <button type="button" class="icon-btn danger" title="Xoá" (click)="confirmDelete(doc)" [disabled]="busyId() === doc.id">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    @if (totalPages() > 0 && !isLoading()) {
+      <div class="pagination">
+        <span class="summary">Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}</span>
+        <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+          <span class="material-symbols-outlined">chevron_left</span>Trước
+        </button>
+        <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+        <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+          Sau<span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<!-- ========================= TAB: UPLOAD ============================== -->
+@if (tab() === 'upload') {
+  <div class="upload-grid">
+    <!-- Card Text -->
+    <div class="upload-card">
+      <h3>
+        <span class="material-symbols-outlined">notes</span>
+        Upload Text
+      </h3>
+      <p style="font-size:13px; color:#717a68; margin: 0 0 12px;">
+        Nhập trực tiếp văn bản (FAQ, chính sách, mô tả tổng quát).
+      </p>
+
+      <div class="field">
+        <label for="t-title">Tiêu đề <span style="color:#ba1a1a">*</span></label>
+        <input id="t-title" type="text" [value]="textForm.title" (input)="onTextField('title', $any($event.target).value)" placeholder="Vd: Chính sách đổi trả" />
+      </div>
+      <div class="field">
+        <label for="t-source-type">Loại</label>
+        <select id="t-source-type" [value]="textForm.sourceType" (change)="onTextField('sourceType', $any($event.target).value)">
+          @for (t of allSourceTypes; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="t-source-id">Source ID <span style="color:#ba1a1a">*</span></label>
+        <input id="t-source-id" type="text" [value]="textForm.sourceId" (input)="onTextField('sourceId', $any($event.target).value)" placeholder="Vd: policy-return-2026" />
+        <span class="field-hint">Định danh duy nhất để cập nhật/xoá sau này. Trùng → sẽ overwrite.</span>
+      </div>
+      <div class="field">
+        <label for="t-content">Nội dung <span style="color:#ba1a1a">*</span></label>
+        <textarea id="t-content" rows="8" [value]="textForm.content" (input)="onTextField('content', $any($event.target).value)" placeholder="Văn bản sẽ được embed vào vector store…"></textarea>
+      </div>
+
+      @if (textError(); as e) {
+        <span class="field-error">{{ e }}</span>
+      }
+
+      <div style="margin-top: 12px;">
+        <button type="button" class="btn-primary" (click)="submitText()" [disabled]="uploading()">
+          <span class="material-symbols-outlined">upload</span>
+          {{ uploading() ? 'Đang xử lý…' : 'Upload' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Card File -->
+    <div class="upload-card">
+      <h3>
+        <span class="material-symbols-outlined">upload_file</span>
+        Upload File (PDF / DOCX)
+      </h3>
+      <p style="font-size:13px; color:#717a68; margin: 0 0 12px;">
+        Hệ thống sẽ extract text, chia chunks và embed tự động.
+      </p>
+
+      <div
+        class="dropzone"
+        [class.dragover]="dragOver()"
+        (click)="filePicker.click()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+      >
+        <span class="material-symbols-outlined">cloud_upload</span>
+        <p>Kéo & thả file vào đây, hoặc click để chọn</p>
+        @if (selectedFile(); as f) {
+          <div class="filename">{{ f.name }} · {{ formatFileSize(f.size) }}</div>
+        } @else {
+          <div style="font-size:11px; color:#717a68; margin-top:4px;">Hỗ trợ: .pdf, .docx — tối đa 20MB</div>
+        }
+        <input
+          #filePicker
+          type="file"
+          accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+          style="display: none;"
+          (change)="onFileSelected($any($event.target).files)"
+        />
+      </div>
+
+      <div class="field">
+        <label for="f-title">Tiêu đề <span style="color:#ba1a1a">*</span></label>
+        <input id="f-title" type="text" [value]="fileForm.title" (input)="onFileField('title', $any($event.target).value)" placeholder="Vd: Hướng dẫn sử dụng" />
+      </div>
+      <div class="field">
+        <label for="f-source-type">Loại</label>
+        <select id="f-source-type" [value]="fileForm.sourceType" (change)="onFileField('sourceType', $any($event.target).value)">
+          @for (t of allSourceTypes; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-source-id">Source ID <span style="color:#ba1a1a">*</span></label>
+        <input id="f-source-id" type="text" [value]="fileForm.sourceId" (input)="onFileField('sourceId', $any($event.target).value)" placeholder="Vd: manual-onboarding-2026" />
+      </div>
+
+      @if (fileError(); as e) {
+        <span class="field-error">{{ e }}</span>
+      }
+
+      <div style="margin-top: 12px;">
+        <button type="button" class="btn-primary" (click)="submitFile()" [disabled]="uploading() || !selectedFile()">
+          <span class="material-symbols-outlined">upload</span>
+          {{ uploading() ? 'Đang xử lý…' : 'Upload file' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================= TAB: SEARCH ============================== -->
+@if (tab() === 'search') {
+  <div class="search-pane">
+    <h3 style="margin: 0 0 12px;">
+      <span class="material-symbols-outlined" style="vertical-align: -4px; color: #6db33f;">manage_search</span>
+      Test query semantic
+    </h3>
+    <p style="font-size:13px; color:#717a68; margin: 0 0 12px;">
+      Gửi câu hỏi tới vector store để xem chunks RAG retrieve được. Hữu ích để kiểm tra coverage.
+    </p>
+
+    <div class="field">
+      <label for="q-text">Query</label>
+      <input id="q-text" type="text" [value]="searchQuery()" (input)="searchQuery.set($any($event.target).value)" placeholder="Vd: Cách đổi trả hàng?" (keydown.enter)="runSearch()" />
+    </div>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+      <div class="field" style="margin: 0; flex: 1; min-width: 140px;">
+        <label for="q-topk">Top K</label>
+        <input id="q-topk" type="number" min="1" max="20" [value]="searchTopK()" (input)="searchTopK.set(+$any($event.target).value || 5)" />
+      </div>
+      <div class="field" style="margin: 0; flex: 1; min-width: 160px;">
+        <label for="q-thr">Similarity ≥</label>
+        <input id="q-thr" type="number" step="0.05" min="0" max="1" [value]="searchThreshold()" (input)="searchThreshold.set(+$any($event.target).value || 0.7)" />
+      </div>
+      <div class="field" style="margin: 0; flex: 1; min-width: 160px;">
+        <label for="q-source">Loại (filter)</label>
+        <select id="q-source" [value]="searchSourceType()" (change)="searchSourceType.set($any($event.target).value)">
+          <option value="">Tất cả</option>
+          @for (t of allSourceTypes; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button type="button" class="btn-primary" (click)="runSearch()" [disabled]="searching()">
+          <span class="material-symbols-outlined">search</span>
+          {{ searching() ? 'Đang tìm…' : 'Search' }}
+        </button>
+      </div>
+    </div>
+
+    @if (searchError(); as e) {
+      <div class="error-banner" style="margin-top: 12px;">
+        <span class="material-symbols-outlined">error</span>
+        <span>{{ e }}</span>
+      </div>
+    }
+
+    @if (searchResult()) {
+      <div class="search-results">
+        @if (searchResult()!.results.length === 0) {
+          <div class="empty">Không tìm thấy chunk nào phù hợp.</div>
+        } @else {
+          @for (r of searchResult()!.results; track $index) {
+            <div class="result-card">
+              <div class="result-meta">
+                <span class="result-similarity">sim: {{ (r.similarity * 100) | number: '1.1-1' }}%</span>
+                @if (r.sourceType) {
+                  <span class="badge" [ngClass]="badgeClass(r.sourceType)">{{ r.sourceType }}</span>
+                }
+                @if (r.sourceId) {
+                  <span style="font-family: ui-monospace, Menlo, monospace;">{{ r.sourceId }}</span>
+                }
+              </div>
+              @if (r.title) {
+                <div class="result-title">{{ r.title }}</div>
+              }
+              <div class="result-snippet">{{ r.content }}</div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- Detail modal -->
+@if (detailModal(); as doc) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ doc.title }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          <div>
+            <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em;">Loại</div>
+            <span class="badge" [ngClass]="badgeClass(doc.sourceType)">{{ doc.sourceType }}</span>
+          </div>
+          <div>
+            <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em;">Source ID</div>
+            <div style="font-size:12px; font-family: ui-monospace, Menlo, monospace;">{{ doc.sourceId || '—' }}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em;">Chunks</div>
+            <div style="font-weight:700;">{{ doc.chunkCount ?? 0 }}</div>
+          </div>
+          <div>
+            <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em;">Cập nhật</div>
+            <div>{{ formatDate(doc.updatedAt) }}</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em; margin-bottom: 6px;">Nội dung</div>
+        <div class="full-content">{{ doc.contentPreview }}</div>
+
+        @if (doc.metadata && hasMetadata(doc.metadata)) {
+          <div style="font-size:11px; font-weight:700; color:#717a68; text-transform:uppercase; letter-spacing:.06em; margin: 16px 0 6px;">Metadata</div>
+          <pre class="metadata-block">{{ doc.metadata | json }}</pre>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        <button type="button" class="btn-primary danger" (click)="confirmDelete(doc)" [disabled]="busyId() === doc.id">
+          <span class="material-symbols-outlined">delete</span>
+          Xoá
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,160 @@
+<main class="mystore-page">
+  <app-store-sidebar [activeRoute]="'/my-store/categories'"></app-store-sidebar>
+
+  <div class="mystore-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Danh mục</h1>
+        <p class="page-subtitle">Quản lý danh mục riêng của cửa hàng. Danh mục hệ thống chỉ có thể tham khảo.</p>
+      </div>
+      <button class="btn-primary" type="button" (click)="openCreate()">
+        <span class="material-symbols-outlined">add</span>
+        Thêm danh mục
+      </button>
+    </div>
+
+    @if (visible.isLoading()) {
+      <div class="state-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang tải danh mục…</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-card error">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ errorMessage() }}</p>
+        <button class="btn-link" (click)="visible.reload()">Thử lại</button>
+      </div>
+    } @else {
+      <!-- Owned categories -->
+      <section class="section-card">
+        <header class="section-header">
+          <h2>Danh mục của shop</h2>
+          <span class="badge badge-primary">{{ groups().ownedByShop.length }}</span>
+        </header>
+
+        @if (groups().ownedByShop.length === 0) {
+          <div class="empty">
+            <p>Chưa có danh mục riêng. Tạo mới để phân loại sản phẩm theo cách của bạn.</p>
+          </div>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tên</th>
+                <th>Slug</th>
+                <th>Mô tả</th>
+                <th>Danh mục cha</th>
+                <th class="th-actions">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cat of groups().ownedByShop; track cat.name) {
+                <tr>
+                  <td>
+                    <span class="cat-name">{{ cat.name }}</span>
+                    @if (!cat.isActive) {
+                      <span class="status-pill status-pill--off">Đã ẩn</span>
+                    }
+                  </td>
+                  <td class="muted">{{ cat.slug }}</td>
+                  <td class="ellipsis">{{ cat.description || '—' }}</td>
+                  <td class="muted">{{ cat.parentName || '—' }}</td>
+                  <td class="td-actions">
+                    <button class="btn-icon" type="button" (click)="openEdit(cat)" title="Sửa">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="btn-icon btn-icon--danger" type="button"
+                      (click)="confirmDelete(cat)" title="Xóa">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <!-- System categories (read-only) -->
+      <section class="section-card">
+        <header class="section-header">
+          <h2>Danh mục hệ thống</h2>
+          <span class="badge badge-neutral">{{ groups().system.length }}</span>
+        </header>
+
+        @if (groups().system.length === 0) {
+          <div class="empty">
+            <p>Chưa có danh mục hệ thống nào.</p>
+          </div>
+        } @else {
+          <div class="chip-grid">
+            @for (cat of groups().system; track cat.name) {
+              <div class="chip">
+                <span>{{ cat.name }}</span>
+                <small>{{ cat.slug }}</small>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <!-- Modal create/edit -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <form class="modal" [formGroup]="form" (ngSubmit)="submit()" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <h2>{{ modalMode() === 'create' ? 'Thêm danh mục' : 'Sửa danh mục' }}</h2>
+          <button class="btn-icon" type="button" (click)="closeModal()" aria-label="Đóng">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <label class="form-field">
+            <span class="form-label">Tên danh mục <span class="required">*</span></span>
+            <input formControlName="name" maxlength="255" placeholder="VD: Rau hữu cơ" />
+            @if (form.get('name')?.touched && form.get('name')?.invalid) {
+              <span class="form-error">Tên là bắt buộc</span>
+            }
+            @if (modalMode() === 'edit') {
+              <span class="form-hint">Tên là khóa chính, không thể đổi sau khi tạo.</span>
+            }
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Slug <span class="required">*</span></span>
+            <input formControlName="slug" maxlength="255" placeholder="rau-huu-co" />
+          </label>
+
+          <label class="form-field">
+            <span class="form-label">Mô tả</span>
+            <textarea formControlName="description" rows="3" maxlength="2000"></textarea>
+          </label>
+
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">Danh mục cha</span>
+              <input formControlName="parentName" placeholder="(tùy chọn)" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Mã nhóm</span>
+              <input formControlName="categoryGroupCode" maxlength="100" />
+            </label>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="btn-text" type="button" (click)="closeModal()">Hủy</button>
+          <button class="btn-primary" type="submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="material-symbols-outlined spin">progress_activity</span>
+            }
+            Lưu
+          </button>
+        </footer>
+      </form>
+    </div>
+  }
+</main>

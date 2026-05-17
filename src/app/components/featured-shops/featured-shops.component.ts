@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { ShopCardComponent, ShopItem } from '../shop-card/shop-card.component';
 import { ShopService, Shop } from '../../services/shop.service';
-import { HotToastService } from '@ngxpert/hot-toast';
 
 /**
  * FeaturedShopsComponent - Featured shops section
@@ -16,12 +16,50 @@ import { HotToastService } from '@ngxpert/hot-toast';
   imports: [CommonModule, ShopCardComponent],
   templateUrl: './featured-shops.component.html',
   styleUrl: './featured-shops.component.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    /**
+     * Direction-aware slide for shop pagination — shops fly in from the side
+     * the user is navigating towards. See {@code featured-products.component}
+     * for the rationale behind using `:increment` / `:decrement`.
+     */
+    trigger('pageSlide', [
+      transition(':increment', [
+        query(
+          'app-shop-card',
+          [
+            style({ opacity: 0, transform: 'translateX(28px)' }),
+            stagger(25, [
+              animate(
+                '220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                style({ opacity: 1, transform: 'translateX(0)' }),
+              ),
+            ]),
+          ],
+          { optional: true },
+        ),
+      ]),
+      transition(':decrement', [
+        query(
+          'app-shop-card',
+          [
+            style({ opacity: 0, transform: 'translateX(-28px)' }),
+            stagger(25, [
+              animate(
+                '220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                style({ opacity: 1, transform: 'translateX(0)' }),
+              ),
+            ]),
+          ],
+          { optional: true },
+        ),
+      ]),
+    ]),
+  ],
 })
 export class FeaturedShopsComponent implements OnInit {
   private shopService = inject(ShopService);
-  private toast = inject(HotToastService);
-  
+
   // All shops data
   private allShops = signal<ShopItem[]>([]);
   
@@ -41,6 +79,9 @@ export class FeaturedShopsComponent implements OnInit {
   
   // Loading state
   isLoading = signal(true);
+
+  /** Placeholder slots cho skeleton — 4 = grid 4 cột. */
+  protected readonly skeletonSlots = Array.from({ length: 4 });
   
   ngOnInit(): void {
     this.loadFeaturedShops();
@@ -51,7 +92,7 @@ export class FeaturedShopsComponent implements OnInit {
    */
   private loadFeaturedShops(): void {
     this.isLoading.set(true);
-    
+
     this.shopService.getFeaturedShops(0, 10).subscribe({
       next: (response) => {
         const shops = response.data.content.map(this.mapShopToShopItem.bind(this));
@@ -62,9 +103,13 @@ export class FeaturedShopsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading featured shops:', error);
-        // Silently fallback to mock data without showing error toast
+        // Render empty state thay vì mock data — pattern cũ (4 shop fake
+        // "Phở Bò Nam Định"/"Coffee 20"…) gây flash UI lúc navigate vì
+        // mock cards hiện trong tích tắc rồi bị real cards thay thế.
+        this.allShops.set([]);
+        this.totalPages.set(1);
+        this.updateDisplayedShops();
         this.isLoading.set(false);
-        this.loadMockData();
       }
     });
   }
@@ -84,59 +129,7 @@ export class FeaturedShopsComponent implements OnInit {
       hasPromo: true
     };
   }
-  
-  /**
-   * Load mock data as fallback
-   */
-  private loadMockData(): void {
-    const mockShops: ShopItem[] = [
-      {
-        id: '1',
-        name: 'Anh Tùng - Phở Bò Nam Định - Tây Tựu',
-        address: '340 Tây Tựu, Phường Tây Tựu, Quận Bắc Từ Liêm',
-        image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=400&h=300&fit=crop',
-        distance: 0.1,
-        rating: 4.5,
-        reviewCount: 234,
-        hasPromo: true
-      },
-      {
-        id: '2',
-        name: 'Coffee 20 - Phố Nhổn',
-        address: '12 Phố Nhổn, Phường Tây Tựu, Quận Bắc Từ Liêm',
-        image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=400&h=300&fit=crop',
-        distance: 0.1,
-        rating: 4.7,
-        reviewCount: 156,
-        hasPromo: true
-      },
-      {
-        id: '3',
-        name: 'Bún Bò Huế 65 & Bánh Mì Cay Hải Phòng - Phố Nhổn',
-        address: '65 Phố Nhổn, Phường Phương Canh, Nam Từ Liêm',
-        image: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=400&h=300&fit=crop',
-        distance: 0.1,
-        rating: 4.7,
-        reviewCount: 386,
-        hasPromo: true
-      },
-      {
-        id: '4',
-        name: 'Chè Thảo Chi - Chè Thảo Cẩm & Kem Dừa - Tự Hoàng',
-        address: '33 Tự Hoàng, Phường Phương Canh, Quận Nam Từ Liêm',
-        image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400&h=300&fit=crop',
-        distance: 0.2,
-        rating: 4.3,
-        reviewCount: 54,
-        hasPromo: true
-      }
-    ];
-    
-    this.allShops.set(mockShops);
-    this.totalPages.set(Math.ceil(mockShops.length / this.ITEMS_PER_PAGE));
-    this.updateDisplayedShops();
-  }
-  
+
   /**
    * Handle shop click
    */

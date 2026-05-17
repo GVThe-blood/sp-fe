@@ -1,0 +1,152 @@
+<div class="page-header">
+  <div>
+    <h2>Bảng điều khiển</h2>
+    <p>Tổng quan KPIs, doanh thu, và hoạt động trên toàn nền tảng</p>
+  </div>
+
+  <div class="range-tabs" role="tablist" aria-label="Khoảng thời gian">
+    @for (opt of rangeOptions; track opt.token) {
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="range() === opt.token"
+        [class.active]="range() === opt.token"
+        (click)="selectRange(opt.token)"
+      >
+        {{ opt.label }}
+      </button>
+    }
+  </div>
+</div>
+
+@if (hasError()) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ errorMessage() }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- KPI cards -->
+<div class="kpi-grid">
+  @for (kpi of kpiCards(); track kpi.id) {
+    <div class="kpi-card">
+      <div class="kpi-icon" [class]="kpi.tone">
+        <span class="material-symbols-outlined">{{ kpi.icon }}</span>
+      </div>
+      <div class="kpi-label">{{ kpi.label }}</div>
+      <div class="kpi-value">
+        @if (isLoading()) {
+          <div class="skeleton" style="height: 30px; width: 80%;"></div>
+        } @else {
+          {{ kpi.value }}
+        }
+      </div>
+      <div class="kpi-meta">
+        @if (kpi.trend !== null) {
+          <span class="kpi-trend" [class]="kpi.trendDirection">
+            <span class="material-symbols-outlined" style="font-size: 12px;">
+              {{ kpi.trendDirection === 'up' ? 'trending_up' : (kpi.trendDirection === 'down' ? 'trending_down' : 'trending_flat') }}
+            </span>
+            {{ kpi.trend }}
+          </span>
+        }
+        <span>{{ kpi.helper }}</span>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Charts row 1: Revenue + Order status -->
+<div class="cards-grid">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>Doanh thu nền tảng</h3>
+        <p>Tổng GMV của các đơn COMPLETED theo thời gian</p>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas #revenueCanvas></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>Phân bố đơn hàng</h3>
+        <p>Theo trạng thái trong khoảng đã chọn</p>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas #orderStatusCanvas></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Charts row 2: Signups + Top shops table -->
+<div class="cards-grid-2">
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>Đăng ký mới</h3>
+        <p>User và shop mới theo thời gian</p>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas #signupsCanvas></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h3>Top shop theo doanh thu</h3>
+        <p>{{ topShops().length }} shop hàng đầu trong khoảng đã chọn</p>
+      </div>
+    </div>
+
+    @if (topShops().length === 0 && !isLoading()) {
+      <div class="empty">Chưa có dữ liệu</div>
+    } @else {
+      <table class="top-shops-table">
+        <thead>
+          <tr>
+            <th>Shop</th>
+            <th class="num">Đơn</th>
+            <th class="num">Doanh thu</th>
+            <th>Đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (shop of topShops(); track shop.shopId) {
+            <tr>
+              <td>
+                <div class="shop-cell">
+                  <img
+                    class="shop-logo"
+                    [src]="shop.logoUrl || placeholderShop"
+                    [alt]="shop.shopName ?? ''"
+                    (error)="onLogoError($event)"
+                  />
+                  <div>
+                    <div class="shop-name">{{ shop.shopName || '—' }}</div>
+                    <div class="shop-id">{{ shop.shopId | slice: 0 : 8 }}…</div>
+                  </div>
+                </div>
+              </td>
+              <td class="num">{{ shop.totalOrders | number: '1.0-0' }}</td>
+              <td class="num">{{ formatVnd(shop.totalRevenue) }}</td>
+              <td>
+                <span class="rating">
+                  <span class="material-symbols-outlined">star</span>
+                  {{ shop.avgRating ? (shop.avgRating | number: '1.1-1') : '—' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

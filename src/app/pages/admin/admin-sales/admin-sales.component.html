@@ -1,0 +1,307 @@
+<div class="page-header">
+  <div>
+    <h2>Chương trình Sale</h2>
+    <p>Quản lý các chương trình khuyến mãi áp dụng theo sản phẩm</p>
+  </div>
+
+  <button type="button" class="btn-primary warm" (click)="openCreate()">
+    <span class="material-symbols-outlined">add</span>
+    Tạo chương trình
+  </button>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">flash_on</span>Đang diễn ra</span>
+    <span class="value">{{ formatNumber(liveCount()) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">schedule</span>Sắp diễn ra</span>
+    <span class="value">{{ formatNumber(upcomingCount()) }}</span>
+  </div>
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">history</span>Đã kết thúc</span>
+    <span class="value">{{ formatNumber(expiredCount()) }}</span>
+  </div>
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">local_offer</span>Tổng số</span>
+    <span class="value">{{ formatNumber(totalItems()) }}</span>
+  </div>
+</div>
+
+<div class="filters">
+  <label class="search-input">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo tiêu đề chương trình…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="min-width: 240px;">Chương trình</th>
+        <th style="width: 120px;">Giảm giá</th>
+        <th>Bắt đầu</th>
+        <th>Kết thúc</th>
+        <th style="width: 130px;">Trạng thái</th>
+        <th style="width: 100px;">Sản phẩm</th>
+        <th style="width: 130px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 30%;"></div></td>
+            <td><div class="skeleton" style="width: 50%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (items().length === 0) {
+        <tr>
+          <td colspan="7">
+            <div class="empty">Chưa có chương trình sale nào.</div>
+          </td>
+        </tr>
+      } @else {
+        @for (sale of items(); track sale.id) {
+          <tr>
+            <td>
+              <div class="cell-title">
+                <strong>{{ sale.title }}</strong>
+                @if (sale.description) {
+                  <small>{{ sale.description.length > 80 ? (sale.description.slice(0, 80) + '…') : sale.description }}</small>
+                }
+              </div>
+            </td>
+            <td>
+              <span class="percent-pill">-{{ sale.discountPercentage }}%</span>
+            </td>
+            <td>{{ formatDate(sale.startDate) }}</td>
+            <td>{{ formatDate(sale.endDate) }}</td>
+            <td>
+              <span class="badge" [ngClass]="statusClass(sale)">
+                {{ statusLabel(sale) }}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              {{ sale.productIds?.length ?? 0 }}
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <button type="button" class="icon-btn" title="Xem chi tiết" (click)="openDetail(sale)">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button type="button" class="icon-btn" title="Sửa" (click)="openEdit(sale)" [disabled]="busyId() === sale.id">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button type="button" class="icon-btn danger" title="Xoá" (click)="confirmDelete(sale)" [disabled]="busyId() === sale.id">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages() > 0 && !isLoading()) {
+    <div class="pagination">
+      <span class="summary">Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}</span>
+      <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+        <span class="material-symbols-outlined">chevron_left</span>Trước
+      </button>
+      <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Sau<span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- Detail modal -->
+@if (detailModal(); as sale) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ sale.title }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="field-grid">
+          <div class="field">
+            <label>Trạng thái</label>
+            <span><span class="badge" [ngClass]="statusClass(sale)">{{ statusLabel(sale) }}</span></span>
+          </div>
+          <div class="field">
+            <label>Giảm giá</label>
+            <span><span class="percent-pill">-{{ sale.discountPercentage }}%</span></span>
+          </div>
+          <div class="field">
+            <label>Bắt đầu</label>
+            <span>{{ formatDate(sale.startDate) }}</span>
+          </div>
+          <div class="field">
+            <label>Kết thúc</label>
+            <span>{{ formatDate(sale.endDate) }}</span>
+          </div>
+          @if (sale.conditions) {
+            <div class="field full">
+              <label>Điều kiện</label>
+              <span>{{ sale.conditions }}</span>
+            </div>
+          }
+          @if (sale.description) {
+            <div class="field full">
+              <label>Mô tả</label>
+              <span>{{ sale.description }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="field full" style="margin-top: 16px;">
+          <label>Sản phẩm áp dụng ({{ sale.productIds?.length ?? 0 }})</label>
+          <div class="product-picker">
+            @if (!sale.productIds || sale.productIds.length === 0) {
+              <div class="product-picker-empty">Chưa có sản phẩm nào. Sale sẽ không áp dụng cho ai.</div>
+            } @else {
+              @for (pid of sale.productIds; track pid) {
+                <div class="product-row">
+                  <span class="material-symbols-outlined" style="color:#717a68; font-size:16px;">inventory_2</span>
+                  <code>{{ pid }}</code>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        <button type="button" class="btn-primary" (click)="openEdit(sale)">
+          <span class="material-symbols-outlined">edit</span>
+          Chỉnh sửa
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Edit/Create modal -->
+@if (editModal()) {
+  <div class="modal-backdrop" (click)="closeEdit()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingId() ? 'Chỉnh sửa chương trình' : 'Tạo chương trình mới' }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeEdit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); submitEdit()">
+        <div class="modal-body">
+          <div class="field-grid">
+            <div class="field full">
+              <label for="s-title">Tiêu đề <span style="color:#ba1a1a">*</span></label>
+              <input id="s-title" type="text" [value]="form.title" (input)="onField('title', $any($event.target).value)" placeholder="Vd: Black Friday 2026" />
+            </div>
+
+            <div class="field">
+              <label for="s-discount">% Giảm <span style="color:#ba1a1a">*</span></label>
+              <input id="s-discount" type="number" min="0" max="100" step="0.01"
+                [value]="form.discountPercentage"
+                (input)="onField('discountPercentage', $any($event.target).value)"
+                placeholder="0–100" />
+            </div>
+
+            <div class="field">
+              <label for="s-start">Ngày bắt đầu</label>
+              <input id="s-start" type="datetime-local" [value]="form.startDate" (input)="onField('startDate', $any($event.target).value)" />
+            </div>
+
+            <div class="field">
+              <label for="s-end">Ngày kết thúc</label>
+              <input id="s-end" type="datetime-local" [value]="form.endDate" (input)="onField('endDate', $any($event.target).value)" />
+            </div>
+
+            <div class="field full">
+              <label for="s-conditions">Điều kiện áp dụng</label>
+              <input id="s-conditions" type="text" [value]="form.conditions" (input)="onField('conditions', $any($event.target).value)" placeholder="Vd: Đơn từ 200k, không cộng dồn voucher" />
+            </div>
+
+            <div class="field full">
+              <label for="s-desc">Mô tả</label>
+              <textarea id="s-desc" rows="3" [value]="form.description" (input)="onField('description', $any($event.target).value)"></textarea>
+            </div>
+
+            <div class="field full">
+              <label>Sản phẩm áp dụng ({{ form.productIds.length }})</label>
+              <div class="product-picker">
+                @if (form.productIds.length === 0) {
+                  <div class="product-picker-empty">Chưa có sản phẩm. Thêm UUID sản phẩm dưới đây.</div>
+                } @else {
+                  @for (pid of form.productIds; track pid) {
+                    <div class="product-row">
+                      <span class="material-symbols-outlined" style="color:#717a68; font-size:16px;">inventory_2</span>
+                      <code>{{ pid }}</code>
+                      <button type="button" title="Bỏ" (click)="removeProductId(pid)">
+                        <span class="material-symbols-outlined">close</span>
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <input
+                  type="text"
+                  [value]="newProductId()"
+                  (input)="newProductId.set($any($event.target).value)"
+                  placeholder="UUID sản phẩm (vd: 7e2bfb01-...)"
+                  style="flex:1; border: 1px solid #e5e9eb; border-radius: 10px; padding: 8px 12px; font-size: 13px; font-family: ui-monospace, Menlo, monospace;"
+                />
+                <button type="button" class="btn-secondary" (click)="addProductId()">
+                  <span class="material-symbols-outlined">add</span>
+                  Thêm
+                </button>
+              </div>
+              <span class="field-hint">Tạm thời chấp nhận UUID. Có thể nâng cấp thành product picker sau.</span>
+            </div>
+          </div>
+
+          @if (formError(); as e) {
+            <span class="field-error">{{ e }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeEdit()" [disabled]="saving()">Huỷ</button>
+          <button type="submit" class="btn-primary" [disabled]="saving()">
+            <span class="material-symbols-outlined">save</span>
+            {{ saving() ? 'Đang lưu…' : (editingId() ? 'Cập nhật' : 'Tạo mới') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

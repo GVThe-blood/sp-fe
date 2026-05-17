@@ -60,3 +60,41 @@ export interface TrafficSource {
 }
 
 export type TimeRange = 'today' | 'week' | 'month' | 'year';
+
+/**
+ * Range tokens consumed by the BE /me/dashboard endpoint. Slightly different
+ * from {@link TimeRange} (the FE legacy local filter) because the BE accepts
+ * a 'quarter' bucket.
+ */
+export type DashboardRange = 'week' | 'month' | 'quarter' | 'year';
+
+/**
+ * Revenue chart series — paired revenue and order-count arrays sharing the
+ * same {@code labels} index.
+ */
+export interface RevenueChartData {
+  labels: string[];
+  revenue: number[];
+  orderCount: number[];
+}
+
+/**
+ * Doughnut breakdown of order outcomes for the active period.
+ */
+export interface OrderStatusBreakdown {
+  completed: number;
+  failed: number;
+  cancelled: number;
+  returned: number;
+  total: number;
+}
+
+/**
+ * Histogram of star ratings (1..5).
+ */
+export interface RatingDistributionData {
+  average: number;
+  total: number;
+  /** Always length 5 — index 0 = 1 star, index 4 = 5 stars. */
+  counts: number[];
+}

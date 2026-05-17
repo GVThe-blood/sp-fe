@@ -30,6 +30,7 @@ export class StoreSidebarComponent {
     { id: 'shipping', label: 'Vận chuyển', icon: 'local_shipping', route: '/my-store/shipping', section: 'operations' },
     { id: 'orders', label: 'Quản lý Đơn hàng', icon: 'receipt_long', route: '/my-store/orders', section: 'operations' },
     { id: 'products', label: 'Quản lý Sản phẩm', icon: 'inventory_2', route: '/my-store/products', section: 'operations' },
+    { id: 'categories', label: 'Quản lý Danh mục', icon: 'category', route: '/my-store/categories', section: 'operations' },
     
     // PHÂN TÍCH & TĂNG TRƯỞNG
     { id: 'analytics', label: 'Thống kê', icon: 'bar_chart', route: '/my-store/analytics', section: 'analytics' },

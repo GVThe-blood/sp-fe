@@ -1,0 +1,433 @@
+<div class="page-header">
+  <div>
+    <h2>Quản lý Shop</h2>
+    <p>Tổng quan, ban/unban, sửa thông tin và đóng cửa shop</p>
+  </div>
+</div>
+
+<!-- ===== Stats cards ===== -->
+<div class="stats-grid">
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">storefront</span>Tổng shop</span>
+    <span class="value">{{ formatNumber(stats()?.totalShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card green">
+    <span class="label"><span class="material-symbols-outlined">check_circle</span>Active</span>
+    <span class="value">{{ formatNumber(stats()?.activeShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card gray">
+    <span class="label"><span class="material-symbols-outlined">do_disturb_on</span>Inactive</span>
+    <span class="value">{{ formatNumber(stats()?.inactiveShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card red">
+    <span class="label"><span class="material-symbols-outlined">block</span>Đã ban</span>
+    <span class="value">{{ formatNumber(stats()?.bannedShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card orange">
+    <span class="label"><span class="material-symbols-outlined">pending</span>Chờ duyệt</span>
+    <span class="value">{{ formatNumber(stats()?.pendingShops ?? 0) }}</span>
+  </div>
+  <div class="stat-card purple">
+    <span class="label"><span class="material-symbols-outlined">payments</span>Tổng GMV</span>
+    <span class="value">{{ formatVndShort(stats()?.totalGmv ?? 0) }}</span>
+  </div>
+</div>
+
+<!-- ===== Filters ===== -->
+<div class="filters">
+  <label class="search-input" style="max-width: 480px;">
+    <span class="material-symbols-outlined">search</span>
+    <input
+      type="text"
+      placeholder="Tìm theo tên shop, email, số điện thoại, shopId…"
+      (input)="onSearchChange($any($event.target).value)"
+    />
+  </label>
+
+  <label class="select-input">
+    <span class="material-symbols-outlined">filter_list</span>
+    <select [value]="status()" (change)="onStatusChange($any($event.target).value)">
+      <option value="all">Tất cả trạng thái</option>
+      <option value="ACTIVE">Active</option>
+      <option value="INACTIVE">Inactive</option>
+      <option value="BANNED">Banned</option>
+      <option value="CLOSED">Closed</option>
+      <option value="PENDING_APPROVAL">Pending</option>
+    </select>
+  </label>
+</div>
+
+@if (errorMessage(); as msg) {
+  <div class="error-banner">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ msg }}</span>
+    <button type="button" (click)="reload()">Thử lại</button>
+  </div>
+}
+
+<!-- ===== Table ===== -->
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="min-width: 220px;">Shop</th>
+        <th>Liên hệ</th>
+        <th class="num">Sản phẩm</th>
+        <th class="num">Đơn</th>
+        <th class="num">Doanh thu</th>
+        <th>Đánh giá</th>
+        <th>Trạng thái</th>
+        <th style="width: 180px; text-align: right;">Hành động</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (isLoading()) {
+        @for (_ of [1,2,3,4,5]; track $index) {
+          <tr>
+            <td><div class="skeleton" style="width: 70%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 50%;"></div></td>
+            <td><div class="skeleton" style="width: 40%;"></div></td>
+            <td><div class="skeleton" style="width: 60%;"></div></td>
+            <td><div class="skeleton" style="width: 60%; margin-left: auto;"></div></td>
+          </tr>
+        }
+      } @else if (items().length === 0) {
+        <tr>
+          <td colspan="8">
+            <div class="empty">Không có shop nào khớp bộ lọc.</div>
+          </td>
+        </tr>
+      } @else {
+        @for (shop of items(); track shop.shopId) {
+          <tr>
+            <td>
+              <div class="cell-shop">
+                <img
+                  class="logo"
+                  [src]="shop.logoUrl || placeholderShop"
+                  [alt]="shop.shopName ?? ''"
+                  (error)="onLogoError($event)"
+                />
+                <div>
+                  <div class="shop-name">{{ shop.shopName || '(Chưa đặt tên)' }}</div>
+                  <div class="shop-id">{{ shop.shopId.slice(0, 8) }}…</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>{{ shop.email || '—' }}</div>
+              <div style="color:#717a68; font-size:11px;">{{ shop.phoneNumber || '—' }}</div>
+            </td>
+            <td class="num">{{ formatNumber(shop.totalProducts) }}</td>
+            <td class="num">{{ formatNumber(shop.totalOrders) }}</td>
+            <td class="num">{{ formatVndShort(shop.totalRevenue) }}</td>
+            <td>
+              @if (shop.avgStar !== null && shop.avgStar !== undefined && shop.avgStar > 0) {
+                <span class="rating">
+                  <span class="material-symbols-outlined">star</span>
+                  {{ shop.avgStar | number: '1.1-1' }}
+                  <span style="color:#717a68; font-weight:500;">({{ shop.totalFeedback || 0 }})</span>
+                </span>
+              } @else {
+                <span style="color:#717a68;">—</span>
+              }
+            </td>
+            <td>
+              <span class="badge" [ngClass]="statusClass(shop.shopStatus)">
+                {{ statusLabel(shop.shopStatus) }}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div class="row-actions">
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Xem chi tiết"
+                  (click)="openDetail(shop)"
+                >
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
+                <button
+                  type="button"
+                  class="icon-btn"
+                  title="Sửa"
+                  (click)="openEdit(shop)"
+                  [disabled]="busyId() === shop.shopId"
+                >
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                @if (shop.shopStatus === 'BANNED') {
+                  <button
+                    type="button"
+                    class="icon-btn success"
+                    title="Bỏ ban"
+                    (click)="unban(shop)"
+                    [disabled]="busyId() === shop.shopId"
+                  >
+                    <span class="material-symbols-outlined">check_circle</span>
+                  </button>
+                } @else if (shop.shopStatus !== 'CLOSED') {
+                  <button
+                    type="button"
+                    class="icon-btn danger"
+                    title="Ban shop"
+                    (click)="openBan(shop)"
+                    [disabled]="busyId() === shop.shopId"
+                  >
+                    <span class="material-symbols-outlined">block</span>
+                  </button>
+                }
+                @if (shop.shopStatus !== 'CLOSED') {
+                  <button
+                    type="button"
+                    class="icon-btn warn"
+                    title="Đóng cửa shop"
+                    (click)="confirmClose(shop)"
+                    [disabled]="busyId() === shop.shopId"
+                  >
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      }
+    </tbody>
+  </table>
+
+  @if (totalPages() > 0 && !isLoading()) {
+    <div class="pagination">
+      <span class="summary">
+        Hiển thị {{ rangeFrom() }}–{{ rangeTo() }} / {{ totalItems() }}
+      </span>
+      <button type="button" (click)="prevPage()" [disabled]="page() === 0">
+        <span class="material-symbols-outlined">chevron_left</span>
+        Trước
+      </button>
+      <span class="page-num">{{ page() + 1 }} / {{ totalPages() }}</span>
+      <button type="button" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+        Sau
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  }
+</div>
+
+<!-- ===== Detail modal ===== -->
+@if (detailModal(); as shop) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ shop.shopName || 'Shop #' + shop.shopId.slice(0, 8) }}</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeDetail()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        @if (shop.shopStatus === 'BANNED' && shop.bannedReason) {
+          <div class="ban-warning">
+            <strong>Shop đang bị ban</strong> bởi <em>{{ shop.bannedBy }}</em> lúc
+            {{ formatDate(shop.bannedAt) }}.
+            <div style="margin-top: 6px;">Lý do: {{ shop.bannedReason }}</div>
+          </div>
+        }
+
+        <div class="detail-section-title first">Trạng thái & ID</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Trạng thái</span>
+            <span class="value">
+              <span class="badge" [ngClass]="statusClass(shop.shopStatus)">{{ statusLabel(shop.shopStatus) }}</span>
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Shop ID</span>
+            <span class="value" style="font-family: ui-monospace, Menlo, monospace;">{{ shop.shopId }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Owner ID</span>
+            <span class="value" style="font-family: ui-monospace, Menlo, monospace;">{{ shop.ownerId || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Mức shop</span>
+            <span class="value">Lv. {{ shop.shopLevel || 0 }}</span>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Hiệu năng</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="label">Sản phẩm</span>
+            <span class="value">{{ formatNumber(shop.totalProducts) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Đơn hoàn tất</span>
+            <span class="value">{{ formatNumber(shop.totalOrders) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Doanh thu</span>
+            <span class="value">{{ formatVnd(shop.totalRevenue) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Đánh giá trung bình</span>
+            <span class="value">
+              {{ shop.avgStar ? (shop.avgStar | number: '1.1-1') : '—' }} / 5 ·
+              {{ shop.totalFeedback || 0 }} feedback
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-section-title">Liên hệ & Loại hình</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">Email</span><span class="value">{{ shop.email || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Số điện thoại</span><span class="value">{{ shop.phoneNumber || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Thành phố</span><span class="value">{{ shop.city || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Tỉnh</span><span class="value">{{ shop.province || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Loại shop</span><span class="value">{{ shop.shopType || '—' }}</span></div>
+          <div class="detail-item"><span class="label">Loại hình</span><span class="value">{{ shop.businessType || '—' }}</span></div>
+        </div>
+
+        <div class="detail-section-title">Thời gian</div>
+        <div class="detail-grid">
+          <div class="detail-item"><span class="label">Tạo lúc</span><span class="value">{{ formatDate(shop.createdAt) }}</span></div>
+          <div class="detail-item"><span class="label">Cập nhật cuối</span><span class="value">{{ formatDate(shop.updatedAt) }}</span></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDetail()">Đóng</button>
+        <button type="button" class="btn-primary" (click)="openEdit(shop)">
+          <span class="material-symbols-outlined">edit</span>
+          Chỉnh sửa
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ===== Edit modal ===== -->
+@if (editModal(); as shop) {
+  <div class="modal-backdrop" (click)="closeEdit()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Chỉnh sửa "{{ shop.shopName }}"</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeEdit()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); submitEdit()">
+        <div class="modal-body">
+          <div class="detail-grid">
+            <div class="field">
+              <label for="ed-name">Tên shop</label>
+              <input id="ed-name" type="text" [value]="editForm.shopName" (input)="onEditField('shopName', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-shop-type">Loại shop</label>
+              <input id="ed-shop-type" type="text" [value]="editForm.shopType" (input)="onEditField('shopType', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-business-type">Loại hình KD</label>
+              <input id="ed-business-type" type="text" [value]="editForm.businessType" (input)="onEditField('businessType', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-tax">Tax ID</label>
+              <input id="ed-tax" type="text" [value]="editForm.taxId" (input)="onEditField('taxId', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-email">Email</label>
+              <input id="ed-email" type="email" [value]="editForm.email" (input)="onEditField('email', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-phone">Số điện thoại</label>
+              <input id="ed-phone" type="text" [value]="editForm.phoneNumber" (input)="onEditField('phoneNumber', $any($event.target).value)" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="ed-addr">Địa chỉ</label>
+              <input id="ed-addr" type="text" [value]="editForm.shopAddress" (input)="onEditField('shopAddress', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-city">Thành phố</label>
+              <input id="ed-city" type="text" [value]="editForm.city" (input)="onEditField('city', $any($event.target).value)" />
+            </div>
+            <div class="field">
+              <label for="ed-prov">Tỉnh</label>
+              <input id="ed-prov" type="text" [value]="editForm.province" (input)="onEditField('province', $any($event.target).value)" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="ed-active">Giờ hoạt động</label>
+              <input id="ed-active" type="text" [value]="editForm.activeHours" (input)="onEditField('activeHours', $any($event.target).value)" placeholder="vd: 08:00 - 22:00" />
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label for="ed-intro">Giới thiệu</label>
+              <textarea id="ed-intro" rows="3" [value]="editForm.introduction" (input)="onEditField('introduction', $any($event.target).value)"></textarea>
+            </div>
+          </div>
+          @if (editError(); as e) {
+            <span class="field-error">{{ e }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeEdit()" [disabled]="busyId()">Huỷ</button>
+          <button type="submit" class="btn-primary" [disabled]="busyId()">
+            <span class="material-symbols-outlined">save</span>
+            {{ busyId() ? 'Đang lưu…' : 'Lưu thay đổi' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ===== Ban modal ===== -->
+@if (banModal(); as shop) {
+  <div class="modal-backdrop" (click)="closeBan()">
+    <div class="modal" style="max-width: 520px;" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Ban shop "{{ shop.shopName }}"</h3>
+        <button type="button" class="modal-close" aria-label="Đóng" (click)="closeBan()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="$event.preventDefault(); submitBan()">
+        <div class="modal-body">
+          <div class="ban-warning">
+            <strong>Cảnh báo:</strong> Ban shop sẽ ngừng toàn bộ giao dịch và ẩn shop khỏi trang chủ.
+            Owner không thể tự reactivate; chỉ admin mới unban được.
+          </div>
+
+          <div class="field danger">
+            <label for="ban-reason">Lý do vi phạm <span style="color:#ba1a1a">*</span></label>
+            <textarea
+              id="ban-reason"
+              rows="5"
+              [value]="banReason()"
+              (input)="onBanReasonChange($any($event.target).value)"
+              placeholder="Vd: Bán sản phẩm vi phạm chính sách, lừa đảo người dùng, fake giấy tờ…"
+            ></textarea>
+            <span class="field-hint">Lý do sẽ hiển thị cho shop owner và lưu vào audit log.</span>
+          </div>
+          @if (banError(); as e) {
+            <span class="field-error">{{ e }}</span>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeBan()" [disabled]="busyId()">Huỷ</button>
+          <button type="submit" class="btn-primary danger" [disabled]="busyId()">
+            <span class="material-symbols-outlined">block</span>
+            {{ busyId() ? 'Đang xử lý…' : 'Xác nhận ban' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

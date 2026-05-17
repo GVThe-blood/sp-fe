@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit, effect, output } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { animate, query, stagger, style, transition, trigger } from '@angular/animations';
 import { ProductItemComponent, ProductItem } from '../product-item/product-item.component';
 import { ProductService, Product } from '../../services/product.service';
-import { HotToastService } from '@ngxpert/hot-toast';
 
 @Component({
   selector: 'app-featured-products',
@@ -11,11 +11,55 @@ import { HotToastService } from '@ngxpert/hot-toast';
   templateUrl: './featured-products.component.html',
   styleUrl: './featured-products.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    /**
+     * Page-change animation for the product grid.
+     *
+     * Uses Angular's built-in `:increment` / `:decrement` transitions so that
+     * navigating to a higher page slides items in from the right while
+     * navigating to a lower page slides them in from the left — no extra
+     * direction-tracking state required. Items are staggered by 25ms each so
+     * the row reveals as a quick wave instead of a single bulk flash.
+     *
+     * Total duration capped under 250ms to stay snappy ("animation nhanh vào").
+     */
+    trigger('pageSlide', [
+      transition(':increment', [
+        query(
+          'app-product-item',
+          [
+            style({ opacity: 0, transform: 'translateX(28px)' }),
+            stagger(25, [
+              animate(
+                '220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                style({ opacity: 1, transform: 'translateX(0)' }),
+              ),
+            ]),
+          ],
+          { optional: true },
+        ),
+      ]),
+      transition(':decrement', [
+        query(
+          'app-product-item',
+          [
+            style({ opacity: 0, transform: 'translateX(-28px)' }),
+            stagger(25, [
+              animate(
+                '220ms cubic-bezier(0.22, 1, 0.36, 1)',
+                style({ opacity: 1, transform: 'translateX(0)' }),
+              ),
+            ]),
+          ],
+          { optional: true },
+        ),
+      ]),
+    ]),
+  ],
 })
 export class FeaturedProductsComponent implements OnInit {
   private productService = inject(ProductService);
-  private toast = inject(HotToastService);
-  
+
   // Output events to parent
   productClicked = output<ProductItem>();
   addToCartClicked = output<ProductItem>();
@@ -39,6 +83,9 @@ export class FeaturedProductsComponent implements OnInit {
   
   // Loading state
   isLoading = signal(true);
+
+  /** Placeholder slots dùng để render skeleton lúc load lần đầu. 6 = 3 cột × 2 hàng. */
+  protected readonly skeletonSlots = Array.from({ length: 6 });
   
   ngOnInit(): void {
     this.loadRecommendedProducts();
@@ -49,7 +96,7 @@ export class FeaturedProductsComponent implements OnInit {
    */
   private loadRecommendedProducts(): void {
     this.isLoading.set(true);
-    
+
     this.productService.getRecommendedProducts(0, 20).subscribe({
       next: (response) => {
         const products = response.data.content.map(this.mapProductToProductItem.bind(this));
@@ -60,9 +107,15 @@ export class FeaturedProductsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading recommended products:', error);
-        // Silently fallback to mock data without showing error toast
+        // Khi API fail, render empty state thay vì mock data. Trước đây ta
+        // fallback sang mock products ("Cơm Gà Xối Mỡ", "Phở Bò"…) nhưng
+        // pattern này gây flash UI lúc navigate giữa trang — mock cards
+        // hiện trong tích tắc rồi bị real cards thay → user thấy "thẻ thừa".
+        // Empty state cho biết chính xác trạng thái và không spam fake data.
+        this.allProducts.set([]);
+        this.totalPages.set(1);
+        this.updateDisplayedProducts();
         this.isLoading.set(false);
-        this.loadMockData();
       }
     });
   }
@@ -73,63 +126,39 @@ export class FeaturedProductsComponent implements OnInit {
   private mapProductToProductItem(product: Product): ProductItem {
     const images = this.productService.parseImages(product.images);
     const firstImage = images.length > 0 ? images[0] : this.productService.getFirstImage(product);
-    
+
+    // BE serialises BigDecimal as JSON number; defensive parse handles
+    // both string and number representations.
+    const rawPrice: any = product.price;
+    const numericPrice =
+      typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice ?? '0');
+
+    // BE thêm originalPrice + discountPercentage khi product có sale active.
+    const rawOriginal: any = product.originalPrice;
+    const numericOriginal =
+      rawOriginal != null
+        ? typeof rawOriginal === 'number'
+          ? rawOriginal
+          : parseFloat(rawOriginal)
+        : undefined;
+
     return {
       id: product.id,
       name: product.name,
       shopName: product.shopName || 'Unknown Shop',
       description: product.description || '',
       image: firstImage,
-      price: parseFloat(product.price),
+      price: numericPrice,
+      // Chỉ truyền originalPrice xuống UI khi thật sự có sale (giá gốc > giá hiện tại).
+      originalPrice:
+        numericOriginal != null && numericOriginal > numericPrice
+          ? numericOriginal
+          : undefined,
       sold: 0, // TODO: Get from product stats
       rating: product.averageRating || 0
     };
   }
-  
-  /**
-   * Load mock data as fallback
-   */
-  private loadMockData(): void {
-    const mockProducts: ProductItem[] = [
-      {
-        id: '1',
-        name: 'Cơm Gà Xối Mỡ',
-        shopName: 'Quán Cô Ba',
-        description: 'Đặc sản Hội An',
-        image: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=600&h=600&fit=crop',
-        price: 39000,
-        originalPrice: 45000,
-        sold: 1200,
-        rating: 4.8
-      },
-      {
-        id: '2',
-        name: 'Phở Bò Tái Nạm',
-        shopName: 'Phở Hà Nội',
-        description: 'Món ăn truyền thống',
-        image: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=600&h=600&fit=crop',
-        price: 35000,
-        sold: 850,
-        rating: 4.9
-      },
-      {
-        id: '3',
-        name: 'Bánh Mì Thịt Nướng',
-        shopName: 'Bánh Mì Huỳnh Hoa',
-        description: 'Giòn tan, thơm ngon',
-        image: 'https://images.unsplash.com/photo-1598511726623-d2e9996892f0?w=600&h=600&fit=crop',
-        price: 25000,
-        originalPrice: 30000,
-        sold: 2000,
-        rating: 4.7
-      }
-    ];
-    
-    this.allProducts.set(mockProducts);
-    this.totalPages.set(Math.ceil(mockProducts.length / this.ITEMS_PER_PAGE));
-    this.updateDisplayedProducts();
-  }
-  
+
   onProductClick(product: ProductItem): void {
     this.productClicked.emit(product);
   }

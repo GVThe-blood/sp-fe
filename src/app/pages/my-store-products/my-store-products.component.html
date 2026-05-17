@@ -1,0 +1,208 @@
+<main class="mystore-page">
+  <app-store-sidebar [activeRoute]="'/my-store/products'"></app-store-sidebar>
+
+  <div class="mystore-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Sản phẩm</h1>
+        <p class="page-subtitle">Quản lý kho hàng, giá, và mô tả sản phẩm của cửa hàng.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" type="button" (click)="reload()" [disabled]="products.isLoading()">
+          <span class="material-symbols-outlined" [class.spin-mini]="products.isLoading()">refresh</span>
+          Làm mới
+        </button>
+        <button class="btn-primary" type="button" (click)="openCreate()">
+          <span class="material-symbols-outlined">add</span>
+          Thêm sản phẩm
+        </button>
+      </div>
+    </div>
+
+    @if (products.isLoading() && items().length === 0) {
+      <div class="state-card">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        <p>Đang tải sản phẩm…</p>
+      </div>
+    } @else if (errorMessage()) {
+      <div class="state-card error">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ errorMessage() }}</p>
+        <button class="btn-link" (click)="reload()">Thử lại</button>
+      </div>
+    } @else {
+      <section class="section-card">
+        <header class="section-header">
+          <h2>Danh sách sản phẩm</h2>
+          <span class="badge badge-primary">{{ totalElements() }} sản phẩm</span>
+        </header>
+
+        @if (items().length === 0) {
+          <div class="empty">
+            <p>Chưa có sản phẩm nào. Hãy thêm sản phẩm đầu tiên.</p>
+          </div>
+        } @else {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Giá</th>
+                <th>Tồn</th>
+                <th>Đánh giá</th>
+                <th class="th-actions">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of items(); track p.id) {
+                <tr>
+                  <td>
+                    <div class="product-row">
+                      <img [src]="previewImage(p)" [alt]="p.name" class="product-thumb" />
+                      <div>
+                        <div class="product-name">{{ p.name }}</div>
+                        <div class="muted">{{ p.description || '—' }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="strong">{{ formatPrice(p.price) }}</td>
+                  <td>
+                    <span class="stock-pill"
+                      [class.low]="p.quantity > 0 && p.quantity < 50"
+                      [class.empty]="p.quantity === 0">
+                      {{ p.quantity }}
+                    </span>
+                  </td>
+                  <td class="muted">
+                    @if (p.averageRating != null) {
+                      ★ {{ p.averageRating.toFixed(1) }} ({{ p.totalFeedbacks }})
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td class="td-actions">
+                    <button class="btn-icon" type="button" (click)="openEdit(p)" title="Sửa">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="btn-icon btn-icon--danger" type="button" (click)="confirmDelete(p)" title="Xóa">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <div class="pagination">
+              <button class="btn-icon" (click)="prevPage()" [disabled]="page() === 0">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+              <span class="pagination-info">Trang {{ page() + 1 }} / {{ totalPages() }}</span>
+              <button class="btn-icon" (click)="nextPage()" [disabled]="page() + 1 >= totalPages()">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+
+  <!-- Modal create/edit -->
+  @if (showModal()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <form class="modal modal--lg" [formGroup]="form" (ngSubmit)="submit()" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+        <header class="modal-header">
+          <h2>{{ modalMode() === 'create' ? 'Thêm sản phẩm' : 'Sửa sản phẩm' }}</h2>
+          <button class="btn-icon" type="button" (click)="closeModal()" aria-label="Đóng">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <div class="form-grid">
+            <label class="form-field form-field--full">
+              <span class="form-label">Tên sản phẩm <span class="required">*</span></span>
+              <input formControlName="name" maxlength="100" placeholder="VD: Cải xoăn hữu cơ" />
+              @if (form.get('name')?.touched && form.get('name')?.invalid) {
+                <span class="form-error">Tên 3–100 ký tự</span>
+              }
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">SKU <span class="required">*</span></span>
+              <input formControlName="sku" placeholder="VG-001-KLE" />
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Danh mục <span class="required">*</span></span>
+              <select formControlName="categoryName">
+                <option value="">— Chọn danh mục —</option>
+                @for (c of (categories.value() ?? []); track c.name) {
+                  <option [value]="c.name">{{ c.name }} {{ c.shopId ? '(của shop)' : '' }}</option>
+                }
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Giá bán (VND) <span class="required">*</span></span>
+              <input type="number" min="0" formControlName="price" />
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Giá nhập (VND) <span class="required">*</span></span>
+              <input type="number" min="0" formControlName="wholesalePrice" />
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Tồn kho <span class="required">*</span></span>
+              <input type="number" min="0" formControlName="quantity" />
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">Trạng thái</span>
+              <select formControlName="status">
+                <option value="AVAILABLE">Đang bán</option>
+                <option value="OUT_OF_STOCK">Hết hàng</option>
+                <option value="DISABLED">Tạm ẩn</option>
+              </select>
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">NSX</span>
+              <input type="date" formControlName="msg" />
+            </label>
+
+            <label class="form-field">
+              <span class="form-label">HSD</span>
+              <input type="date" formControlName="exp" />
+            </label>
+
+            <label class="form-field form-field--full">
+              <span class="form-label">Mô tả</span>
+              <textarea formControlName="description" rows="3"></textarea>
+            </label>
+
+            <label class="form-field form-field--full">
+              <span class="form-label">Ảnh sản phẩm</span>
+              <textarea formControlName="images" rows="3"
+                placeholder="Mỗi URL trên một dòng (hoặc cách nhau bằng dấu phẩy)"></textarea>
+              <span class="form-hint">Tải ảnh lên MinIO sẽ được hỗ trợ ở Pha 2.</span>
+            </label>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button class="btn-text" type="button" (click)="closeModal()">Hủy</button>
+          <button class="btn-primary" type="submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="material-symbols-outlined spin">progress_activity</span>
+            }
+            Lưu
+          </button>
+        </footer>
+      </form>
+    </div>
+  }
+</main>

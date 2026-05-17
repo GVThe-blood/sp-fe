@@ -16,19 +16,22 @@
   <!-- Navigation Menu -->
   <nav class="menu">
     @for (item of menuItems(); track item.id) {
-      <a 
+      <a
         [routerLink]="item.route"
         class="menu-item"
         [class.active]="isActive(item.route)"
         [class.sale-item]="item.isSpecial"
         [class.sale-active]="item.isSpecial && item.saleEventName">
-        <span 
+        <span
           class="material-symbols-outlined menu-icon"
           [class.filled]="isActive(item.route)"
           [style.font-variation-settings]="isActive(item.route) ? '\'FILL\' 1' : '\'FILL\' 0'">{{ item.icon }}</span>
         <span class="menu-label">{{ item.label }}</span>
         @if (item.isSpecial && item.saleEventName) {
           <span class="sale-badge">HOT</span>
+        }
+        @if (item.id === 'cart' && cartCount() > 0) {
+          <span class="cart-count-badge">{{ cartCount() }}</span>
         }
       </a>
     }

@@ -1,5 +1,6 @@
 import { Injectable, signal, inject, DestroyRef, computed } from '@angular/core';
 import { Client, IFrame } from '@stomp/stompjs';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
 import { environment } from '../../environments/environment';
 
@@ -15,6 +16,31 @@ export interface AIMessageResponse {
   message: string;
   response: string;
   timestamp: string;
+}
+
+/**
+ * Match BE `AIAssistantService.CardSearchResult`.
+ */
+export interface AIProductCard {
+  id: string;
+  name: string;
+  price: number | string;
+  image?: string;
+  description?: string;
+  averageRating?: number;
+  shopName?: string;
+}
+export interface AIShopCard {
+  id: string;
+  name: string;
+  logo?: string;
+  introduction?: string;
+  totalProducts?: number;
+  totalSold?: number;
+}
+export interface AICardPayload {
+  products?: AIProductCard[];
+  shops?: AIShopCard[];
 }
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -47,6 +73,19 @@ export class WebSocketService {
   aiChunk = signal<{ value: string; ts: number }>({ value: '', ts: 0 });
   aiComplete = signal<{ value: string; ts: number }>({ value: '', ts: 0 });
   aiError = signal<{ value: string; ts: number }>({ value: '', ts: 0 });
+  // Cards (product/shop) gửi từ BE sau khi stream text xong.
+  // Match BE record `CardSearchResult { products: ProductCard[]; shops: ShopCard[] }`.
+  aiCards = signal<{ value: AICardPayload | null; ts: number }>({ value: null, ts: 0 });
+
+  /**
+   * conversationId hiện tại. Format: `ai-{userId}-{suffix}`.
+   * - `default` cho session đầu tiên
+   * - timestamp khi user bấm "New conversation" → BE thấy conversationId chưa từng có,
+   *   memory rỗng → coi như cuộc hội thoại mới mà không cần xóa lịch sử cũ.
+   * Lưu sessionStorage để giữ qua reload trong cùng tab.
+   */
+  private _activeConversationId = signal<string | null>(null);
+  activeConversationId = this._activeConversationId.asReadonly();
 
   // Computed signals
   isConnected = computed(() => this.connectionState() === 'connected');
@@ -62,16 +101,39 @@ export class WebSocketService {
   }
 
   /**
-   * Connect to WebSocket - chỉ gọi khi đã có token.
-   * Auto-retry với exponential backoff khi gặp lỗi network.
+   * Connect to WebSocket. Tự refresh token nếu sessionStorage trống.
    */
-  connect(): void {
+  async connect(): Promise<void> {
+    // Nếu state nói đã connected nhưng client không active → force reconnect
+    const state = this.connectionState();
+    if (state === 'connected' && !this.client?.active) {
+      console.warn('[WebSocket] State desync - force reconnect');
+      this.connectionState.set('disconnected');
+    }
+    
     if (this.client?.active) {
       console.log('[WebSocket] Already active, skip connect');
       return;
     }
 
-    const token = this.authService.getCookie('ACCESS_TOKEN');
+    let token = this.authService.getAccessToken();
+    
+    // Token không có (tab mới mở, sessionStorage trống) → thử refresh từ cookie
+    if (!token && this.authService.isAuthenticated()) {
+      console.log('[WebSocket] No token in sessionStorage, attempting refresh...');
+      try {
+        const response = await firstValueFrom(this.authService.refreshToken());
+        token = response?.data?.accessToken || null;
+        if (token) {
+          console.log('[WebSocket] ✅ Token refreshed successfully');
+        }
+      } catch (err) {
+        console.error('[WebSocket] ❌ Refresh failed:', err);
+        this.connectionState.set('error');
+        return;
+      }
+    }
+    
     if (!token) {
       console.error('[WebSocket] ❌ No token - cannot connect');
       this.connectionState.set('error');
@@ -117,10 +179,11 @@ export class WebSocketService {
         const message = frame.headers['message'] || 'Unknown STOMP error';
         console.error('[WebSocket] ❌ STOMP error:', message, frame.body);
 
-        // Token expired - clear state, không retry
-        if (message.includes('TOKEN_EXPIRED') || message.includes('Authentication')) {
-          console.warn('[WebSocket] Auth failed, not retrying');
-          this.connectionState.set('error');
+        // Token expired hoặc auth failed → thử refresh token rồi reconnect
+        if (message.includes('TOKEN_EXPIRED') || message.includes('Authentication') || message.includes('expired')) {
+          console.warn('[WebSocket] Token expired, attempting refresh...');
+          this.connectionState.set('disconnected');
+          this.refreshAndReconnect();
           return;
         }
 
@@ -176,6 +239,43 @@ export class WebSocketService {
       this.isTyping.set(false);
       this.aiError.set({ value: msg.body, ts: Date.now() });
     });
+
+    this.client.subscribe('/user/queue/ai-assistant/cards', (msg) => {
+      try {
+        const payload = JSON.parse(msg.body) as AICardPayload;
+        const productCount = payload.products?.length ?? 0;
+        const shopCount = payload.shops?.length ?? 0;
+        console.log(`[WebSocket] 🎴 Cards received - products: ${productCount}, shops: ${shopCount}`);
+        this.aiCards.set({ value: payload, ts: Date.now() });
+      } catch (err) {
+        console.warn('[WebSocket] Cannot parse cards payload:', err);
+      }
+    });
+  }
+
+  /**
+   * Refresh token rồi reconnect WebSocket.
+   * Dùng khi token expired hoặc auth fail.
+   */
+  private async refreshAndReconnect(): Promise<void> {
+    try {
+      console.log('[WebSocket] 🔄 Refreshing token...');
+      await firstValueFrom(this.authService.refreshToken());
+      console.log('[WebSocket] ✅ Token refreshed, reconnecting...');
+      
+      // Cleanup client cũ
+      if (this.client) {
+        this.client.deactivate();
+        this.client = null;
+      }
+      
+      // Connect lại với token mới
+      this.reconnectAttempt = 0;
+      await this.connect();
+    } catch (err) {
+      console.error('[WebSocket] ❌ Refresh failed, user must re-login:', err);
+      this.connectionState.set('error');
+    }
   }
 
   /**
@@ -236,7 +336,7 @@ export class WebSocketService {
     const trimmed = message.trim();
     if (!trimmed) return;
 
-    const conversationId = `ai-${user.userId}`;
+    const conversationId = this.getOrCreateConversationId(user.userId);
     this.isTyping.set(true);
 
     this.client.publish({
@@ -244,22 +344,55 @@ export class WebSocketService {
       body: JSON.stringify({ message: trimmed, conversationId })
     });
 
-    console.log('[WebSocket] 📤 Sent message');
+    console.log('[WebSocket] 📤 Sent message, conv:', conversationId);
   }
 
   /**
-   * Clear AI conversation history qua REST API.
-   * Endpoint controller: DELETE /api/ai-assistant/history/{conversationId}
-   * Connect trực tiếp tới chat service vì AIAssistantController không nằm dưới
-   * route /api/v1/chat/** của Gateway.
+   * Tạo conversationId mới (format `ai-{userId}-{timestamp}`) → lần `sendAIMessage`
+   * tiếp theo sẽ dùng ID này, BE coi như cuộc hội thoại hoàn toàn mới (memory key khác).
+   * Gọi từ ChatModalComponent khi user bấm "New conversation".
+   */
+  startNewConversation(): string {
+    const user = this.authService.currentUser();
+    if (!user?.userId) {
+      throw new Error('User not authenticated');
+    }
+    const newId = `ai-${user.userId}-${Date.now()}`;
+    this._activeConversationId.set(newId);
+    sessionStorage.setItem('AI_CONVERSATION_ID', newId);
+    console.log('[WebSocket] 🆕 New conversation:', newId);
+    return newId;
+  }
+
+  /**
+   * Lấy conversationId hiện tại, tạo default nếu chưa có.
+   * Persist trong sessionStorage để chung tab giữ ID qua reload.
+   */
+  private getOrCreateConversationId(userId: string): string {
+    let id = this._activeConversationId();
+    if (id && id.startsWith(`ai-${userId}-`)) return id;
+
+    const stored = sessionStorage.getItem('AI_CONVERSATION_ID');
+    if (stored && stored.startsWith(`ai-${userId}-`)) {
+      this._activeConversationId.set(stored);
+      return stored;
+    }
+    id = `ai-${userId}-default`;
+    this._activeConversationId.set(id);
+    sessionStorage.setItem('AI_CONVERSATION_ID', id);
+    return id;
+  }
+
+  /**
+   * @deprecated Dùng `startNewConversation()` thay vì xóa history. Giữ method
+   * này để code cũ không break, vẫn gọi DELETE /api/ai-assistant/history nếu cần.
    */
   async clearAIHistory(): Promise<void> {
-    const user = this.authService.currentUser();
-    if (!user?.userId) throw new Error('User not found');
+    const id = this._activeConversationId();
+    if (!id) return;
 
-    const token = this.authService.getCookie('ACCESS_TOKEN');
-    const conversationId = `ai-${user.userId}`;
-    const url = `${environment.chatServiceUrl}/api/ai-assistant/history/${conversationId}`;
+    const token = this.getAccessTokenForRequest();
+    const url = `${environment.chatServiceUrl}/api/ai-assistant/history/${id}`;
 
     const response = await fetch(url, {
       method: 'DELETE',
@@ -270,5 +403,9 @@ export class WebSocketService {
     if (!response.ok) {
       throw new Error(`Clear history failed: HTTP ${response.status}`);
     }
+  }
+
+  private getAccessTokenForRequest(): string | null {
+    return this.authService.getAccessToken();
   }
 }

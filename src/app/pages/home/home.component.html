@@ -36,10 +36,10 @@
     <div 
       #categoryContainer
       (scroll)="updateScrollButtons(categoryContainer)"
-      class="flex items-center justify-start gap-4 overflow-x-auto hide-scrollbar py-4 px-2">
+      class="flex items-center justify-center gap-4 overflow-x-auto hide-scrollbar py-4 px-2 mx-auto max-w-fit">
       @for (category of categories(); track category.id) {
         <button
-          (click)="setActiveCategory(category.id)"
+          (click)="onCategoryClick(category)"
           [class]="category.id === activeCategoryId() ?
             'flex items-center gap-2 bg-[#6db33f] text-white px-5 py-3 rounded-full shrink-0 shadow-md transition-all hover:bg-[#5a9633] hover:-translate-y-0.5' :
             'flex items-center gap-2 bg-white text-gray-700 border border-gray-300 px-5 py-3 rounded-full shrink-0 hover:border-[#6db33f] hover:text-[#6db33f] hover:bg-green-50 transition-all'">

@@ -1,6 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -81,6 +81,7 @@ export class RegisterComponent {
   // Angular 19: Use inject() instead of constructor injection
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
 
   // Angular 19: Use signals for reactive state
@@ -153,8 +154,9 @@ export class RegisterComponent {
       this.authService.register(registerData).subscribe({
         next: (response) => {
           console.log('Registration successful:', response);
-          // Redirect to home after successful registration
-          this.router.navigate(['/']);
+          // Tôn trọng returnUrl giống login flow (vd register từ checkout)
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/';
+          this.router.navigateByUrl(returnUrl);
         },
         error: (error) => {
           console.error('Registration failed:', error);

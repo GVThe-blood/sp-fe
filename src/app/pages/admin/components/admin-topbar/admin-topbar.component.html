@@ -1,0 +1,52 @@
+<header class="topbar">
+  <button
+    type="button"
+    class="menu-toggle"
+    aria-label="Mở menu"
+    (click)="toggleSidebar.emit()"
+  >
+    <span class="material-symbols-outlined">menu</span>
+  </button>
+
+  <div class="title">
+    <h1>Admin Console</h1>
+    <p>Tổng quan hoạt động nền tảng SpringFood</p>
+  </div>
+
+  <div class="actions">
+    <a class="btn-ghost" routerLink="/" title="Xem giao diện khách hàng">
+      <span class="material-symbols-outlined">storefront</span>
+      <span class="actions-text">Xem site</span>
+    </a>
+
+    <div class="user-menu">
+      <button
+        type="button"
+        class="user-trigger"
+        (click)="menuOpen.set(!menuOpen())"
+        aria-haspopup="true"
+        [attr.aria-expanded]="menuOpen()"
+      >
+        <span class="avatar">{{ initials() }}</span>
+        <span class="user-meta">
+          <span class="user-name">{{ user?.username || 'Admin' }}</span>
+          <span class="user-role">ADMIN</span>
+        </span>
+        <span class="material-symbols-outlined chevron">expand_more</span>
+      </button>
+
+      @if (menuOpen()) {
+        <div class="dropdown" role="menu">
+          <button type="button" role="menuitem" (click)="onSwitchMode()">
+            <span class="material-symbols-outlined">swap_horiz</span>
+            Đổi chế độ
+          </button>
+          <button type="button" role="menuitem" (click)="onLogout()">
+            <span class="material-symbols-outlined">logout</span>
+            Đăng xuất
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>
